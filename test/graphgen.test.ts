@@ -21,16 +21,65 @@ describe("graph generation", () => {
     })
   });
 
+  describe('with invalid graph types', () => {
+    it('fails when an edge type references an invalid vertex type', () => {
+      expect(() => createGraph({
+        types: {
+          vertex: [{
+            name: 'User',
+            outgoing: []
+          }],
+          edge: [{
+            name: 'to-nowhere',
+            from: 'User',
+            to: 'Nowhere'
+          }]
+        }
+      })).toThrow();
+
+      expect(() => createGraph({
+        types: {
+          vertex: [{
+            name: 'User',
+            outgoing: []
+          }],
+          edge: [{
+            name: 'from-nowhere',
+            from: 'Nowhere',
+            to: 'User'
+          }]
+        }
+      })).toThrow();
+    });
+
+    it('fails when an edge distribution references a non existent edge type', () => {
+      expect(() => createGraph({
+        types: {
+          vertex: [{
+            name: 'User',
+            outgoing: [{
+              edgeType: 'User.repositories',
+              size: constant(1)
+            }]
+          }]
+        }
+      })).toThrow();
+    });
+  });
+
+
   describe("with node types, but no explicit relationships", () => {
     beforeEach(() => {
       graph = createGraph({
-        types: [{
-          name: 'User',
-          outgoing: []
-        }, {
-          name: 'Article',
-          outgoing: []
-        }]
+        types: {
+          vertex: [{
+            name: 'User',
+            outgoing: []
+          }, {
+            name: 'Article',
+            outgoing: []
+          }]
+        }
       });
     });
 
@@ -58,18 +107,23 @@ describe("graph generation", () => {
 
     beforeEach(() => {
       graph = createGraph({
-        types: [{
-          name: 'User',
-          outgoing: [{
-            name: 'posts',
+        types: {
+          edge: [{
+            name: 'User.posts',
             from: 'User',
-            to: 'BlogPost',
-            size: constant(3)
+            to: 'BlogPost'
+          }],
+          vertex: [{
+            name: 'User',
+            outgoing: [{
+              edgeType: 'User.posts',
+              size: constant(3)
+            }]
+          }, {
+            name: 'BlogPost',
+            outgoing: []
           }]
-        }, {
-          name: 'BlogPost',
-          outgoing: []
-        }],
+        },
 
       });
 

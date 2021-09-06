@@ -9,25 +9,35 @@ export interface Vertex {
 
 export interface VertexType {
   name: string;
-  outgoing: EdgeType[];
+  outgoing: EdgeDistribution[];
+}
+
+export interface Edge {
+  type: string;
+  from: number;
+  to: number;
 }
 
 export interface EdgeType {
   name: string;
   from: string;
   to: string;
+}
+
+export interface EdgeDistribution {
+  edgeType: string;
   size: Distribution<number>;
 }
 
-export interface Edge {
-  from: number;
-  to: number;
+export interface GraphTypes {
+  vertex: Record<string, VertexType>;
+  edge: Record<string, EdgeType>;
 }
 
 export interface Graph {
   seed: Seed;
   currentId: number;
-  types: Record<string, VertexType>;
+  types: GraphTypes;
   roots: Record<string, Record<number, Vertex>>;
   vertices: Record<number, Vertex>;
   from: Record<number, Edge[]>;
@@ -35,7 +45,10 @@ export interface Graph {
 }
 
 export interface GraphOptions {
-  types?: VertexType[];
+  types?: {
+    vertex?: VertexType[];
+    edge?: EdgeType[];
+  };
   seed?: Seed;
 }
 
@@ -43,11 +56,23 @@ export function createGraph(options: GraphOptions = {}): Graph {
   let currentId = 0;
   let seed = options.seed || cryptoSeed;
 
-  let types = ((options.types || []).reduce((types, t)=> {
+  let vertexTypes = (options.types?.vertex || []).reduce((types, t) => {
     return { ...types, [t.name]: t };
-  }, {} as Record<string, VertexType>));
+  }, {} as Record<string, VertexType>);
 
-  let roots = Object.keys(types).reduce((roots, name) => {
+  let edgeTypes = (options.types?.edge || []).reduce((types, t) => {
+    assert(!!vertexTypes[t.from], `edge type '${t.name}' references unknown vertex type '${t.from}'`);
+    assert(!!vertexTypes[t.to], `edge type '${t.name}' references unknown vertex type ${t.to}`);
+    return { ...types, [t.name]: t };
+  }, {} as Record<string, EdgeType>);
+
+  Object.values(vertexTypes).forEach(t => t.outgoing.forEach(o => {
+    assert(!!edgeTypes[o.edgeType], `edge distribution references unknown edge type '${o.edgeType}'`);
+  }))
+
+  let types = { vertex: vertexTypes, edge: edgeTypes };
+
+  let roots = Object.keys(types.vertex).reduce((roots, name) => {
     return { ...roots, [name]: {} };
   }, {} as Record<string, Record<number, Vertex>>);
 
@@ -61,7 +86,7 @@ export function createGraph(options: GraphOptions = {}): Graph {
 }
 
 export function createVertex(graph: Graph, typeName: string): Vertex {
-  let vertexType = graph.types[typeName];
+  let vertexType = graph.types.vertex[typeName];
   assert(!!vertexType, `unknown vertex type '${typeName}'; must be one of '${Object.keys(graph.types)}'`);
 
   let vertex = {
@@ -72,12 +97,13 @@ export function createVertex(graph: Graph, typeName: string): Vertex {
   graph.vertices[vertex.id] = vertex;
   graph.roots[typeName][vertex.id] = vertex;
 
-  for (let edgeType of vertexType.outgoing) {
-    let size = edgeType.size.sample(graph.seed);
+  for (let distribution of vertexType.outgoing) {
+    let size = distribution.size.sample(graph.seed);
     for (let i = 0; i < size; i++) {
+      let edgeType = graph.types.edge[distribution.edgeType];
       let target = createVertex(graph, edgeType.to);
 
-      let edge: Edge = { from: vertex.id, to: target.id };
+      let edge: Edge = { type: edgeType.name, from: vertex.id, to: target.id };
       graph.from[vertex.id] ||= [];
       graph.from[vertex.id].push(edge);
       graph.to[target.id] ||= [];
