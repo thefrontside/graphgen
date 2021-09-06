@@ -27,7 +27,7 @@ describe("graph generation", () => {
         types: {
           vertex: [{
             name: 'User',
-            outgoing: []
+            relationships: []
           }],
           edge: [{
             name: 'to-nowhere',
@@ -41,7 +41,7 @@ describe("graph generation", () => {
         types: {
           vertex: [{
             name: 'User',
-            outgoing: []
+            relationships: []
           }],
           edge: [{
             name: 'from-nowhere',
@@ -57,8 +57,8 @@ describe("graph generation", () => {
         types: {
           vertex: [{
             name: 'User',
-            outgoing: [{
-              edgeType: 'User.repositories',
+            relationships: [{
+              type: 'User.repositories',
               size: constant(1)
             }]
           }]
@@ -74,10 +74,10 @@ describe("graph generation", () => {
         types: {
           vertex: [{
             name: 'User',
-            outgoing: []
+            relationships: []
           }, {
             name: 'Article',
-            outgoing: []
+            relationships: []
           }]
         }
       });
@@ -115,13 +115,13 @@ describe("graph generation", () => {
           }],
           vertex: [{
             name: 'User',
-            outgoing: [{
-              edgeType: 'User.posts',
+            relationships: [{
+              type: 'User.posts',
               size: constant(3)
             }]
           }, {
             name: 'BlogPost',
-            outgoing: []
+            relationships: []
           }]
         },
 

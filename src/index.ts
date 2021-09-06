@@ -9,7 +9,7 @@ export interface Vertex {
 
 export interface VertexType {
   name: string;
-  outgoing: EdgeDistribution[];
+  relationships: Relationship[];
 }
 
 export interface Edge {
@@ -24,9 +24,10 @@ export interface EdgeType {
   to: string;
 }
 
-export interface EdgeDistribution {
-  edgeType: string;
+export interface Relationship {
+  type: string;
   size: Distribution<number>;
+  inverse?: boolean;
 }
 
 export interface GraphTypes {
@@ -66,8 +67,8 @@ export function createGraph(options: GraphOptions = {}): Graph {
     return { ...types, [t.name]: t };
   }, {} as Record<string, EdgeType>);
 
-  Object.values(vertexTypes).forEach(t => t.outgoing.forEach(o => {
-    assert(!!edgeTypes[o.edgeType], `edge distribution references unknown edge type '${o.edgeType}'`);
+  Object.values(vertexTypes).forEach(t => t.relationships.forEach(o => {
+    assert(!!edgeTypes[o.type], `edge distribution references unknown edge type '${o.type}'`);
   }))
 
   let types = { vertex: vertexTypes, edge: edgeTypes };
@@ -97,10 +98,10 @@ export function createVertex(graph: Graph, typeName: string): Vertex {
   graph.vertices[vertex.id] = vertex;
   graph.roots[typeName][vertex.id] = vertex;
 
-  for (let distribution of vertexType.outgoing) {
-    let size = distribution.size.sample(graph.seed);
+  for (let relationship of vertexType.relationships) {
+    let size = relationship.size.sample(graph.seed);
     for (let i = 0; i < size; i++) {
-      let edgeType = graph.types.edge[distribution.edgeType];
+      let edgeType = graph.types.edge[relationship.type];
       let target = createVertex(graph, edgeType.to);
 
       let edge: Edge = { type: edgeType.name, from: vertex.id, to: target.id };
