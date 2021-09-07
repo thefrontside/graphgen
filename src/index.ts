@@ -100,7 +100,9 @@ export function createVertex(graph: Graph, typeName: string, id: number = ++grap
 
   for (let relationship of vertexType.relationships) {
     let size = relationship.size.sample(graph.seed);
-    for (let i = 0; i < size; i++) {
+    let existing = graph[relationship.direction][id] || [];
+
+    for (let i = existing.length; i < size; i++) {
       let edgeType = graph.types.edge[relationship.type];
       let targetId = ++graph.currentId;
       let edge: Edge = { type: edgeType.name, from: vertex.id, to: targetId };
