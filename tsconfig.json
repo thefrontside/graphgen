@@ -1,11 +1,12 @@
 {
   "extends": "@frontside/tsconfig",
   "include": [
-    "src"
+    "src",
+    "test"
   ],
   "exclude": ["node_modules"],
   "compilerOptions": {
-    "outDir": "dist-types",
-    "rootDir": "."
+    "rootDir": ".",
+    "noEmit": true
   }
 }
