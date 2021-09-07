@@ -27,7 +27,7 @@ export interface EdgeType {
 export interface Relationship {
   type: string;
   size: Distribution<number>;
-  inverse?: boolean;
+  direction: 'from' | 'to';
 }
 
 export interface GraphTypes {
@@ -86,12 +86,12 @@ export function createGraph(options: GraphOptions = {}): Graph {
   return { currentId, seed, types, roots, vertices, from, to };
 }
 
-export function createVertex(graph: Graph, typeName: string): Vertex {
+export function createVertex(graph: Graph, typeName: string, id: number = ++graph.currentId): Vertex {
   let vertexType = graph.types.vertex[typeName];
   assert(!!vertexType, `unknown vertex type '${typeName}'; must be one of '${Object.keys(graph.types)}'`);
 
   let vertex = {
-    id: ++graph.currentId,
+    id,
     type: typeName
   };
 
@@ -102,13 +102,17 @@ export function createVertex(graph: Graph, typeName: string): Vertex {
     let size = relationship.size.sample(graph.seed);
     for (let i = 0; i < size; i++) {
       let edgeType = graph.types.edge[relationship.type];
-      let target = createVertex(graph, edgeType.to);
+      let targetId = ++graph.currentId;
+      let edge: Edge = { type: edgeType.name, from: vertex.id, to: targetId };
 
-      let edge: Edge = { type: edgeType.name, from: vertex.id, to: target.id };
       graph.from[vertex.id] ||= [];
       graph.from[vertex.id].push(edge);
-      graph.to[target.id] ||= [];
-      graph.to[target.id].push(edge);
+
+      graph.to[targetId] ||= [];
+      graph.to[targetId].push(edge);
+
+      createVertex(graph, edgeType.to, targetId);
+
     }
   }
 

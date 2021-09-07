@@ -59,6 +59,7 @@ describe("graph generation", () => {
             name: 'User',
             relationships: [{
               type: 'User.repositories',
+              direction: 'from',
               size: constant(1)
             }]
           }]
@@ -117,6 +118,7 @@ describe("graph generation", () => {
             name: 'User',
             relationships: [{
               type: 'User.posts',
+              direction: 'from',
               size: constant(3)
             }]
           }, {

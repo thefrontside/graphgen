@@ -13,13 +13,15 @@ describe('cyclic references', () => {
           name: 'User',
           relationships: [{
             type: 'User.repositories',
-            size: constant(3)
+            direction: 'from',
+            size: constant(3),
           }]
         }, {
           name: 'Repository',
           relationships: [{
             type: 'User.repositories',
-            size: constant(20)
+            direction: 'to',
+            size: constant(20),
           }]
         }],
         edge: [{
