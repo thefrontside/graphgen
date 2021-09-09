@@ -1,4 +1,6 @@
-import { Random, RNGFactory } from 'random';
+// this will prevent this code from working in the browser
+// https://github.com/transitive-bullshit/random/issues/35
+import { Random, RNGFactory } from 'random/dist/cjs/random';
 
 export interface Distribution<T> {
   description: string;
