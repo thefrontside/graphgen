@@ -1,5 +1,5 @@
 {
-  "name": "graphgen",
+  "name": "@thefrontside/graphgen",
   "version": "1.0.0",
   "description": "Graph Generator",
   "main": "dist/index.js",
