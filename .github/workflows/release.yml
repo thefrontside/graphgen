@@ -13,8 +13,6 @@ jobs:
     - uses: actions/checkout@v1
     - name: Publish Releases
       uses: thefrontside/actions/synchronize-with-npm@v1.6
-      with:
-        npm_publish: yarn publish
       env:
         GITHUB_TOKEN: ${{ secrets.FRONTSIDEJACK_GITHUB_TOKEN }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
