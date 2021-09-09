@@ -21,6 +21,7 @@ describe('polymorphic edges', () => {
       types: {
         vertex: [{
           name: 'Search',
+          fields: {},
           relationships: [{
             type: 'Search.results',
             size: constant(4),
@@ -28,9 +29,11 @@ describe('polymorphic edges', () => {
           }]
         }, {
           name: 'GithubProfile',
+          fields: {},
           relationships: []
         }, {
           name: 'LDAPProfile',
+          fields: {},
           relationships: []
         }],
         edge: [{
@@ -76,7 +79,7 @@ describe('polymorphic edges', () => {
       source = createVertex(graph, 'Search');
     });
 
-    ity('creates a set of targets according to weight', () => {
+    it('creates a set of targets according to weight', () => {
       let [one, two, three, four] = graph.from[source.id].map(({ to }) => graph.vertices[to]);
       expect(one.type).toEqual('GithubProfile');
       expect(two.type).toEqual('LDAPProfile');

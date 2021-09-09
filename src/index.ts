@@ -8,11 +8,13 @@ export * from './distribution';
 export interface Vertex {
   type: string;
   id: number;
+  fields: Record<string, unknown>;
 }
 
 export interface VertexType {
   name: string;
   relationships: Relationship[];
+  fields: Record<string, Distribution<unknown>>;
 }
 
 export interface Edge {
@@ -111,7 +113,10 @@ export function createVertex(graph: Graph, typeName: string, id: number = ++grap
 
   let vertex = {
     id,
-    type: typeName
+    type: typeName,
+    fields: Object.entries(vertexType.fields).reduce((fields, [name, distribution]) => {
+      return { ...fields, [name]: distribution.sample(graph.seed) };
+    },{})
   };
 
   graph.vertices[vertex.id] = vertex;

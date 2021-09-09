@@ -16,6 +16,7 @@ describe('the normal distribution', () => {
       types: {
         vertex: [{
           name: 'User',
+          fields: {},
           relationships: [{
             type: 'User.repositories',
             direction: 'from',
@@ -23,6 +24,7 @@ describe('the normal distribution', () => {
           }]
         }, {
           name: 'Repository',
+          fields: {},
           relationships: []
         }],
         edge: [{
