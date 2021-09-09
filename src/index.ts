@@ -1,6 +1,9 @@
 import assert from 'assert-ts';
 
-import { cryptoSeed, Seed, Distribution } from './distribution';
+import { Seed, Distribution, uniform, weighted } from './distribution';
+import seedrandom from 'seedrandom';
+
+export * from './distribution';
 
 export interface Vertex {
   type: string;
@@ -21,7 +24,7 @@ export interface Edge {
 export interface EdgeType {
   name: string;
   from: string;
-  to: string;
+  to: string | [string, ...string[]] | Record<string, number>;
 }
 
 export interface Relationship {
@@ -55,7 +58,7 @@ export interface GraphOptions {
 
 export function createGraph(options: GraphOptions = {}): Graph {
   let currentId = 0;
-  let seed = options.seed || cryptoSeed;
+  let seed = options.seed || seedrandom();
 
   let vertexTypes = (options.types?.vertex || []).reduce((types, t) => {
     return { ...types, [t.name]: t };
@@ -63,7 +66,23 @@ export function createGraph(options: GraphOptions = {}): Graph {
 
   let edgeTypes = (options.types?.edge || []).reduce((types, t) => {
     assert(!!vertexTypes[t.from], `edge type '${t.name}' references unknown vertex type '${t.from}'`);
-    assert(!!vertexTypes[t.to], `edge type '${t.name}' references unknown vertex type ${t.to}`);
+
+    let references = () => {
+      if (Array.isArray(t.to)) {
+        return t.to;
+      } else if (typeof t.to === 'string' || t.to instanceof String) {
+        return [t.to.toString()];
+      } else {
+        let typeNames = Object.keys(t.to);
+        assert(typeNames.length, `empty list of weighted sums passed into edge type 'to' field`);
+        return typeNames;
+      }
+    }
+
+    references().forEach(name => {
+      assert(!!vertexTypes[name], `edge type '${t.name}' references unknown vertex type ${name}`);
+    });
+
     return { ...types, [t.name]: t };
   }, {} as Record<string, EdgeType>);
 
@@ -113,7 +132,17 @@ export function createVertex(graph: Graph, typeName: string, id: number = ++grap
       graph.to[targetId] ||= [];
       graph.to[targetId].push(edge);
 
-      createVertex(graph, edgeType.to, targetId);
+      function getTargetType(): string {
+        if (Array.isArray(edgeType.to)) {
+          return uniform(edgeType.to).sample(graph.seed);
+        } else if (typeof edgeType.to === 'string') {
+          return edgeType.to;
+        } else {
+          return weighted<string>(Object.entries(edgeType.to) as any).sample(graph.seed);
+        }
+      }
+
+      createVertex(graph, getTargetType(), targetId);
 
     }
   }

@@ -2,9 +2,11 @@
   "name": "graphgen",
   "version": "1.0.0",
   "description": "Graph Generator",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "mocha -r ts-node/register test/**/*.test.ts"
+    "test": "mocha -r ts-node/register test/**/*.test.ts",
+    "prepack": "tsc --build tsconfig.dist.json"
   },
   "repository": {
     "type": "git",
@@ -20,10 +22,15 @@
     "@frontside/eslint-config": "^2.1.0",
     "@frontside/tsconfig": "^1.2.0",
     "@types/mocha": "^9.0.0",
+    "@types/seedrandom": "^3.0.1",
     "assert-ts": "^0.3.3",
     "expect": "^27.1.0",
     "mocha": "^9.1.1",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.2"
+  },
+  "dependencies": {
+    "random": "^3.0.6",
+    "seedrandom": "^3.0.5"
   }
 }
