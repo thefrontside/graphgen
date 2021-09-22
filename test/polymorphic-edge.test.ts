@@ -21,7 +21,6 @@ describe('polymorphic edges', () => {
       types: {
         vertex: [{
           name: 'Search',
-          fields: {},
           relationships: [{
             type: 'Search.results',
             size: constant(4),
@@ -29,11 +28,9 @@ describe('polymorphic edges', () => {
           }]
         }, {
           name: 'GithubProfile',
-          fields: {},
           relationships: []
         }, {
           name: 'LDAPProfile',
-          fields: {},
           relationships: []
         }],
         edge: [{
