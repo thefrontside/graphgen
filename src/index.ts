@@ -1,20 +1,26 @@
 import assert from 'assert-ts';
 
-import { Seed, Distribution, uniform, weighted } from './distribution';
+import { Seed, Distribution, uniform, weighted, constant } from './distribution';
 import seedrandom from 'seedrandom';
 
 export * from './distribution';
 
-export interface Vertex {
+export interface Vertex<TData = any> {
   type: string;
   id: number;
-  fields: Record<string, unknown>;
+  data: TData;
 }
+
+export interface CreateData<T = any> {
+  (source: Vertex, graph: Graph, edge: Edge): Distribution<T>
+}
+
+export type CreateDataMap<T = any> = Record<string, CreateData<T>>;
 
 export interface VertexType {
   name: string;
   relationships: Relationship[];
-  fields: Record<string, Distribution<unknown>>;
+  data?: CreateData | CreateDataMap;
 }
 
 export interface Edge {
@@ -107,16 +113,41 @@ export function createGraph(options: GraphOptions = {}): Graph {
   return { currentId, seed, types, roots, vertices, from, to };
 }
 
-export function createVertex(graph: Graph, typeName: string, id: number = ++graph.currentId): Vertex {
+export function createVertex(graph: Graph, typeName: string, id: number = ++graph.currentId, whence?: Edge): Vertex {
   let vertexType = graph.types.vertex[typeName];
   assert(!!vertexType, `unknown vertex type '${typeName}'; must be one of '${Object.keys(graph.types)}'`);
+
+  function getCreateDataDistribution(): CreateDataMap {
+    if (vertexType.data) {
+      if (typeof vertexType.data === 'function') {
+        return {
+          root: vertexType.data
+        }
+      } else {
+        return {
+          root: () => {
+            throw new Error(`no root data factory provided for '${typeName}'. It cannot be created directly`);
+          },
+          ...vertexType.data
+        }
+      }
+    } else {
+      return {
+        root: () => constant({})
+      }
+    }
+  }
+
+  let source: Vertex = whence ? graph.vertices[whence.from] : { id: -1, type: 'root', data: {}};
+  let relationshipName = whence ? whence.type : 'root';
+  let dataMap = getCreateDataDistribution()
+  let createDistribution = dataMap[relationshipName] || dataMap.root;
+  let distribution = createDistribution(source, graph, whence || { type: 'root', from: -1, to: id });
 
   let vertex = {
     id,
     type: typeName,
-    fields: Object.entries(vertexType.fields).reduce((fields, [name, distribution]) => {
-      return { ...fields, [name]: distribution.sample(graph.seed) };
-    },{})
+    data: distribution.sample(graph.seed)
   };
 
   graph.vertices[vertex.id] = vertex;
@@ -147,7 +178,7 @@ export function createVertex(graph: Graph, typeName: string, id: number = ++grap
         }
       }
 
-      createVertex(graph, getTargetType(), targetId);
+      createVertex(graph, getTargetType(), targetId, edge);
 
     }
   }

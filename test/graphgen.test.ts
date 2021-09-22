@@ -27,7 +27,6 @@ describe("graph generation", () => {
         types: {
           vertex: [{
             name: 'User',
-            fields: {},
             relationships: []
           }],
           edge: [{
@@ -42,7 +41,6 @@ describe("graph generation", () => {
         types: {
           vertex: [{
             name: 'User',
-            fields: {},
             relationships: []
           }],
           edge: [{
@@ -59,7 +57,6 @@ describe("graph generation", () => {
         types: {
           vertex: [{
             name: 'User',
-            fields: {},
             relationships: [{
               type: 'User.repositories',
               direction: 'from',
@@ -78,11 +75,9 @@ describe("graph generation", () => {
         types: {
           vertex: [{
             name: 'User',
-            fields: {},
             relationships: []
           }, {
             name: 'Article',
-            fields: {},
             relationships: []
           }]
         }
@@ -121,7 +116,6 @@ describe("graph generation", () => {
           }],
           vertex: [{
             name: 'User',
-            fields: {},
             relationships: [{
               type: 'User.posts',
               direction: 'from',
@@ -129,7 +123,6 @@ describe("graph generation", () => {
             }]
           }, {
             name: 'BlogPost',
-            fields: {},
             relationships: []
           }]
         },

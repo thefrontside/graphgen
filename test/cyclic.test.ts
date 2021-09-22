@@ -14,7 +14,6 @@ describe('cyclic references', () => {
         types: {
           vertex: [{
             name: 'User',
-            fields: {},
             relationships: [{
               type: 'User.repositories',
               direction: 'from',
@@ -22,7 +21,6 @@ describe('cyclic references', () => {
             }]
           }, {
             name: 'Repository',
-            fields: {},
             relationships: [{
               type: 'User.repositories',
               direction: 'to',
