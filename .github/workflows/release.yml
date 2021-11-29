@@ -7,12 +7,15 @@ on:
 
 jobs:
   publish-releases:
-    name: Publish Releases
-    runs-on: ubuntu-latest
+    name: Publish Release
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
-    - name: Publish Releases
-      uses: thefrontside/actions/synchronize-with-npm@v1.6
+    - name: Publish Release
+      uses: thefrontside/actions/synchronize-with-npm@v1.9
+      with:
+        before_all: yarn prepack
+        npm_publish: yarn publish
       env:
         GITHUB_TOKEN: ${{ secrets.FRONTSIDEJACK_GITHUB_TOKEN }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
