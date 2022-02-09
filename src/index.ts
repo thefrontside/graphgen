@@ -145,7 +145,7 @@ export function createVertex(graph: Graph, typeName: string, preset?: unknown, i
   let distribution = createDistribution(source, graph, whence || { type: 'root', from: -1, to: id });
 
   let sample = distribution.sample(graph.seed);
-  let data = typeof sample === 'object'  ? { ...sample, ...(preset as object) } : preset ?? sample;
+  let data = typeof sample === 'object'  ? mappend(sample, preset) : preset ?? sample;
 
   let vertex = {
     id,
@@ -204,4 +204,16 @@ export function createVertex(graph: Graph, typeName: string, preset?: unknown, i
   }
 
   return vertex;
+}
+
+function mappend(left: unknown, right: unknown) {
+  const { getOwnPropertyDescriptors } = Object;
+  if (!left) {
+    return right;
+  } else if (typeof left === 'object' ) {
+    let properties = Object.assign({}, getOwnPropertyDescriptors(left), getOwnPropertyDescriptors(right ?? {}));
+    return Object.create(Object.getPrototypeOf(left), properties);
+  } else {
+    return right;
+  }
 }

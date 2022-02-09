@@ -19,7 +19,11 @@ describe('preseeding data', () => {
           data: () => ({
             description: "Author Data",
             sample: (seed) => ({
-              name: `author ${seed()}`
+              firstName: `author ${seed()}`,
+              lastName: `${seed()}`,
+              get displayName() {
+                return `${this.firstName} ${this.lastName}`;
+              }
             })
           }),
           relationships: [{
@@ -37,9 +41,17 @@ describe('preseeding data', () => {
 
   it('can preset primary vertext data', () => {
     let vertex = createVertex(graph, 'Author', {
-      name: 'Roberta'
+      firstName: 'Roberta'
     });
-    expect(vertex.data.name).toEqual('Roberta');
+    expect(vertex.data.firstName).toEqual('Roberta');
+  });
+
+  it('can use computed properties to merge preset data with sample data', () => {
+    let vertex = createVertex(graph, 'Author', {
+      firstName: 'Roberta',
+      lastName: 'Dobalina',
+    });
+    expect(vertex.data.displayName).toEqual('Roberta Dobalina');
   });
 
   describe('on relationships', () => {
