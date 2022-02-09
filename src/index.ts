@@ -113,7 +113,7 @@ export function createGraph(options: GraphOptions = {}): Graph {
   return { currentId, seed, types, roots, vertices, from, to };
 }
 
-export function createVertex(graph: Graph, typeName: string, id: number = ++graph.currentId, whence?: Edge): Vertex {
+export function createVertex(graph: Graph, typeName: string, preset?: unknown, id: number = ++graph.currentId, whence?: Edge): Vertex {
   let vertexType = graph.types.vertex[typeName];
   assert(!!vertexType, `unknown vertex type '${typeName}'; must be one of '${Object.keys(graph.types)}'`);
 
@@ -144,17 +144,37 @@ export function createVertex(graph: Graph, typeName: string, id: number = ++grap
   let createDistribution = dataMap[relationshipName] || dataMap.root;
   let distribution = createDistribution(source, graph, whence || { type: 'root', from: -1, to: id });
 
+  let sample = distribution.sample(graph.seed);
+  let data = typeof sample === 'object'  ? { ...sample, ...(preset as object) } : preset ?? sample;
+
   let vertex = {
     id,
     type: typeName,
-    data: distribution.sample(graph.seed)
+    data
   };
 
   graph.vertices[vertex.id] = vertex;
   graph.roots[typeName][vertex.id] = vertex;
 
+
+  let relationshipPresets = preset as Record<string, unknown> | undefined;
+
   for (let relationship of vertexType.relationships) {
-    let size = relationship.size.sample(graph.seed);
+    function allocateRelated(): [number, unknown[]] {
+      let relationshipPreset = relationshipPresets != null && relationship.type in relationshipPresets ? relationshipPresets[relationship.type] : undefined;
+
+      let sampledSize = relationship.size.sample(graph.seed);
+      if (Array.isArray(relationshipPreset)) {
+        return [Math.max(relationshipPreset.length, sampledSize), relationshipPreset];
+      } else if (relationshipPreset != null) {
+        return [1, [relationshipPreset]];
+      } else {
+        return [sampledSize, []];
+      }
+    }
+
+    let [size, presets] = allocateRelated();
+
     let existing = graph[relationship.direction][id] || [];
 
     for (let i = existing.length; i < size; i++) {
@@ -178,8 +198,8 @@ export function createVertex(graph: Graph, typeName: string, id: number = ++grap
         }
       }
 
-      createVertex(graph, getTargetType(), targetId, edge);
 
+      createVertex(graph, getTargetType(), presets[i], targetId, edge);
     }
   }
 
