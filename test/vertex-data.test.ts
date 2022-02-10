@@ -1,110 +1,100 @@
-import { describe, beforeEach, it } from 'mocha';
-import expect from 'expect';
+import { assertEquals } from "./asserts.ts";
+import { constant, createGraph, createVertex, Distribution } from "../mod.ts";
 
-import { Graph, createGraph, createVertex, Distribution, constant } from '../src';
+const { test } = Deno;
 
-describe('field generation', () => {
-  let graph: Graph;
-  let countries: Distribution<string>;
-  let states: Distribution<string>;
-
-  describe("with a static distribution", () => {
-    beforeEach(() => {
-      countries = sequence('a few countries', [
-        'US', 'ZA'
-      ]);
-      states = sequence('US States', [
-        'TX', 'AK'
-      ]);
-      graph = createGraph({
-        types: {
-          vertex: [{
-            name: 'LDAPProfile',
-            relationships: [],
-            data() {
+test("field generation according to the distributions defined in vertex type", () => {
+  let countries = sequence("a few countries", [
+    "US",
+    "ZA",
+  ]);
+  let states = sequence("US States", [
+    "TX",
+    "AK",
+  ]);
+  let graph = createGraph({
+    types: {
+      vertex: [{
+        name: "LDAPProfile",
+        relationships: [],
+        data() {
+          return {
+            description: `State and Country`,
+            sample(seed) {
               return {
-                description: `State and Country`,
-                sample(seed) {
-                  return {
-                    country: countries.sample(seed),
-                    state: states.sample(seed)
-                  }
-                }
-              }
-            }
-          }]
-        }
-      })
-    });
-
-    it('generates fields according to the distributions defined in the vertex type', () => {
-      let [one, two] = [
-        createVertex(graph, 'LDAPProfile'),
-        createVertex(graph, 'LDAPProfile')
-      ];
-
-      expect(one.data.country).toEqual('US');
-      expect(one.data.state).toEqual('TX');
-
-      expect(two.data.country).toEqual('ZA');
-      expect(two.data.state).toEqual('AK');
-    });
+                country: countries.sample(seed),
+                state: states.sample(seed),
+              };
+            },
+          };
+        },
+      }],
+    },
   });
 
-  describe('with a distribution that follows from generating at an edge traversal', () => {
-    beforeEach(() => {
-      let countries = sequence('countries', ['US', 'UK']);
-      let cities = sequence('cities', ['Glasgow', 'Austin']);
-      graph = createGraph({
-        types: {
-          vertex: [{
-            name: 'Country',
-            relationships: [],
-            data: {
-              [`City.country`]: (source) => {
-                if (source.data === 'Glasgow') {
-                  return constant('UK');
-                } else {
-                  return constant('US');
-                }
-              },
-              root: () => countries
-            }
-          }, {
-            name: 'City',
-            relationships: [{
-              type: 'City.country',
-              direction: 'from',
-              size: constant(1)
-            }],
-            data: () => cities
-          }],
-          edge: [{
-            name: 'City.country',
-            from: 'City',
-            to: 'Country'
-          }]
-        }
-      })
-    });
+  let [one, two] = [
+    createVertex(graph, "LDAPProfile"),
+    createVertex(graph, "LDAPProfile"),
+  ];
 
-    it('can use the source of the traversal to parameterize the distribution', () => {
-      let [[one], [two]] = [
-        createVertex(graph, 'City'),
-        createVertex(graph, 'City')
-      ].map(city => graph.from[city.id].map(edge => graph.vertices[edge.to]));
+  assertEquals(one.data.country, "US");
+  assertEquals(one.data.state, "TX");
 
-      expect(one.data).toEqual('UK');
-      expect(two.data).toEqual('US');
-    });
-  });
+  assertEquals(two.data.country, "ZA");
+  assertEquals(two.data.state, "AK");
 });
 
-function sequence<T>(description: string, values: [first: T, ...rest: T[]]): Distribution<T> {
+test("a distribution that follows from generating at an edge traversal, can use the source vertex", () => {
+  let countries = sequence("countries", ["US", "UK"]);
+  let cities = sequence("cities", ["Glasgow", "Austin"]);
+  let graph = createGraph({
+    types: {
+      vertex: [{
+        name: "Country",
+        relationships: [],
+        data: {
+          [`City.country`]: (source) => {
+            if (source.data === "Glasgow") {
+              return constant("UK");
+            } else {
+              return constant("US");
+            }
+          },
+          root: () => countries,
+        },
+      }, {
+        name: "City",
+        relationships: [{
+          type: "City.country",
+          direction: "from",
+          size: constant(1),
+        }],
+        data: () => cities,
+      }],
+      edge: [{
+        name: "City.country",
+        from: "City",
+        to: "Country",
+      }],
+    },
+  });
+
+  let [[one], [two]] = [
+    createVertex(graph, "City"),
+    createVertex(graph, "City"),
+  ].map((city) => graph.from[city.id].map((edge) => graph.vertices[edge.to]));
+
+  assertEquals(one.data, "UK");
+  assertEquals(two.data, "US");
+});
+
+function sequence<T>(
+  description: string,
+  values: [first: T, ...rest: T[]],
+): Distribution<T> {
   let [first, ...rest] = values;
   let iterator = (function* generate() {
-    start:
-    {
+    start: {
       for (let value of [first, ...rest]) {
         yield value;
       }
@@ -115,6 +105,6 @@ function sequence<T>(description: string, values: [first: T, ...rest: T[]]): Dis
 
   return {
     description,
-    sample: () => iterator.next().value
-  }
+    sample: () => iterator.next().value,
+  };
 }

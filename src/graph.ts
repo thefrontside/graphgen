@@ -1,9 +1,16 @@
-import assert from 'assert-ts';
+// deno-lint-ignore-file no-explicit-any no-inner-declarations
+import { assert } from "https://deno.land/std@0.125.0/testing/asserts.ts";
 
-import { Seed, Distribution, uniform, weighted, constant } from './distribution';
-import seedrandom from 'seedrandom';
+import {
+  constant,
+  Distribution,
+  Seed,
+  uniform,
+  weighted,
+} from "./distribution.ts";
+import { seedrandom } from "./seedrandom.ts";
 
-export * from './distribution';
+export * from "./distribution.ts";
 
 export interface Vertex<TData = any> {
   type: string;
@@ -12,7 +19,7 @@ export interface Vertex<TData = any> {
 }
 
 export interface CreateData<T = any> {
-  (source: Vertex, graph: Graph, edge: Edge): Distribution<T>
+  (source: Vertex, graph: Graph, edge: Edge): Distribution<T>;
 }
 
 export type CreateDataMap<T = any> = Record<string, CreateData<T>>;
@@ -38,7 +45,7 @@ export interface EdgeType {
 export interface Relationship {
   type: string;
   size: Distribution<number>;
-  direction: 'from' | 'to';
+  direction: "from" | "to";
 }
 
 export interface GraphTypes {
@@ -73,30 +80,44 @@ export function createGraph(options: GraphOptions = {}): Graph {
   }, {} as Record<string, VertexType>);
 
   let edgeTypes = (options.types?.edge || []).reduce((types, t) => {
-    assert(!!vertexTypes[t.from], `edge type '${t.name}' references unknown vertex type '${t.from}'`);
+    assert(
+      !!vertexTypes[t.from],
+      `edge type '${t.name}' references unknown vertex type '${t.from}'`,
+    );
 
     let references = () => {
       if (Array.isArray(t.to)) {
         return t.to;
-      } else if (typeof t.to === 'string' || t.to instanceof String) {
+      } else if (typeof t.to === "string" || t.to instanceof String) {
         return [t.to.toString()];
       } else {
         let typeNames = Object.keys(t.to);
-        assert(typeNames.length, `empty list of weighted sums passed into edge type 'to' field`);
+        assert(
+          typeNames.length,
+          `empty list of weighted sums passed into edge type 'to' field`,
+        );
         return typeNames;
       }
-    }
+    };
 
-    references().forEach(name => {
-      assert(!!vertexTypes[name], `edge type '${t.name}' references unknown vertex type ${name}`);
+    references().forEach((name) => {
+      assert(
+        !!vertexTypes[name],
+        `edge type '${t.name}' references unknown vertex type ${name}`,
+      );
     });
 
     return { ...types, [t.name]: t };
   }, {} as Record<string, EdgeType>);
 
-  Object.values(vertexTypes).forEach(t => t.relationships.forEach(o => {
-    assert(!!edgeTypes[o.type], `edge distribution references unknown edge type '${o.type}'`);
-  }))
+  Object.values(vertexTypes).forEach((t) =>
+    t.relationships.forEach((o) => {
+      assert(
+        !!edgeTypes[o.type],
+        `edge distribution references unknown edge type '${o.type}'`,
+      );
+    })
+  );
 
   let types = { vertex: vertexTypes, edge: edgeTypes };
 
@@ -113,59 +134,85 @@ export function createGraph(options: GraphOptions = {}): Graph {
   return { currentId, seed, types, roots, vertices, from, to };
 }
 
-export function createVertex(graph: Graph, typeName: string, preset?: unknown, id: number = ++graph.currentId, whence?: Edge): Vertex {
+export function createVertex(
+  graph: Graph,
+  typeName: string,
+  preset?: unknown,
+  id: number = ++graph.currentId,
+  whence?: Edge,
+): Vertex {
   let vertexType = graph.types.vertex[typeName];
-  assert(!!vertexType, `unknown vertex type '${typeName}'; must be one of '${Object.keys(graph.types)}'`);
+  assert(
+    !!vertexType,
+    `unknown vertex type '${typeName}'; must be one of '${
+      Object.keys(graph.types)
+    }'`,
+  );
 
   function getCreateDataDistribution(): CreateDataMap {
     if (vertexType.data) {
-      if (typeof vertexType.data === 'function') {
+      if (typeof vertexType.data === "function") {
         return {
-          root: vertexType.data
-        }
+          root: vertexType.data,
+        };
       } else {
         return {
           root: () => {
-            throw new Error(`no root data factory provided for '${typeName}'. It cannot be created directly`);
+            throw new Error(
+              `no root data factory provided for '${typeName}'. It cannot be created directly`,
+            );
           },
-          ...vertexType.data
-        }
+          ...vertexType.data,
+        };
       }
     } else {
       return {
-        root: () => constant({})
-      }
+        root: () => constant({}),
+      };
     }
   }
 
-  let source: Vertex = whence ? graph.vertices[whence.from] : { id: -1, type: 'root', data: {}};
-  let relationshipName = whence ? whence.type : 'root';
-  let dataMap = getCreateDataDistribution()
+  let source: Vertex = whence
+    ? graph.vertices[whence.from]
+    : { id: -1, type: "root", data: {} };
+  let relationshipName = whence ? whence.type : "root";
+  let dataMap = getCreateDataDistribution();
   let createDistribution = dataMap[relationshipName] || dataMap.root;
-  let distribution = createDistribution(source, graph, whence || { type: 'root', from: -1, to: id });
+  let distribution = createDistribution(
+    source,
+    graph,
+    whence || { type: "root", from: -1, to: id },
+  );
 
   let sample = distribution.sample(graph.seed);
-  let data = typeof sample === 'object'  ? mappend(sample, preset) : preset ?? sample;
+  let data = typeof sample === "object"
+    ? mappend(sample, preset)
+    : preset ?? sample;
 
   let vertex = {
     id,
     type: typeName,
-    data
+    data,
   };
 
   graph.vertices[vertex.id] = vertex;
   graph.roots[typeName][vertex.id] = vertex;
 
-
   let relationshipPresets = preset as Record<string, unknown> | undefined;
 
   for (let relationship of vertexType.relationships) {
     function allocateRelated(): [number, unknown[]] {
-      let relationshipPreset = relationshipPresets != null && relationship.type in relationshipPresets ? relationshipPresets[relationship.type] : undefined;
+      let relationshipPreset =
+        relationshipPresets != null && relationship.type in relationshipPresets
+          ? relationshipPresets[relationship.type]
+          : undefined;
 
       let sampledSize = relationship.size.sample(graph.seed);
       if (Array.isArray(relationshipPreset)) {
-        return [Math.max(relationshipPreset.length, sampledSize), relationshipPreset];
+        return [
+          Math.max(relationshipPreset.length, sampledSize),
+          relationshipPreset,
+        ];
       } else if (relationshipPreset != null) {
         return [1, [relationshipPreset]];
       } else {
@@ -191,13 +238,14 @@ export function createVertex(graph: Graph, typeName: string, preset?: unknown, i
       function getTargetType(): string {
         if (Array.isArray(edgeType.to)) {
           return uniform(edgeType.to).sample(graph.seed);
-        } else if (typeof edgeType.to === 'string') {
+        } else if (typeof edgeType.to === "string") {
           return edgeType.to;
         } else {
-          return weighted<string>(Object.entries(edgeType.to) as any).sample(graph.seed);
+          return weighted<string>(Object.entries(edgeType.to) as any).sample(
+            graph.seed,
+          );
         }
       }
-
 
       createVertex(graph, getTargetType(), presets[i], targetId, edge);
     }
@@ -210,8 +258,12 @@ function mappend(left: unknown, right: unknown) {
   const { getOwnPropertyDescriptors } = Object;
   if (!left) {
     return right;
-  } else if (typeof left === 'object' ) {
-    let properties = Object.assign({}, getOwnPropertyDescriptors(left), getOwnPropertyDescriptors(right ?? {}));
+  } else if (typeof left === "object") {
+    let properties = Object.assign(
+      {},
+      getOwnPropertyDescriptors(left),
+      getOwnPropertyDescriptors(right ?? {}),
+    );
     return Object.create(Object.getPrototypeOf(left), properties);
   } else {
     return right;

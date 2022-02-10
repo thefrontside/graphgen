@@ -1,152 +1,150 @@
-import { describe, beforeEach, it } from 'mocha';
-import expect from 'expect';
+import {
+  assert,
+  assertEquals,
+  assertThrows,
+} from "https://deno.land/std@0.125.0/testing/asserts.ts";
+import { constant, createGraph, createVertex } from "../mod.ts";
 
-import { Graph, Vertex, createGraph, createVertex } from '../src';
-import { constant } from '../src/distribution';
+const { test } = Deno;
 
-describe("graph generation", () => {
-  let graph: Graph;
+test("graph generation", async (t) => {
+  let graph = createGraph();
 
-  describe("with a completely empty space", () => {
-    beforeEach(() => {
-      graph = createGraph();
-    });
-    it("starts with no edges", () => {
-      expect(graph.vertices).toEqual({});
-
-    });
-
-    it("is an error to try and create a node because ", () => {
-      expect(() => { createVertex(graph, 'User')}).toThrow();
-    })
+  await t.step("starts with no edges", () => {
+    assertEquals(graph.vertices, {});
   });
 
-  describe('with invalid graph types', () => {
-    it('fails when an edge type references an invalid vertex type', () => {
-      expect(() => createGraph({
-        types: {
-          vertex: [{
-            name: 'User',
-            relationships: []
-          }],
-          edge: [{
-            name: 'to-nowhere',
-            from: 'User',
-            to: 'Nowhere'
-          }]
-        }
-      })).toThrow();
+  await t.step("is an error to try and create a node because ", () => {
+    assertThrows(() => createVertex(graph, "User"));
+  });
+});
 
-      expect(() => createGraph({
-        types: {
-          vertex: [{
-            name: 'User',
-            relationships: []
-          }],
-          edge: [{
-            name: 'from-nowhere',
-            from: 'Nowhere',
-            to: 'User'
-          }]
-        }
-      })).toThrow();
-    });
+test("with invalid graph types", async (t) => {
+  await t.step(
+    "fails when an edge type references an invalid vertex type",
+    () => {
+      assertThrows(() =>
+        createGraph({
+          types: {
+            vertex: [{
+              name: "User",
+              relationships: [],
+            }],
+            edge: [{
+              name: "to-nowhere",
+              from: "User",
+              to: "Nowhere",
+            }],
+          },
+        })
+      );
 
-    it('fails when an edge distribution references a non existent edge type', () => {
-      expect(() => createGraph({
-        types: {
-          vertex: [{
-            name: 'User',
-            relationships: [{
-              type: 'User.repositories',
-              direction: 'from',
-              size: constant(1)
-            }]
-          }]
-        }
-      })).toThrow();
-    });
+      assertThrows(() =>
+        createGraph({
+          types: {
+            vertex: [{
+              name: "User",
+              relationships: [],
+            }],
+            edge: [{
+              name: "from-nowhere",
+              from: "Nowhere",
+              to: "User",
+            }],
+          },
+        })
+      );
+    },
+  );
+
+  await t.step(
+    "fails when an edge distribution references a non existent edge type",
+    () => {
+      assertThrows(() =>
+        createGraph({
+          types: {
+            vertex: [{
+              name: "User",
+              relationships: [{
+                type: "User.repositories",
+                direction: "from",
+                size: constant(1),
+              }],
+            }],
+          },
+        })
+      );
+    },
+  );
+});
+
+test("with node types, but no explicit relationships", async (t) => {
+  let graph = createGraph({
+    types: {
+      vertex: [{
+        name: "User",
+        relationships: [],
+      }, {
+        name: "Article",
+        relationships: [],
+      }],
+    },
+  });
+  let user = createVertex(graph, "User");
+
+  await t.step("creates the new vertex", () => {
+    assert(user);
+    assertEquals(user.type, "User");
   });
 
+  await t.step("contains the new vertex in the graph", () => {
+    assertEquals(graph.vertices[user.id], user);
+  });
+});
 
-  describe("with node types, but no explicit relationships", () => {
-    beforeEach(() => {
-      graph = createGraph({
-        types: {
-          vertex: [{
-            name: 'User',
-            relationships: []
-          }, {
-            name: 'Article',
-            relationships: []
-          }]
-        }
-      });
-    });
+test("generating node from a space with relationships", async (t) => {
+  let graph = createGraph({
+    types: {
+      edge: [{
+        name: "User.posts",
+        from: "User",
+        to: "BlogPost",
+      }],
+      vertex: [{
+        name: "User",
+        relationships: [{
+          type: "User.posts",
+          direction: "from",
+          size: constant(3),
+        }],
+      }, {
+        name: "BlogPost",
+        relationships: [],
+      }],
+    },
+  });
+  let user = createVertex(graph, "User");
 
-    describe("generating nodes of a certain node type", () => {
-      let user: Vertex;
-
-      beforeEach(() => {
-        user = createVertex(graph, 'User');
-      });
-
-      it("creates the new vertex", () => {
-        expect(user).toBeTruthy();
-        expect(user.type).toEqual('User');
-      });
-
-      it("contains the new vertex in the graph", () => {
-        expect(graph.vertices[user.id]).toBe(user);
-      })
-    });
+  await t.step("creates three blog posts", () => {
+    assertEquals(Object.entries(graph.roots["BlogPost"]).length, 3);
   });
 
-  describe("generating node from a space with relationships", () => {
-    let graph: Graph;
-    let user: Vertex;
-
-    beforeEach(() => {
-      graph = createGraph({
-        types: {
-          edge: [{
-            name: 'User.posts',
-            from: 'User',
-            to: 'BlogPost'
-          }],
-          vertex: [{
-            name: 'User',
-            relationships: [{
-              type: 'User.posts',
-              direction: 'from',
-              size: constant(3)
-            }]
-          }, {
-            name: 'BlogPost',
-            relationships: []
-          }]
-        },
-
-      });
-
-      user = createVertex(graph, 'User');
-    });
-
-    it("creates three blog posts", () => {
-      expect(Object.entries(graph.roots['BlogPost']).length).toEqual(3);
-    });
-
-    it("draws three edges between the user and those blog posts", () => {
-      expect(graph.from[user.id].length).toEqual(3);
+  await t.step(
+    "draws three edges between the user and those blog posts",
+    () => {
+      assertEquals(graph.from[user.id].length, 3);
       let [one, two, three] = graph.from[user.id];
-      expect(one.from).toEqual(user.id);
-      expect(two.from).toEqual(user.id);
-      expect(three.from).toEqual(user.id);
-    })
+      assertEquals(one.from, user.id);
+      assertEquals(two.from, user.id);
+      assertEquals(three.from, user.id);
+    },
+  );
 
-    it("it creates the edges connecting the user and the blog posts", () => {
-      let [first] = Object.values(graph.roots['BlogPost']);
-      expect(graph.to[first.id].length).toEqual(1);
-    });
-  });
+  await t.step(
+    "it creates the edges connecting the user and the blog posts",
+    () => {
+      let [first] = Object.values(graph.roots["BlogPost"]);
+      assertEquals(graph.to[first.id].length, 1);
+    },
+  );
 });
