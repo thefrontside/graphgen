@@ -1,12 +1,8 @@
-index := npm/dist/index.js
+package := npm/package.json
 
-t:
-	deno test
+npm: $(package)
 
-npm: $(index)
-
-$(index): mod.ts src/*.ts
-	mkdir -p npm/dist
-	deno bundle mod.ts $@
+$(package): mod.ts src/*.ts
+	deno run -A npm-build.ts
 clean:
-	rm -rf npm/dist
+	rm -rf npm
