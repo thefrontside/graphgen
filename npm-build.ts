@@ -9,6 +9,10 @@ await build({
     deno: false
   },
   test: false,
+  typeCheck: false,
+  compilerOptions: {
+    target: "ES2020"
+  },
   package: {
     // package.json properties
     name: "@frontside/graphgen",
@@ -23,5 +27,8 @@ await build({
     bugs: {
       url: "https://github.com/thefrontside/graphgen/issues",
     },
+    engines: {
+      node: ">= 14"
+    }
   },
 });
