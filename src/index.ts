@@ -210,7 +210,7 @@ export function createVertex(graph: Graph, typeName: string, preset?: unknown, i
       // as the population of targets grows, it becomes more likely that we will
       // select an existing one. The default affinity is 1%
       let affinity = 1 -
-        Math.pow(1 - (relationship.affinity ?? 0.01), population.length);
+        Math.pow(1 - (relationship.affinity ?? 0), population.length);
 
       let [targetId, exists] = (function(): [number, boolean] {
         if (population.length > excluded.length && graph.seed() < affinity) {
