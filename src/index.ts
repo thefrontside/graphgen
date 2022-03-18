@@ -39,6 +39,9 @@ export interface Relationship {
   type: string;
   size: Distribution<number>;
   direction: 'from' | 'to';
+  /* How likely are two vertices in the target population to be connected by
+     this relationship */
+  affinity?: number;
 }
 
 export interface GraphTypes {
@@ -176,10 +179,58 @@ export function createVertex(graph: Graph, typeName: string, preset?: unknown, i
     let [size, presets] = allocateRelated();
 
     let existing = graph[relationship.direction][id] || [];
+    let excluded = [source.id];
 
     for (let i = existing.length; i < size; i++) {
       let edgeType = graph.types.edge[relationship.type];
-      let targetId = ++graph.currentId;
+
+      // At this point, we have a choice to make. We could create a new vertex
+      // that satisfies this relationship, or we could use one that already exists.
+      // This is often the case when you have highly interwoven graphs, like users
+      // and repositories where users may own many repositories and also be
+      // collaborators in multiple repositories. This is critical to have when we
+      // have highly interwoven datasets, otherwise, they will explode.
+      // how will we know this?
+
+      // this contains the population of existing targets
+      let population = (() => {
+        if (typeof edgeType.to === "string") {
+          return Object.values(graph.roots[edgeType.to]);
+        } else if (Array.isArray(edgeType.to)) {
+          return edgeType.to.reduce((population, type) => {
+            return population.concat(Object.values(graph.roots[type]));
+          }, [] as Vertex[]);
+        } else {
+          return Object.keys(edgeType.to).reduce((population, type) => {
+            return population.concat(Object.values(graph.roots[type]));
+          }, [] as Vertex[]);
+        }
+      })();
+
+      // as the population of targets grows, it becomes more likely that we will
+      // select an existing one. The default affinity is 1%
+      let affinity = 1 -
+        Math.pow(1 - (relationship.affinity ?? 0.01), population.length);
+
+      let [targetId, exists] = (function(): [number, boolean] {
+        if (population.length > excluded.length && graph.seed() < affinity) {
+          while (true) {
+            let vertex = uniform(population as [Vertex, ...Vertex[]]).sample(
+              graph.seed,
+            );
+            // exclude the once that we came from, as well as ones that are
+            // already part of this relationships
+            if (!excluded.includes(vertex.id)) {
+              return [vertex.id, true];
+            }
+          }
+        } else {
+          return [++graph.currentId, false];
+        }
+      })();
+
+      excluded.push(targetId);
+
       let edge: Edge = { type: edgeType.name, from: vertex.id, to: targetId };
 
       graph.from[vertex.id] ||= [];
@@ -188,18 +239,19 @@ export function createVertex(graph: Graph, typeName: string, preset?: unknown, i
       graph.to[targetId] ||= [];
       graph.to[targetId].push(edge);
 
-      function getTargetType(): string {
-        if (Array.isArray(edgeType.to)) {
-          return uniform(edgeType.to).sample(graph.seed);
-        } else if (typeof edgeType.to === 'string') {
-          return edgeType.to;
-        } else {
-          return weighted<string>(Object.entries(edgeType.to) as any).sample(graph.seed);
+      if (!exists) {
+        function getTargetType(): string {
+          if (Array.isArray(edgeType.to)) {
+            return uniform(edgeType.to).sample(graph.seed);
+          } else if (typeof edgeType.to === 'string') {
+            return edgeType.to;
+          } else {
+            return weighted<string>(Object.entries(edgeType.to) as any).sample(graph.seed);
+          }
         }
+
+        createVertex(graph, getTargetType(), presets[i], targetId, edge);
       }
-
-
-      createVertex(graph, getTargetType(), presets[i], targetId, edge);
     }
   }
 

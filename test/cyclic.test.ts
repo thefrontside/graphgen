@@ -46,4 +46,48 @@ describe('cyclic references', () => {
       expect(back).toEqual(user);
     });
   });
+
+  describe('cyclic relationships', () => {
+    beforeEach(() => {
+      graph = createGraph({
+        types: {
+          vertex: [{
+            name: "User",
+            relationships: [{
+              type: "User.repositories",
+              direction: "from",
+              size: constant(3),
+            }],
+          }, {
+            name: "Repository",
+            relationships: [{
+              type: "Repository.collaborators",
+              direction: "from",
+              size: constant(2),
+            }, {
+              type: "User.repositories",
+              direction: "to",
+              size: constant(1),
+            }],
+          }],
+          edge: [{
+            name: "User.repositories",
+            from: "User",
+            to: "Repository",
+          }, {
+            name: "Repository.collaborators",
+            from: "Repository",
+            to: "User",
+          }],
+        },
+      });
+    });
+
+    it('converges on a state of re-using existing vertices', () => {
+      let user = createVertex(graph, "User");
+      let [repository] = graph.from[user.id].map((edge) => graph.vertices[edge.to]);
+      let [collaborator] = graph.from[repository.id].map((edge) => graph.vertices[edge.to]);
+      expect(collaborator).toBeDefined();
+    });
+  });
 });
