@@ -64,6 +64,7 @@ describe('cyclic references', () => {
               type: "Repository.collaborators",
               direction: "from",
               size: constant(2),
+              affinity: 0.01,
             }, {
               type: "User.repositories",
               direction: "to",
