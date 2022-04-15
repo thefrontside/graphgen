@@ -149,4 +149,47 @@ describe("graph generation", () => {
       expect(graph.to[first.id].length).toEqual(1);
     });
   });
+
+  describe("generating multiple relationships from a single node", () => {
+    let graph: Graph;
+    let article: Vertex;
+
+    beforeEach(() => {
+      graph = createGraph({
+        types: {
+          edge: [{
+            name: 'author',
+            from: 'Article',
+            to: 'User'
+          }, {
+            name: 'editor',
+            from: 'Article',
+            to: 'User'
+          }],
+          vertex: [{
+            name: 'Article',
+            relationships: [{
+              type: 'author',
+              direction: 'from',
+              size: constant(1),
+            }, {
+              type: 'editor',
+              direction: 'from',
+              size:  constant(1)
+            }],
+          }, {
+            name: 'User',
+            relationships: []
+          }]
+        },
+
+      });
+
+      article = createVertex(graph, 'Article');
+    });
+
+    it("creates edges for each relationship type", () => {
+      expect(graph.from[article.id]).toHaveLength(2);
+    });
+  });
 });

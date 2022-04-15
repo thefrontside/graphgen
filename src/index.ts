@@ -178,7 +178,11 @@ export function createVertex(graph: Graph, typeName: string, preset?: unknown, i
 
     let [size, presets] = allocateRelated();
 
-    let existing = graph[relationship.direction][id] || [];
+    // these are the relationships of this typethat already exist both to and
+    // from this vertex
+    let existing = (graph[relationship.direction][id] || [])
+                     .filter(rel => rel.type === relationship.type);
+
     let excluded = [source.id];
 
     for (let i = existing.length; i < size; i++) {
