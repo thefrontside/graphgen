@@ -10,9 +10,9 @@ jobs:
     name: Publish Release
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - name: Publish Release
-      uses: thefrontside/actions/synchronize-with-npm@v1.9
+      uses: thefrontside/actions/synchronize-with-npm@v1
       env:
         GITHUB_TOKEN: ${{ secrets.FRONTSIDEJACK_GITHUB_TOKEN }}
         NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
