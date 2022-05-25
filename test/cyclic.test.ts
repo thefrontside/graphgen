@@ -1,53 +1,54 @@
-import { describe, beforeEach, it } from 'mocha';
-import expect from 'expect';
+import { beforeEach, describe, expect, it } from "./suite.ts";
+import { constant, createGraph, createVertex, Graph } from "../mod.ts";
 
-import { createGraph, createVertex, Graph } from '../src';
-import { constant } from '../src/distribution';
-
-describe('cyclic references', () => {
+describe("cyclic references", () => {
   let graph: Graph;
 
-  describe('has many and belongs to', () => {
+  describe("has many and belongs to", () => {
     // User has many repositories, Repository is owned by exactly one user
     beforeEach(() => {
       graph = createGraph({
         types: {
           vertex: [{
-            name: 'User',
+            name: "User",
             relationships: [{
-              type: 'User.repositories',
-              direction: 'from',
+              type: "User.repositories",
+              direction: "from",
               size: constant(3),
-            }]
+            }],
           }, {
-            name: 'Repository',
+            name: "Repository",
             relationships: [{
-              type: 'User.repositories',
-              direction: 'to',
+              type: "User.repositories",
+              direction: "to",
               size: constant(1),
-            }]
+            }],
           }],
           edge: [{
-            name: 'User.repositories',
-            from: 'User',
-            to: 'Repository'
-          }]
-        }
+            name: "User.repositories",
+            from: "User",
+            to: "Repository",
+          }],
+        },
       });
     });
 
-    it('creates back references from the owned vertices', () => {
-      let user = createVertex(graph, 'User');
+    it("creates back references from the owned vertices", () => {
+      let user = createVertex(graph, "User");
 
-      let [repository] = graph.from[user.id].map(edge => graph.vertices[edge.to]);
+      let [repository] = graph.from[user.id].map((edge) =>
+        graph.vertices[edge.to]
+      );
 
-      let [back] = graph.to[repository.id].map(edge => graph.vertices[edge.from]);
+      let [back] = graph.to[repository.id].map((edge) =>
+        graph.vertices[edge.from]
+      );
 
       expect(back).toEqual(user);
     });
   });
 
-  describe('cyclic relationships', () => {
+  describe("cyclic relationships", () => {
     beforeEach(() => {
       graph = createGraph({
         types: {
@@ -84,10 +85,14 @@ describe('cyclic references', () => {
       });
     });
 
-    it('converges on a state of re-using existing vertices', () => {
+    it("converges on a state of re-using existing vertices", () => {
       let user = createVertex(graph, "User");
-      let [repository] = graph.from[user.id].map((edge) => graph.vertices[edge.to]);
-      let [collaborator] = graph.from[repository.id].map((edge) => graph.vertices[edge.to]);
+      let [repository] = graph.from[user.id].map((edge) =>
+        graph.vertices[edge.to]
+      );
+      let [collaborator] = graph.from[repository.id].map((edge) =>
+        graph.vertices[edge.to]
+      );
       expect(collaborator).toBeDefined();
     });
   });
