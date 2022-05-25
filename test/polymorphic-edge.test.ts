@@ -1,87 +1,90 @@
-import expect from 'expect';
-import { describe, beforeEach, it } from 'mocha';
-import seedrandom from 'seedrandom';
-import { constant, createGraph, createVertex, Graph, Vertex, GraphOptions } from '../src';
+import { beforeEach, describe, expect, it } from "./suite.ts";
+import { seedrandom } from "../src/seedrandom.ts";
+import {
+  constant,
+  createGraph,
+  createVertex,
+  Graph,
+  GraphOptions,
+  Vertex,
+} from "../mod.ts";
 
-
-// union SearchResult = GithubProfile | LDAPProfile;
-
-// SearchEdge {
-//   node: SearchResult!
-//   cursor: String!
-// }
-describe('polymorphic edges', () => {
+describe("polymorphic edges", () => {
   let options: GraphOptions;
   let graph: Graph;
   let source: Vertex;
 
   beforeEach(() => {
     options = {
-      seed: seedrandom('polymorphic-edges-test'),
+      seed: seedrandom("polymorphic-edges-test"),
       types: {
         vertex: [{
-          name: 'Search',
+          name: "Search",
           relationships: [{
-            type: 'Search.results',
+            type: "Search.results",
             size: constant(4),
-            direction: 'from'
-          }]
+            direction: "from",
+          }],
         }, {
-          name: 'GithubProfile',
-          relationships: []
+          name: "GithubProfile",
+          relationships: [],
         }, {
-          name: 'LDAPProfile',
-          relationships: []
+          name: "LDAPProfile",
+          relationships: [],
         }],
         edge: [{
-          name: 'Search.results',
-          from: 'Search',
-          to: ['GithubProfile', 'LDAPProfile']
-        }]
-      }
-    }
+          name: "Search.results",
+          from: "Search",
+          to: ["GithubProfile", "LDAPProfile"],
+        }],
+      },
+    };
   });
 
-  describe('a uniform distribution of target types', () => {
+  describe("a uniform distribution of target types", () => {
     beforeEach(() => {
       graph = createGraph(options);
-      source = createVertex(graph, 'Search');
+      source = createVertex(graph, "Search");
     });
 
-    it('creates a set of evenly distributed targets', () => {
-      let [one, two, three, four] = graph.from[source.id].map(({ to }) => graph.vertices[to]);
-      expect(one.type).toEqual('GithubProfile');
-      expect(two.type).toEqual('LDAPProfile');
-      expect(three.type).toEqual('GithubProfile');
-      expect(four.type).toEqual('LDAPProfile');
+    it("creates a set of evenly distributed targets", () => {
+      let [one, two, three, four] = graph.from[source.id].map(({ to }) =>
+        graph.vertices[to]
+      );
+      expect(one.type).toEqual("GithubProfile");
+      expect(two.type).toEqual("LDAPProfile");
+      expect(three.type).toEqual("LDAPProfile");
+      expect(four.type).toEqual("GithubProfile");
     });
   });
 
-  describe('a weighted distribution of target types', () => {
+  describe("a weighted distribution of target types", () => {
     beforeEach(() => {
       graph = createGraph({
         ...options,
         types: {
           ...options.types,
           edge: [{
-            name: 'Search.results',
-            from: 'Search',
+            name: "Search.results",
+            from: "Search",
             to: {
-              'GithubProfile': 1,
-              'LDAPProfile': 2
-            }
-          }]
-        }
+              "GithubProfile": 1,
+              "LDAPProfile": 2,
+            },
+          }],
+        },
       });
-      source = createVertex(graph, 'Search');
+      source = createVertex(graph, "Search");
     });
 
-    it('creates a set of targets according to weight', () => {
-      let [one, two, three, four] = graph.from[source.id].map(({ to }) => graph.vertices[to]);
-      expect(one.type).toEqual('GithubProfile');
-      expect(two.type).toEqual('LDAPProfile');
-      expect(three.type).toEqual('GithubProfile');
-      expect(four.type).toEqual('LDAPProfile');
+    it("creates a set of targets according to weight", () => {
+      let [one, two, three, four] = graph.from[source.id].map(({ to }) =>
+        graph.vertices[to]
+      );
+      expect(one.type).toEqual("LDAPProfile");
+      expect(two.type).toEqual("LDAPProfile");
+      expect(three.type).toEqual("LDAPProfile");
+      expect(four.type).toEqual("GithubProfile");
     });
   });
 });

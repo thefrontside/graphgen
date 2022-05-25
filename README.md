@@ -40,6 +40,24 @@ that our data adheres to some statistical distribution of
 values. We can then sample from that distribution to simulate a
 realistic value.
 
+## Development
+
+While it works in both browser and Node, [Deno](https://deno.land) is
+the primary development tool. You will need to install that first.
+
+checkout:
+
+```text
+$ git clone git@github.com:thefrontside/graphgen.git
+```
+
+test:
+
+``` text
+$ deno test
+```
+
+
 ## Areas for Research and Improvement
 
 ### Compositional Distributions

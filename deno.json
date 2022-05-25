@@ -1,0 +1,18 @@
+{
+  "tasks": {
+    "build:npm": "deno run -A tasks/build-npm.ts"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["prefer-const", "require-yield", "no-inner-declarations"]
+    },
+    "files": {
+      "exclude": ["build"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "exclude": ["README.md", "build/"]
+    }
+  }
+}
