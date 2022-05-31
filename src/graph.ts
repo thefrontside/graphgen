@@ -83,18 +83,14 @@ export function createGraph(options: GraphOptions = {}): Graph {
   }, {} as Record<string, VertexType>);
 
   let edgeTypes = (options.types?.edge || []).reduce((types, t) => {
-    assert(
-      !!vertexTypes[t.from],
-      `edge type '${t.name}' references unknown vertex type '${t.from}'`,
-    );
-
-    let references = () => {
-      if (Array.isArray(t.to)) {
-        return t.to;
-      } else if (typeof t.to === "string" || t.to instanceof String) {
-        return [t.to.toString()];
+    let references = (direction: Relationship["direction"]) => {
+      let targetType = t[direction];
+      if (Array.isArray(targetType)) {
+        return targetType;
+      } else if (typeof targetType === "string" || targetType instanceof String) {
+        return [targetType.toString()];
       } else {
-        let typeNames = Object.keys(t.to);
+        let typeNames = Object.keys(targetType);
         assert(
           typeNames.length,
           `empty list of weighted sums passed into edge type 'to' field`,
@@ -103,7 +99,14 @@ export function createGraph(options: GraphOptions = {}): Graph {
       }
     };
 
-    references().forEach((name) => {
+    references("to").forEach((name) => {
+      assert(
+        !!vertexTypes[name],
+        `edge type '${t.name}' references unknown vertex type ${name}`,
+      );
+    });
+
+    references("from").forEach((name) => {
       assert(
         !!vertexTypes[name],
         `edge type '${t.name}' references unknown vertex type ${name}`,
@@ -176,7 +179,7 @@ export function createVertex(
   }
 
   let source: Vertex = whence
-    ? graph.vertices[whence.from]
+    ? graph.vertices[whence.from] ?? graph.vertices[whence.to]
     : { id: -1, type: "root", data: {} };
   let relationshipName = whence ? whence.type : "root";
   let dataMap = getCreateDataDistribution();
@@ -204,6 +207,9 @@ export function createVertex(
   let relationshipPresets = preset as Record<string, unknown> | undefined;
 
   for (let relationship of vertexType.relationships) {
+    let { direction } = relationship;
+    let opposite: typeof direction = direction === "from" ? "to" : "from";
+
     function allocateRelated(): [number, unknown[]] {
       let relationshipPreset =
         relationshipPresets != null && relationship.type in relationshipPresets
@@ -227,7 +233,7 @@ export function createVertex(
 
     // these are the relationships of this typethat already exist both to and
     // from this vertex
-    let existing = (graph[relationship.direction][id] || [])
+    let existing = (graph[direction][id] || [])
       .filter((rel) => rel.type === relationship.type);
 
     let excluded = [source.id];
@@ -245,14 +251,15 @@ export function createVertex(
 
       // this contains the population of existing targets
       let population = (() => {
-        if (typeof edgeType.to === "string") {
-          return Object.values(graph.roots[edgeType.to]);
-        } else if (Array.isArray(edgeType.to)) {
-          return edgeType.to.reduce((population, type) => {
+        let targetType = edgeType[opposite];
+        if (typeof targetType === "string") {
+          return Object.values(graph.roots[targetType]);
+        } else if (Array.isArray(targetType)) {
+          return targetType.reduce((population, type) => {
             return population.concat(Object.values(graph.roots[type]));
           }, [] as Vertex[]);
         } else {
-          return Object.keys(edgeType.to).reduce((population, type) => {
+          return Object.keys(targetType).reduce((population, type) => {
             return population.concat(Object.values(graph.roots[type]));
           }, [] as Vertex[]);
         }
@@ -282,22 +289,27 @@ export function createVertex(
 
       excluded.push(targetId);
 
-      let edge: Edge = { type: edgeType.name, from: vertex.id, to: targetId };
+      let edge: Edge = direction === "from"
+        ? { type: edgeType.name, from: vertex.id, to: targetId }
+        : { type: edgeType.name, from: targetId, to: vertex.id };
 
-      graph.from[vertex.id] ||= [];
-      graph.from[vertex.id].push(edge);
+      let sources = graph[direction];
+      sources[vertex.id] ||= [];
+      sources[vertex.id].push(edge);
 
-      graph.to[targetId] ||= [];
-      graph.to[targetId].push(edge);
+      let targets = graph[opposite];
+      targets[targetId] ||= [];
+      targets[targetId].push(edge);
 
       if (!exists) {
         function getTargetType(): string {
-          if (Array.isArray(edgeType.to)) {
-            return uniform(edgeType.to).sample(graph.seed);
-          } else if (typeof edgeType.to === "string") {
-            return edgeType.to;
+          let targetType = edgeType[opposite];
+          if (Array.isArray(targetType)) {
+            return uniform(targetType).sample(graph.seed);
+          } else if (typeof targetType === "string") {
+            return targetType;
           } else {
-            return weighted<string>(Object.entries(edgeType.to) as any).sample(
+            return weighted<string>(Object.entries(targetType) as any).sample(
               graph.seed,
             );
           }
