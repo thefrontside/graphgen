@@ -46,6 +46,18 @@ describe("cyclic references", () => {
 
       expect(back).toEqual(user);
     });
+
+    it("can begin generation from the owned vertex", () => {
+      let repo = createVertex(graph, "Repository");
+
+      expect(graph.to[repo.id]).toBeDefined();
+
+      let [user] = graph.to[repo.id].map((edge) => graph.vertices[edge.from]);
+
+      let [back] = graph.from[user.id].map((edge) => graph.vertices[edge.to]);
+
+      expect(back).toEqual(repo);
+    });
   });
 
   describe("cyclic relationships", () => {
