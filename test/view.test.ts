@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from "./suite.ts";
 
 import { seedrandom } from "../src/seedrandom.ts";
-import { createGraph, normal, GraphView, createView } from "../mod.ts";
+import { createGraph, createVertex, constant, GraphView, createView } from "../mod.ts";
 
 describe("view", () => {
   let view: GraphView;
-  let seed = seedrandom("normal.test.ts");
+  let seed = seedrandom("view.test.ts");
 
   beforeEach(() => {
     const graph = createGraph({
@@ -16,7 +16,7 @@ describe("view", () => {
           relationships: [{
             type: "User.repositories",
             direction: "from",
-            size: normal({ mean: 3, standardDeviation: 2 }),
+            size: constant(1),
           }],
         }, {
           name: "Repository",
@@ -30,16 +30,23 @@ describe("view", () => {
       },
     });
 
+    createVertex(graph, 'User', {
+      name: 'Bob',
+    });
     view = createView(graph);
   });
 
-  it("has Users type", () => {
-    expect(view.User).toBeDefined();
-  });
+  it("can navigate the graph lazily", () => {
+    let users = Object.values(view.User);
+    expect(users).not.toHaveLength(0);
 
-  it("has Repository type", () => {
-    expect(view.Repository).toBeDefined();
-  });
 
-  // TODO: how do I read generated objects from this?
+    let [ user ] = users;
+    expect(user.attributes).toEqual({ name: "Bob" });
+
+    let relationships = user.relationships ?? {};
+    let [ repo ] = Object.values(relationships['User.repositories']);
+
+    expect(repo).toBeDefined();
+  });
 });
