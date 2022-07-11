@@ -87,7 +87,9 @@ export function createGraph(options: GraphOptions = {}): Graph {
       let targetType = t[direction];
       if (Array.isArray(targetType)) {
         return targetType;
-      } else if (typeof targetType === "string" || targetType instanceof String) {
+      } else if (
+        typeof targetType === "string" || targetType instanceof String
+      ) {
         return [targetType.toString()];
       } else {
         let typeNames = Object.keys(targetType);
