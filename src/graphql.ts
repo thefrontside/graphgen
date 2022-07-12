@@ -1,7 +1,7 @@
 import type { Seed } from "./distribution.ts";
 import { seedrandom } from "./seedrandom.ts";
-import { assert, graphql, evaluate, shift } from "./deps.ts";
-import { createGraph, createVertex, VertexType } from "./graph.ts";
+import { assert, evaluate, graphql, shift } from "./deps.ts";
+import { createGraph, createVertex } from "./graph.ts";
 
 export interface GraphGen {
   create(
@@ -20,7 +20,6 @@ export interface FieldGenInfo {
   typename: string;
   fieldname: string;
   fieldtype: string;
-  optional: boolean;
   seed: Seed;
   next(): unknown;
 }
@@ -39,39 +38,31 @@ directive @gen(with: String!) on FIELD_DEFINITION
 `);
 
   let schema = graphql.extendSchema(prelude, graphql.parse(options.source));
-  let fieldgen = createFieldGenerate(seed, options.fieldgen ? ([] as FieldGen[]).concat(options.fieldgen) : []);
+
+  let types = analyze(schema);
+
+  let fieldgen = createFieldGenerate(
+    seed,
+    options.fieldgen ? ([] as FieldGen[]).concat(options.fieldgen) : [],
+  );
 
   let graph = createGraph({
     seed,
     types: {
-      vertex: Object.entries(schema.getTypeMap()).reduce(
-        (types, [typename, graphqlType]) => {
-          if (!graphql.isObjectType(graphqlType)) {
-            return types;
-          } else {
-            //let { relationships } = analyze(graphqlType);
-            let fields = graphqlType.getFields();
-
-            return types.concat({
-              name: typename,
-              relationships: [],
-              data: () => ({
-                description: "this description is not used",
-                sample() {
-                  let values = {} as Record<string, unknown>;
-                  for (let [fieldname, field] of Object.entries(fields)) {
-                    if (!isRelationship(field)) {
-                      values[fieldname] = fieldgen(typename, field);
-                    }
-                  }
-                  return values;
-                },
-              }),
-            });
-          }
-        },
-        [] as VertexType[],
-      ),
+      vertex: types.map(({ name, fields }) => ({
+        name,
+        data: () => ({
+          description: "this description is not used",
+          sample() {
+            let values = {} as Record<string, unknown>;
+            for (let field of fields) {
+              values[field.name] = fieldgen(field);
+            }
+            return values;
+          },
+        }),
+        relationships: [],
+      })),
     },
   });
 
@@ -83,63 +74,81 @@ directive @gen(with: String!) on FIELD_DEFINITION
   };
 }
 
+interface Type {
+  name: string;
+  fields: Field[];
+  //  relationships: Relationship[];
+}
+
+interface Field {
+  name: string;
+  typename: string;
+  holder: Type;
+  probability: number;
+  valueGeneratorMethodName: string;
+}
 
 function createFieldGenerate(seed: Seed, middlewares: FieldGen[]) {
+  type Invoke = (info: Omit<FieldGenInfo, "next">) => unknown;
 
-
-  return function (
-    typename: string,
-    field: graphql.GraphQLField<unknown, unknown>,
-  ) {
-
-    type Invoke = (info: Omit<FieldGenInfo, 'next'>) => unknown;
-
-    let invoke = evaluate<Invoke>(function*() {
-      for (let middleware of middlewares) {
-        yield* shift<void>(function*(resolve) {
-          return ((info) => middleware({...info, next: () => resolve()(info) })) as Invoke;
-        });
-      }
-      return () => 'blork';
-    })
-
-    let fieldname = field.name;
-    let method = methodOf(field, `${typename}.${fieldname}`);
-
-    let info = { seed, method, fieldname };
-
-    if (graphql.isListType(field.type)) {
-      throw new Error(`cannot generate list types yet`);
-    } else if (
-      graphql.isNonNullType(field.type) &&
-      graphql.isNamedType(field.type.ofType)
-    ) {
-      assert(
-        chanceOf(field, 1) === 1,
-        "cannot set the chance of a non-null field to less than 1",
-      );
-
-      field.type
-      let fieldtype = field.type.ofType.name;
-      return invoke({
-        ...info,
-        typename,
-        fieldtype,
-        optional: false,
+  let invoke = evaluate<Invoke>(function* () {
+    for (let middleware of middlewares) {
+      yield* shift<void>(function* (resolve) {
+        return ((info) =>
+          middleware({ ...info, next: () => resolve()(info) })) as Invoke;
       });
+    }
+    return () => "blork";
+  });
+
+  return function (field: Field) {
+    if (field.probability < 1 && (seed() < field.probability)) {
+      return null;
     } else {
-      if (seed() < chanceOf(field, 0.5)) {
-        return null;
-      }
-      let fieldtype = field.type.name;
       return invoke({
-        ...info,
-        typename,
-        fieldtype,
-        optional: true,
+        seed,
+        typename: field.holder.name,
+        method: field.valueGeneratorMethodName,
+        fieldtype: field.typename,
+        fieldname: field.name,
       });
     }
   };
+}
+
+function analyze(schema: graphql.GraphQLSchema): Type[] {
+  return Object.values(schema.getTypeMap()).reduce((types, graphqlType) => {
+    if (
+      !graphql.isObjectType(graphqlType) || graphqlType.name.startsWith("_")
+    ) {
+      return types;
+    } else {
+      let graphQLFields = Object.entries(graphqlType.getFields()).filter((
+        [, field],
+      ) => isStructuralField(field));
+      let type: Type = {
+        name: graphqlType.name,
+        fields: graphQLFields.map(([name, field]) => {
+          let typename = graphql.getNamedType(field.type).name;
+          let probability = chanceOf(field, 0.5);
+          let valueGeneratorMethodName = methodOf(
+            field,
+            `${graphqlType.name}.${field.name}`,
+          );
+          return {
+            name,
+            get holder() {
+              return type;
+            },
+            typename,
+            probability,
+            valueGeneratorMethodName,
+          } as Field;
+        }),
+      };
+      return types.concat(type);
+    }
+  }, [] as Type[]);
 }
 
 function chanceOf(
@@ -165,7 +174,13 @@ function chanceOf(
       value >= 0 && value <= 1,
       "@has(chance: VALUE): VALUE must be in between 0 and 1",
     );
+    assert(
+      graphql.isNullableType(field.type) || value === 1,
+      `non-null field ${field.name} can only have a chance of 1`,
+    );
     return value;
+  } else if (!graphql.isNullableType(field.type)) {
+    return 1;
   } else {
     return defaultChance;
   }
@@ -187,7 +202,8 @@ function methodOf(
   }
 }
 
-
-function isRelationship(_field: graphql.GraphQLField<unknown, unknown>): boolean {
-  return false;
+function isStructuralField(
+  field: graphql.GraphQLField<unknown, unknown>,
+): boolean {
+  return !graphql.isObjectType(field.type);
 }

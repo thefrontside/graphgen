@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "./suite.ts";
-import { createGraphGen, GraphGen, FieldGen } from "../mod.ts";
+import { createGraphGen, FieldGen, GraphGen } from "../mod.ts";
 
 describe("using graphql", () => {
   let graphgen: GraphGen;
@@ -34,19 +34,17 @@ describe("using graphql", () => {
     beforeEach(() => {
       graphgen = createGraphGen({
         source: "type Person { name: String! occupation: String! }",
-        fieldgen({ typename, fieldname, fieldtype, optional }) {
-          return `${typename}.${fieldname} is ${
-            optional ? "an optional" : "a required"
-          } ${fieldtype}`;
+        fieldgen({ typename, fieldname, fieldtype }) {
+          return `${typename}.${fieldname} is a ${fieldtype}`;
         },
       });
     });
 
     it("uses it when generating fields", () => {
       let person = graphgen.create("Person");
-      expect(person.name).toEqual("Person.name is a required String");
+      expect(person.name).toEqual("Person.name is a String");
       expect(person.occupation).toEqual(
-        "Person.occupation is a required String",
+        "Person.occupation is a String",
       );
     });
 
@@ -55,7 +53,7 @@ describe("using graphql", () => {
         name: "Bob Dobalina",
       })).toEqual({
         name: "Bob Dobalina",
-        occupation: "Person.occupation is a required String",
+        occupation: "Person.occupation is a String",
       });
     });
   });
@@ -87,7 +85,7 @@ describe("using graphql", () => {
       createGraphGen({
         seed: () => 0,
         source: `type Person { name: String! @has(chance: 0.7)} `,
-      }).create("Person")
+      })
     ).toThrow();
   });
 
@@ -95,7 +93,7 @@ describe("using graphql", () => {
     expect(
       createGraphGen({
         source:
-        `type Person { name: String! @gen(with: "@faker/name.findName") occupation: String! }`,
+          `type Person { name: String! @gen(with: "@faker/name.findName") occupation: String! }`,
         fieldgen({ method, next }) {
           if (method === "@faker/name.findName") {
             return "Bob Dobalina";
@@ -105,34 +103,37 @@ describe("using graphql", () => {
         },
       }).create("Person"),
     ).toEqual({
-      name: 'Bob Dobalina',
-      occupation: 'blork',
+      name: "Bob Dobalina",
+      occupation: "blork",
     });
   });
 
   it("can use a chain of field generators", () => {
-    let name: FieldGen = ({method, next }) => method.endsWith('name') ? "Charles" : next();
-    let occupation: FieldGen = ({ method, next }) => method.endsWith('occupation') ? "Developer" : next();
+    let name: FieldGen = ({ method, next }) =>
+      method.endsWith("name") ? "Charles" : next();
+    let occupation: FieldGen = ({ method, next }) =>
+      method.endsWith("occupation") ? "Developer" : next();
     let person = createGraphGen({
       source: `type Person { name: String! occupation: String! }`,
-      fieldgen: [name, occupation]
-    }).create('Person');
+      fieldgen: [name, occupation],
+    }).create("Person");
 
     expect(person).toEqual({
-      name: 'Charles',
-      occupation: 'Developer',
+      name: "Charles",
+      occupation: "Developer",
     });
   });
 
   describe("relationships", () => {
     it.ignore("can generate fields that reference each other in the graph", () => {
-      let source = `type Person { name: String!, account: Account! } type Account { owner: Person! }`;
+      let source =
+        `type Person { name: String!, account: Account! } type Account { owner: Person! }`;
       let person = createGraphGen({
         source,
-      }).create('Person');
+      }).create("Person");
       expect(person.account).toBeTruthy();
       expect(person.name).toEqual(person.account.name);
-    })
+    });
   });
 
   it.ignore("can derive fields from other fields based on the fully reified object", () => {
