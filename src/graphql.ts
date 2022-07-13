@@ -35,16 +35,19 @@ export function createGraphGen(options: GraphQLOptions): GraphGen {
   let prelude = graphql.buildSchema(`
 directive @has(chance: Float!) on FIELD_DEFINITION
 directive @gen(with: String!) on FIELD_DEFINITION
+directive @inverse(of: String!) on FIELD_DEFINITION
 `);
 
   let schema = graphql.extendSchema(prelude, graphql.parse(options.source));
 
-  let types = analyze(schema);
+  let { types, relationships } = analyze(schema);
+  console.dir({ relationships });
 
   let fieldgen = createFieldGenerate(
     seed,
     options.fieldgen ? ([] as FieldGen[]).concat(options.fieldgen) : [],
   );
+
 
   let graph = createGraph({
     seed,
@@ -63,8 +66,15 @@ directive @gen(with: String!) on FIELD_DEFINITION
         }),
         relationships: [],
       })),
+      edge: relationships.map(rel => ({
+        name: rel.name,
+        from: rel.from.name,
+        to: rel.to.name,
+      }))
     },
   });
+
+  console.dir({ graph }, { depth: 10 });
 
   return {
     create(typename, preset?: Record<string, unknown>) {
@@ -74,10 +84,21 @@ directive @gen(with: String!) on FIELD_DEFINITION
   };
 }
 
+type GQLField = graphql.GraphQLField<unknown, unknown>;
+
 interface Type {
   name: string;
   fields: Field[];
-  //  relationships: Relationship[];
+  references: Reference[]
+}
+
+interface Reference {
+  name: string;
+  typename: string;
+  holder: Type;
+  arity: Arity;
+  key: string;
+  inverse?: string;
 }
 
 interface Field {
@@ -88,14 +109,33 @@ interface Field {
   valueGeneratorMethodName: string;
 }
 
+interface Relationship {
+  name: string;
+  from: Type;
+  to: Type;
+  overspecified?: boolean;
+}
+
+type Arity = {
+  has: "one";
+  chance: number;
+} | {
+  has: "many";
+  size: {
+    mean: number;
+    max: number;
+    standardDeviation: number;
+  };
+};
+
 function createFieldGenerate(seed: Seed, middlewares: FieldGen[]) {
   type Invoke = (info: Omit<FieldGenInfo, "next">) => unknown;
 
   let invoke = evaluate<Invoke>(function* () {
     for (let middleware of middlewares) {
-      yield* shift<void>(function* (resolve) {
+      yield* shift<void>(function* (k) {
         return ((info) =>
-          middleware({ ...info, next: () => resolve()(info) })) as Invoke;
+          middleware({ ...info, next: () => k()(info) })) as Invoke;
       });
     }
     return () => "blork";
@@ -116,27 +156,49 @@ function createFieldGenerate(seed: Seed, middlewares: FieldGen[]) {
   };
 }
 
-function analyze(schema: graphql.GraphQLSchema): Type[] {
-  return Object.values(schema.getTypeMap()).reduce((types, graphqlType) => {
+interface Analysis {
+  types: Type[];
+  relationships: Relationship[];
+}
+
+function analyze(schema: graphql.GraphQLSchema): Analysis {
+  let gqlTypes = Object.values<graphql.GraphQLNamedType>(schema.getTypeMap());
+
+  let types = gqlTypes.reduce((current, graphqlType) => {
     if (
       !graphql.isObjectType(graphqlType) || graphqlType.name.startsWith("_")
     ) {
-      return types;
+      return current;
     } else {
-      let graphQLFields = Object.entries(graphqlType.getFields()).filter((
-        [, field],
-      ) => isStructuralField(field));
+      let fields = Object.values<GQLField>(graphqlType.getFields());
+
+      let scalarFields = fields.flatMap((field) => {
+        if (isStructuralField(field)) {
+          return [field];
+        } else {
+          return [];
+        }
+      });
+
+      let relFields = fields.flatMap((field) => {
+        if (isStructuralField(field)) {
+          return [];
+        } else {
+          return [field];
+        }
+      });
+
       let type: Type = {
         name: graphqlType.name,
-        fields: graphQLFields.map(([name, field]) => {
+        fields: scalarFields.map((field) => {
           let typename = graphql.getNamedType(field.type).name;
-          let probability = chanceOf(field, 0.5);
+          let probability = chanceOf(field);
           let valueGeneratorMethodName = methodOf(
             field,
             `${graphqlType.name}.${field.name}`,
           );
           return {
-            name,
+            name: field.name,
             get holder() {
               return type;
             },
@@ -145,16 +207,100 @@ function analyze(schema: graphql.GraphQLSchema): Type[] {
             valueGeneratorMethodName,
           } as Field;
         }),
+        references: relFields.map(field => {
+          let typename = graphql.getNamedType(field.type).name;
+          return {
+            name: field.name,
+            get holder() { return type; },
+            typename,
+            arity: arityOf(field),
+            inverse: inverseOf(field),
+            key: `${graphqlType.name}.${field.name}`,
+          };
+        })
       };
-      return types.concat(type);
+      return current.concat([type]);
     }
   }, [] as Type[]);
+
+  let relationships = new Map<string, Relationship>();
+
+  let allrefs = types.reduce((refs, type) => {
+    for (let ref of type.references) {
+      refs.set(ref.key, ref);
+    }
+    return refs;
+  }, new Map<string, Reference>())
+
+  for (let ref of allrefs.values()) {
+    if (ref.inverse) {
+      // other side is present, and over-specified
+      let key = `${ref.inverse}->${ref.key}`;
+      let reverseKey = `${ref.key}->${ref.inverse}`;
+      if (relationships.has(reverseKey)) {
+        let rel = relationships.get(reverseKey);
+        assert(rel);
+        rel.overspecified = true;
+      } else if (relationships.has(ref.inverse)) {
+        // other side is present, but not complete
+        let current = relationships.get(ref.inverse);
+        relationships.delete(ref.inverse);
+        assert(current);
+
+        relationships.set(key, {
+          ...current,
+          name: key,
+        });
+      } else {
+        // neither side is present
+        let from = allrefs.get(ref.inverse);
+
+        assert(from, `${ref.key} specified an inverse of ${ref.inverse}, but no such field exists`);
+        relationships.set(key, {
+          name: key,
+          from: from.holder,
+          to: ref.holder,
+        })
+      }
+    } else {
+      // no inverse, so either we are the source of an inverse, or nothing yet
+      if (![...relationships.values()].find(relation => {
+        return relation.name.startsWith(ref.key)
+      })) {
+        let to = types.find(t => t.name === ref.typename);
+        assert(to, `${ref.key} references non existent type: ${ref.typename}`);
+
+        relationships.set(ref.key, {
+          name: ref.key,
+          from: ref.holder,
+          to,
+        });
+      }
+    }
+  }
+  return {
+    types,
+    relationships: [...relationships.values()],
+  };
 }
 
-function chanceOf(
-  field: graphql.GraphQLField<unknown, unknown>,
-  defaultChance: number,
-): number {
+function inverseOf(field: GQLField): string | undefined {
+  let inverse =
+    field.astNode?.directives?.filter((d) => d.name.value === "inverse")[0];
+  if (inverse) {
+    assert(
+      inverse.arguments,
+      "missing @inverse(of) argument",
+    );
+    let of = inverse.arguments?.find((arg) => {
+      return arg.name.value === "of";
+    });
+    assert(of?.value, "malformed @inverse directive, has no 'of' argument");
+    return (of?.value as graphql.StringValueNode).value;
+  }
+}
+
+function chanceOf(field: GQLField): number {
   let has = field.astNode?.directives?.filter((d) => d.name.value === "has")[0];
   if (has) {
     assert(
@@ -182,14 +328,11 @@ function chanceOf(
   } else if (!graphql.isNullableType(field.type)) {
     return 1;
   } else {
-    return defaultChance;
+    return 0.7;
   }
 }
 
-function methodOf(
-  field: graphql.GraphQLField<unknown, unknown>,
-  defaultMethod: string,
-) {
+function methodOf(field: GQLField, defaultMethod: string) {
   let gen =
     field.astNode?.directives?.filter(({ name }) => name.value === "gen")[0];
   if (gen) {
@@ -202,8 +345,25 @@ function methodOf(
   }
 }
 
-function isStructuralField(
-  field: graphql.GraphQLField<unknown, unknown>,
-): boolean {
-  return !graphql.isObjectType(field.type);
+function arityOf(field: GQLField): Arity {
+  if (graphql.isListType(field.type)) {
+    return {
+      has: "many",
+      size: {
+        mean: 5,
+        max: 10,
+        standardDeviation: 10,
+      },
+    };
+  } else {
+    return {
+      has: "one",
+      chance: chanceOf(field),
+    };
+  }
+}
+
+function isStructuralField(field: GQLField): boolean {
+  let named = graphql.getNamedType(field.type);
+  return !graphql.isObjectType(named);
 }

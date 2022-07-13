@@ -4,30 +4,32 @@ import { createGraphGen, FieldGen, GraphGen } from "../mod.ts";
 describe("using graphql", () => {
   let graphgen: GraphGen;
 
-  beforeEach(() => {
-    graphgen = createGraphGen({
-      source: `type Person { name: String! }`,
+  describe("for basic generation", () => {
+    beforeEach(() => {
+      graphgen = createGraphGen({
+        source: `type Person { name: String! }`,
+      });
     });
-  });
 
-  it("can create something with default values", () => {
-    let person = graphgen.create("Person");
-    expect(typeof person.name).toEqual("string");
-    expect(person.wut).not.toBeDefined();
-  });
-
-  it("can pass bespoke values in the create", () => {
-    expect(graphgen.create("Person", {
-      name: "Bob Dobalina",
-    })).toEqual({
-      name: "Bob Dobalina",
+    it("can create something with default values", () => {
+      let person = graphgen.create("Person");
+      expect(typeof person.name).toEqual("string");
+      expect(person.wut).not.toBeDefined();
     });
-  });
 
-  it.ignore("can pass bespoke values for relationships the create", () => {});
+    it("can pass bespoke values in the create", () => {
+      expect(graphgen.create("Person", {
+        name: "Bob Dobalina",
+      })).toEqual({
+        name: "Bob Dobalina",
+      });
+    });
 
-  it("fails to create anything that is not defined", () => {
-    expect(() => graphgen.create("Bucksnort")).toThrow("unknown");
+    it.ignore("can pass bespoke values for relationships the create", () => {});
+
+    it("fails to create anything that is not defined", () => {
+      expect(() => graphgen.create("Bucksnort")).toThrow("unknown");
+    });
   });
 
   describe("a global custom generator per field", () => {
@@ -125,9 +127,9 @@ describe("using graphql", () => {
   });
 
   describe("relationships", () => {
-    it.ignore("can generate fields that reference each other in the graph", () => {
+    it.only("can generate 1:1 relationships that reference each other", () => {
       let source =
-        `type Person { name: String!, account: Account! } type Account { owner: Person! }`;
+        `type Person { name: String!, account: Account! } type Account { owner: Person! @inverse(of: "Person.account")}`;
       let person = createGraphGen({
         source,
       }).create("Person");
@@ -136,8 +138,18 @@ describe("using graphql", () => {
     });
   });
 
+  it.ignore("checks to make sure that inverse relationships line up", () => {});
+  it.ignore("forbids putting a @chance on a many relationship", () => {});
+  it.ignore("forbids putting a @size on single relationships", () => {});
+  it.ignore("forbids specifying an inverse relationship that does not exist", () => {});
+
+  it.ignore("does not care the order in which you express inverse relationships", () => {});
+  it.ignore("uses a normal distribution for basic ", () => {});
+  it.ignore("lets you specify your own normal distribution", () => {});
+
   it.ignore("can derive fields from other fields based on the fully reified object", () => {
   });
+  it.ignore("can handle polymorphic relationships", () => {});
 
   it("minimatches", () => {
   });
