@@ -2,7 +2,7 @@ import type { Seed } from "./distribution.ts";
 import { seedrandom } from "./seedrandom.ts";
 import { assert, evaluate, graphql, shift } from "./deps.ts";
 import { createGraph, createVertex, EdgeType, Vertex } from "./graph.ts";
-import { constant } from './distribution.ts';
+import { constant, weighted } from "./distribution.ts";
 
 export interface Node {
   id: string;
@@ -55,7 +55,9 @@ directive @inverse(of: String!) on FIELD_DEFINITION
   let graph = createGraph({
     seed,
     types: {
-      vertex: Object.values<Type>(types).map(({ name, fields, references }) => ({
+      vertex: Object.values<Type>(types).map((
+        { name, fields, references },
+      ) => ({
         name,
         data: () => ({
           description: "this description is not used",
@@ -67,25 +69,34 @@ directive @inverse(of: String!) on FIELD_DEFINITION
             return values;
           },
         }),
-        relationships: references.map(ref => {
+        relationships: references.map((ref) => {
           let relationship = expect(ref.key, relationships);
+          let size = ref.arity.has === "many"
+            ? constant(2)
+            : weighted([[1, ref.probability], [0, 1 - ref.probability]]);
+
           return {
             type: relationship.name,
-            size: constant(1), //TODO probability on ref
+            size,
             direction: relationship.direction,
-          }
+          };
         }),
       })),
-      edge: Object.values<EdgeType>(Object.values<Relationship>(relationships).reduce((edgeTypes, relationship) => {
-        return {
-          ...edgeTypes,
-          [relationship.name]: {
-            name: relationship.name,
-            from: relationship.from.name,
-            to: relationship.to.name,
-          }
-        }
-      }, {} as Record<string, EdgeType>)),
+      edge: Object.values<EdgeType>(
+        Object.values<Relationship>(relationships).reduce(
+          (edgeTypes, relationship) => {
+            return {
+              ...edgeTypes,
+              [relationship.name]: {
+                name: relationship.name,
+                from: relationship.from.name,
+                to: relationship.to.name,
+              },
+            };
+          },
+          {} as Record<string, EdgeType>,
+        ),
+      ),
     },
   });
 
@@ -108,17 +119,22 @@ directive @inverse(of: String!) on FIELD_DEFINITION
             enumerable: true,
             get() {
               let relationship = expect(ref.key, relationships);
-              let edges = (graph[relationship.direction][vertex.id] ?? []).filter(e => e.type === relationship.name);
-              let direction: 'from' | 'to' = relationship.direction === 'from' ? 'to' : 'from';
-              let nodes = edges.map(edge => toNode(graph.vertices[edge[direction]]))
-              if (ref.arity.has === 'many') {
-                return nodes
+              let edges = (graph[relationship.direction][vertex.id] ?? [])
+                .filter((e) => e.type === relationship.name);
+              let direction: "from" | "to" = relationship.direction === "from"
+                ? "to"
+                : "from";
+              let nodes = edges.map((edge) =>
+                toNode(graph.vertices[edge[direction]])
+              );
+              if (ref.arity.has === "many") {
+                return nodes;
               } else {
                 return nodes[0];
               }
-            }
-          }
-        }
+            },
+          },
+        };
       }, {} as PropertyDescriptorMap);
 
       return nodes[vertex.id] = Object.defineProperties(node, properties);
@@ -138,13 +154,14 @@ type GQLField = graphql.GraphQLField<unknown, unknown>;
 interface Type {
   name: string;
   fields: Field[];
-  references: Reference[]
+  references: Reference[];
 }
 
 interface Reference {
   name: string;
   typename: string;
   holder: Type;
+  probability: number;
   arity: Arity;
   key: string;
   inverse?: string;
@@ -162,7 +179,7 @@ interface Relationship {
   name: string;
   from: Type;
   to: Type;
-  direction: 'from' | 'to';
+  direction: "from" | "to";
 }
 
 type Arity = {
@@ -256,17 +273,21 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
             valueGeneratorMethodName,
           } as Field;
         }),
-        references: relFields.map(field => {
+        references: relFields.map((field) => {
           let typename = graphql.getNamedType(field.type).name;
+          let probability = chanceOf(field);
           return {
             name: field.name,
-            get holder() { return type; },
+            get holder() {
+              return type;
+            },
             typename,
+            probability,
             arity: arityOf(field),
             inverse: inverseOf(field),
             key: `${graphqlType.name}.${field.name}`,
           };
-        })
+        }),
       };
       return {
         ...current,
@@ -282,10 +303,9 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
       refs[ref.key] = ref;
     }
     return refs;
-  }, {} as Record<string, Reference>)
+  }, {} as Record<string, Reference>);
 
   for (let ref of Object.values<Reference>(allrefs)) {
-
     if (ref.inverse) {
       let name = `${ref.inverse}->${ref.key}`;
       // other side is present
@@ -293,25 +313,22 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
         let rel = expect(ref.inverse, relationships);
         relationships[ref.inverse] = {
           ...rel,
-          direction: 'from',
-          name
-
-        }
-
+          direction: "from",
+          name,
+        };
       }
       relationships[ref.key] = {
         name,
         from: expect(ref.typename, types),
         to: ref.holder,
-        direction: 'to',
+        direction: "to",
       };
-
     } else {
       relationships[ref.key] = {
         name: ref.key,
         from: ref.holder,
         to: expect(ref.typename, types),
-        direction: 'from',
+        direction: "from",
       };
     }
   }
@@ -407,6 +424,9 @@ function isStructuralField(field: GQLField): boolean {
 
 function expect<T>(key: string, record: Record<string, T>): T {
   let value = record[key];
-  assert(value, `expected map to contain value with key: '${key}', but it did not`);
+  assert(
+    value,
+    `expected map to contain value with key: '${key}', but it did not`,
+  );
   return value;
 }
