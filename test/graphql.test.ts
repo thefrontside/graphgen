@@ -18,9 +18,11 @@ describe("using graphql", () => {
     });
 
     it("can pass bespoke values in the create", () => {
-      expect(graphgen.create("Person", {
-        name: "Bob Dobalina",
-      }).name).toEqual('Bob Dobalina');
+      expect(
+        graphgen.create("Person", {
+          name: "Bob Dobalina",
+        }).name,
+      ).toEqual("Bob Dobalina");
     });
 
     it.ignore("can pass bespoke values for relationships the create", () => {});
