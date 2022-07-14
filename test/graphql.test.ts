@@ -20,9 +20,7 @@ describe("using graphql", () => {
     it("can pass bespoke values in the create", () => {
       expect(graphgen.create("Person", {
         name: "Bob Dobalina",
-      })).toEqual({
-        name: "Bob Dobalina",
-      });
+      }).name).toEqual('Bob Dobalina');
     });
 
     it.ignore("can pass bespoke values for relationships the create", () => {});
@@ -54,6 +52,7 @@ describe("using graphql", () => {
       expect(graphgen.create("Person", {
         name: "Bob Dobalina",
       })).toEqual({
+        id: "1",
         name: "Bob Dobalina",
         occupation: "Person.occupation is a String",
       });
@@ -105,6 +104,7 @@ describe("using graphql", () => {
         },
       }).create("Person"),
     ).toEqual({
+      id: "1",
       name: "Bob Dobalina",
       occupation: "blork",
     });
@@ -121,20 +121,21 @@ describe("using graphql", () => {
     }).create("Person");
 
     expect(person).toEqual({
+      id: "1",
       name: "Charles",
       occupation: "Developer",
     });
   });
 
   describe("relationships", () => {
-    it.only("can generate 1:1 relationships that reference each other", () => {
+    it("can generate 1:1 relationships that reference each other", () => {
       let source =
         `type Person { name: String!, account: Account! } type Account { owner: Person! @inverse(of: "Person.account")}`;
       let person = createGraphGen({
         source,
       }).create("Person");
       expect(person.account).toBeTruthy();
-      expect(person.name).toEqual(person.account.name);
+      expect(person.name).toEqual(person.account.owner.name);
     });
   });
 

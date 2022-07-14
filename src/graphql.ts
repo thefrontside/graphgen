@@ -1,15 +1,19 @@
 import type { Seed } from "./distribution.ts";
 import { seedrandom } from "./seedrandom.ts";
 import { assert, evaluate, graphql, shift } from "./deps.ts";
-import { createGraph, createVertex, EdgeType } from "./graph.ts";
+import { createGraph, createVertex, EdgeType, Vertex } from "./graph.ts";
 import { constant } from './distribution.ts';
+
+export interface Node {
+  id: string;
+}
 
 export interface GraphGen {
   create(
     typename: string,
     preset?: Record<string, unknown>,
     //deno-lint-ignore no-explicit-any
-  ): Record<string, any>;
+  ): Record<string, any> & Node;
 }
 
 export interface FieldGen {
@@ -85,12 +89,46 @@ directive @inverse(of: String!) on FIELD_DEFINITION
     },
   });
 
-  console.dir({ graph }, { depth: 10 });
+  let nodes = {} as Record<number, Node>;
+
+  function toNode(vertex: Vertex): Node {
+    let existing = nodes[vertex.id];
+    if (existing) {
+      return existing;
+    } else {
+      let node = {
+        id: String(vertex.id),
+        ...vertex.data,
+      };
+      let type = expect(vertex.type, types);
+      let properties = type.references.reduce((props, ref) => {
+        return {
+          ...props,
+          [ref.name]: {
+            enumerable: true,
+            get() {
+              let relationship = expect(ref.key, relationships);
+              let edges = (graph[relationship.direction][vertex.id] ?? []).filter(e => e.type === relationship.name);
+              let direction: 'from' | 'to' = relationship.direction === 'from' ? 'to' : 'from';
+              let nodes = edges.map(edge => toNode(graph.vertices[edge[direction]]))
+              if (ref.arity.has === 'many') {
+                return nodes
+              } else {
+                return nodes[0];
+              }
+            }
+          }
+        }
+      }, {} as PropertyDescriptorMap);
+
+      return nodes[vertex.id] = Object.defineProperties(node, properties);
+    }
+  }
 
   return {
     create(typename, preset?: Record<string, unknown>) {
       let vertex = createVertex(graph, typename, preset);
-      return vertex.data;
+      return toNode(vertex);
     },
   };
 }
