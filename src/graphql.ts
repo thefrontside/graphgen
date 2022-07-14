@@ -1,7 +1,8 @@
 import type { Seed } from "./distribution.ts";
 import { seedrandom } from "./seedrandom.ts";
 import { assert, evaluate, graphql, shift } from "./deps.ts";
-import { createGraph, createVertex } from "./graph.ts";
+import { createGraph, createVertex, EdgeType } from "./graph.ts";
+import { constant } from './distribution.ts';
 
 export interface GraphGen {
   create(
@@ -41,18 +42,16 @@ directive @inverse(of: String!) on FIELD_DEFINITION
   let schema = graphql.extendSchema(prelude, graphql.parse(options.source));
 
   let { types, relationships } = analyze(schema);
-  console.dir({ relationships });
 
   let fieldgen = createFieldGenerate(
     seed,
     options.fieldgen ? ([] as FieldGen[]).concat(options.fieldgen) : [],
   );
 
-
   let graph = createGraph({
     seed,
     types: {
-      vertex: types.map(({ name, fields }) => ({
+      vertex: Object.values<Type>(types).map(({ name, fields, references }) => ({
         name,
         data: () => ({
           description: "this description is not used",
@@ -64,13 +63,25 @@ directive @inverse(of: String!) on FIELD_DEFINITION
             return values;
           },
         }),
-        relationships: [],
+        relationships: references.map(ref => {
+          let relationship = expect(ref.key, relationships);
+          return {
+            type: relationship.name,
+            size: constant(1), //TODO probability on ref
+            direction: relationship.direction,
+          }
+        }),
       })),
-      edge: relationships.map(rel => ({
-        name: rel.name,
-        from: rel.from.name,
-        to: rel.to.name,
-      }))
+      edge: Object.values<EdgeType>(Object.values<Relationship>(relationships).reduce((edgeTypes, relationship) => {
+        return {
+          ...edgeTypes,
+          [relationship.name]: {
+            name: relationship.name,
+            from: relationship.from.name,
+            to: relationship.to.name,
+          }
+        }
+      }, {} as Record<string, EdgeType>)),
     },
   });
 
@@ -113,7 +124,7 @@ interface Relationship {
   name: string;
   from: Type;
   to: Type;
-  overspecified?: boolean;
+  direction: 'from' | 'to';
 }
 
 type Arity = {
@@ -157,8 +168,8 @@ function createFieldGenerate(seed: Seed, middlewares: FieldGen[]) {
 }
 
 interface Analysis {
-  types: Type[];
-  relationships: Relationship[];
+  types: Record<string, Type>;
+  relationships: Record<string, Relationship>;
 }
 
 function analyze(schema: graphql.GraphQLSchema): Analysis {
@@ -219,68 +230,56 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
           };
         })
       };
-      return current.concat([type]);
+      return {
+        ...current,
+        [graphqlType.name]: type,
+      };
     }
-  }, [] as Type[]);
+  }, {} as Record<string, Type>);
 
-  let relationships = new Map<string, Relationship>();
+  let relationships = {} as Record<string, Relationship>;
 
-  let allrefs = types.reduce((refs, type) => {
+  let allrefs = Object.values<Type>(types).reduce((refs, type) => {
     for (let ref of type.references) {
-      refs.set(ref.key, ref);
+      refs[ref.key] = ref;
     }
     return refs;
-  }, new Map<string, Reference>())
+  }, {} as Record<string, Reference>)
 
-  for (let ref of allrefs.values()) {
+  for (let ref of Object.values<Reference>(allrefs)) {
+
     if (ref.inverse) {
-      // other side is present, and over-specified
-      let key = `${ref.inverse}->${ref.key}`;
-      let reverseKey = `${ref.key}->${ref.inverse}`;
-      if (relationships.has(reverseKey)) {
-        let rel = relationships.get(reverseKey);
-        assert(rel);
-        rel.overspecified = true;
-      } else if (relationships.has(ref.inverse)) {
-        // other side is present, but not complete
-        let current = relationships.get(ref.inverse);
-        relationships.delete(ref.inverse);
-        assert(current);
+      let name = `${ref.inverse}->${ref.key}`;
+      // other side is present
+      if (relationships[ref.inverse]) {
+        let rel = expect(ref.inverse, relationships);
+        relationships[ref.inverse] = {
+          ...rel,
+          direction: 'from',
+          name
 
-        relationships.set(key, {
-          ...current,
-          name: key,
-        });
-      } else {
-        // neither side is present
-        let from = allrefs.get(ref.inverse);
+        }
 
-        assert(from, `${ref.key} specified an inverse of ${ref.inverse}, but no such field exists`);
-        relationships.set(key, {
-          name: key,
-          from: from.holder,
-          to: ref.holder,
-        })
       }
+      relationships[ref.key] = {
+        name,
+        from: expect(ref.typename, types),
+        to: ref.holder,
+        direction: 'to',
+      };
+
     } else {
-      // no inverse, so either we are the source of an inverse, or nothing yet
-      if (![...relationships.values()].find(relation => {
-        return relation.name.startsWith(ref.key)
-      })) {
-        let to = types.find(t => t.name === ref.typename);
-        assert(to, `${ref.key} references non existent type: ${ref.typename}`);
-
-        relationships.set(ref.key, {
-          name: ref.key,
-          from: ref.holder,
-          to,
-        });
-      }
+      relationships[ref.key] = {
+        name: ref.key,
+        from: ref.holder,
+        to: expect(ref.typename, types),
+        direction: 'from',
+      };
     }
   }
   return {
     types,
-    relationships: [...relationships.values()],
+    relationships,
   };
 }
 
@@ -366,4 +365,10 @@ function arityOf(field: GQLField): Arity {
 function isStructuralField(field: GQLField): boolean {
   let named = graphql.getNamedType(field.type);
   return !graphql.isObjectType(named);
+}
+
+function expect<T>(key: string, record: Record<string, T>): T {
+  let value = record[key];
+  assert(value, `expected map to contain value with key: '${key}', but it did not`);
+  return value;
 }
