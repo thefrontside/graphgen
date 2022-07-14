@@ -2,7 +2,7 @@ import type { Seed } from "./distribution.ts";
 import { seedrandom } from "./seedrandom.ts";
 import { assert, evaluate, graphql, shift } from "./deps.ts";
 import { createGraph, createVertex, EdgeType, Vertex } from "./graph.ts";
-import { constant, weighted } from "./distribution.ts";
+import { normal, weighted } from "./distribution.ts";
 
 export interface Node {
   id: string;
@@ -41,6 +41,7 @@ export function createGraphGen(options: GraphQLOptions): GraphGen {
 directive @has(chance: Float!) on FIELD_DEFINITION
 directive @gen(with: String!) on FIELD_DEFINITION
 directive @inverse(of: String!) on FIELD_DEFINITION
+directive @size(mean: Int, max: Int, standardDeviation: Int) on FIELD_DEFINITION
 `);
 
   let schema = graphql.extendSchema(prelude, graphql.parse(options.source));
@@ -72,7 +73,7 @@ directive @inverse(of: String!) on FIELD_DEFINITION
         relationships: references.map((ref) => {
           let relationship = expect(ref.key, relationships);
           let size = ref.arity.has === "many"
-            ? constant(2)
+            ? normal({ min: 0, mean: 5, standardDeviation: 1 })
             : weighted([[1, ref.probability], [0, 1 - ref.probability]]);
 
           return {
@@ -307,6 +308,14 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
 
   for (let ref of Object.values<Reference>(allrefs)) {
     if (ref.inverse) {
+      if (!allrefs[ref.inverse]) {
+        throw new Error(`'${ref.key}' is declared as the inverse of '${ref.inverse}', but that type/field does not exist, or is not a reference to another vertex`);
+      } else {
+        let inverse = allrefs[ref.inverse];
+        if (inverse.holder.name !== ref.typename)  {
+          throw new Error(`the inverse of field '${ref.key}' was declared as '${ref.inverse}' which should be of type '${ref.holder.name}', but instead it was of type '${inverse.typename}'`);
+        }
+      }
       let name = `${ref.inverse}->${ref.key}`;
       // other side is present
       if (relationships[ref.inverse]) {
@@ -316,7 +325,15 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
           direction: "from",
           name,
         };
+      } else {
+        relationships[ref.inverse] = {
+          name,
+          from: expect(ref.typename, types),
+          to: ref.holder,
+          direction: "from",
+        }
       }
+
       relationships[ref.key] = {
         name,
         from: expect(ref.typename, types),
@@ -324,7 +341,7 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
         direction: "to",
       };
     } else {
-      relationships[ref.key] = {
+      relationships[ref.key] ??= {
         name: ref.key,
         from: ref.holder,
         to: expect(ref.typename, types),
@@ -332,6 +349,7 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
       };
     }
   }
+
   return {
     types,
     relationships,

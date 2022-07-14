@@ -141,14 +141,61 @@ describe("using graphql", () => {
     });
   });
 
-  it.ignore("checks to make sure that inverse relationships line up", () => {});
+  it("does not care the order in which you express inverse relationships", () => {
+    let person = createGraphGen({
+      source: `type Account { owner: Person! @inverse(of: "Person.account")} type Person { name: String!, account: Account! } `,
+    }).create("Person");
+    expect(person.account).toBeTruthy();
+    expect(person.name).toEqual(person.account.owner.name);
+  });
+
+  it.ignore("does not care if both sides express the inverse relationship", () => {
+    let person = createGraphGen({
+      source: `type Account { owner: Person! @inverse(of: "Person.account")} type Person { name: String!, account: Account! @inverse(of: "Account.owner")} `,
+    }).create("Person");
+    expect(person.account).toBeTruthy();
+    expect(person.name).toEqual(person.account.owner.name);
+  });
+
+  it("checks to make sure that inverse relationships exist", () => {
+    expect(() => {
+      createGraphGen({
+        source: `type Person { name: String! } type Account { owner: Person! @inverse(of: "floopy")}`
+      });
+    }).toThrow('does not exist');
+  });
+
+  it("checks to make sure that inverse relationships are of the correct type", () => {
+    expect(() => {
+      createGraphGen({
+        source: `type A { s: String! } type B { a: A! @inverse(of: "C.a")} type C { a: A!}`
+      });
+    }).toThrow('should be of type');
+  });
+
+  it("uses a normal distribution for 'many' relationships ", () => {
+    let person = createGraphGen({
+      source: `type Person { accounts: [Account] } type Account { owner: Person! @inverse(of: "Person.accounts")}`,
+    }).create("Person");
+
+    expect(person.accounts).toBeTruthy();
+    expect(person.accounts.length).toBeGreaterThan(1);
+
+    for (let account of person.accounts ) {
+      expect(account.owner).toEqual(person);
+    }
+  });
+
+  it.ignore("lets you specify your own normal distribution", () => {
+    let person = createGraphGen({
+      source: `type Person { accounts: [Account] @size(mean: 5, standardDeviation: 0) } type Account { owner: Person! @inverse(of: "Person.accounts")}`,
+    }).create("Person");
+    expect(person.accounts.length).toEqual(5);
+  });
+
   it.ignore("forbids putting a @chance on a many relationship", () => {});
   it.ignore("forbids putting a @size on single relationships", () => {});
-  it.ignore("forbids specifying an inverse relationship that does not exist", () => {});
 
-  it.ignore("does not care the order in which you express inverse relationships", () => {});
-  it.ignore("uses a normal distribution for basic ", () => {});
-  it.ignore("lets you specify your own normal distribution", () => {});
 
   it.ignore("can derive fields from other fields based on the fully reified object", () => {
   });
