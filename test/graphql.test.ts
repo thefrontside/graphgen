@@ -143,7 +143,8 @@ describe("using graphql", () => {
 
   it("does not care the order in which you express inverse relationships", () => {
     let person = createGraphGen({
-      source: `type Account { owner: Person! @inverse(of: "Person.account")} type Person { name: String!, account: Account! } `,
+      source:
+        `type Account { owner: Person! @inverse(of: "Person.account")} type Person { name: String!, account: Account! } `,
     }).create("Person");
     expect(person.account).toBeTruthy();
     expect(person.name).toEqual(person.account.owner.name);
@@ -151,7 +152,8 @@ describe("using graphql", () => {
 
   it.ignore("does not care if both sides express the inverse relationship", () => {
     let person = createGraphGen({
-      source: `type Account { owner: Person! @inverse(of: "Person.account")} type Person { name: String!, account: Account! @inverse(of: "Account.owner")} `,
+      source:
+        `type Account { owner: Person! @inverse(of: "Person.account")} type Person { name: String!, account: Account! @inverse(of: "Account.owner")} `,
     }).create("Person");
     expect(person.account).toBeTruthy();
     expect(person.name).toEqual(person.account.owner.name);
@@ -160,46 +162,74 @@ describe("using graphql", () => {
   it("checks to make sure that inverse relationships exist", () => {
     expect(() => {
       createGraphGen({
-        source: `type Person { name: String! } type Account { owner: Person! @inverse(of: "floopy")}`
+        source:
+          `type Person { name: String! } type Account { owner: Person! @inverse(of: "floopy")}`,
       });
-    }).toThrow('does not exist');
+    }).toThrow("does not exist");
   });
 
   it("checks to make sure that inverse relationships are of the correct type", () => {
     expect(() => {
       createGraphGen({
-        source: `type A { s: String! } type B { a: A! @inverse(of: "C.a")} type C { a: A!}`
+        source:
+          `type A { s: String! } type B { a: A! @inverse(of: "C.a")} type C { a: A!}`,
       });
-    }).toThrow('should be of type');
+    }).toThrow("should be of type");
   });
 
   it("uses a normal distribution for 'many' relationships ", () => {
     let person = createGraphGen({
-      source: `type Person { accounts: [Account] } type Account { owner: Person! @inverse(of: "Person.accounts")}`,
+      source:
+        `type Person { accounts: [Account] } type Account { owner: Person! @inverse(of: "Person.accounts")}`,
     }).create("Person");
 
     expect(person.accounts).toBeTruthy();
     expect(person.accounts.length).toBeGreaterThan(1);
 
-    for (let account of person.accounts ) {
+    for (let account of person.accounts) {
       expect(account.owner).toEqual(person);
     }
   });
 
-  it.ignore("lets you specify your own normal distribution", () => {
+  it("lets you specify your own normal distribution", () => {
     let person = createGraphGen({
-      source: `type Person { accounts: [Account] @size(mean: 5, standardDeviation: 0) } type Account { owner: Person! @inverse(of: "Person.accounts")}`,
+      source:
+        `type Person { accounts: [Account] @size(mean: 10, standardDeviation: 1) } type Account { owner: Person! @inverse(of: "Person.accounts")}`,
     }).create("Person");
-    expect(person.accounts.length).toEqual(5);
+    expect(person.accounts.length).toEqual(9);
   });
 
-  it.ignore("forbids putting a @chance on a many relationship", () => {});
-  it.ignore("forbids putting a @size on single relationships", () => {});
+  it("forbids putting a @has(chance: 0.7) on a many relationship", () => {
+    expect(() => {
+      createGraphGen({
+        source:
+          `type Person { accounts: [Account] @has(chance: 0.7)} type Account { name: String! }`,
+      });
+    }).toThrow("cannot be used");
+  });
 
+  it.ignore("can handle polymorphic relationships", () => {
+    createGraphGen({
+      source: `
+type Person { name: String! }
+type Organization { name: String! }
+union Owner = Person | Organization
+type Account { owner: Owner! }`,
+    });
+  });
+
+  it.ignore("forbids putting a @size on single relationships", () => {
+    expect(() => {
+      createGraphGen({
+        source: `type Person { name: String @size(max: 5) }`,
+      });
+    }).toThrow("xyz");
+  });
 
   it.ignore("can derive fields from other fields based on the fully reified object", () => {
   });
-  it.ignore("can handle polymorphic relationships", () => {});
+
+  it.ignore("can report multiple errors in a single invocation", () => {});
 
   it("minimatches", () => {
   });
