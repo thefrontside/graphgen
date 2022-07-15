@@ -73,7 +73,7 @@ directive @size(mean: Int, max: Int, standardDeviation: Int) on FIELD_DEFINITION
         relationships: references.map((ref) => {
           let relationship = expect(ref.key, relationships);
           let size = ref.arity.has === "many"
-            ? normal({ min: 0, mean: 5, standardDeviation: 1 })
+            ? normal(ref.arity.size)
             : weighted([[1, ref.probability], [0, 1 - ref.probability]]);
 
           return {
@@ -309,11 +309,15 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
   for (let ref of Object.values<Reference>(allrefs)) {
     if (ref.inverse) {
       if (!allrefs[ref.inverse]) {
-        throw new Error(`'${ref.key}' is declared as the inverse of '${ref.inverse}', but that type/field does not exist, or is not a reference to another vertex`);
+        throw new Error(
+          `'${ref.key}' is declared as the inverse of '${ref.inverse}', but that type/field does not exist, or is not a reference to another vertex`,
+        );
       } else {
         let inverse = allrefs[ref.inverse];
-        if (inverse.holder.name !== ref.typename)  {
-          throw new Error(`the inverse of field '${ref.key}' was declared as '${ref.inverse}' which should be of type '${ref.holder.name}', but instead it was of type '${inverse.typename}'`);
+        if (inverse.holder.name !== ref.typename) {
+          throw new Error(
+            `the inverse of field '${ref.key}' was declared as '${ref.inverse}' which should be of type '${ref.holder.name}', but instead it was of type '${inverse.typename}'`,
+          );
         }
       }
       let name = `${ref.inverse}->${ref.key}`;
@@ -331,7 +335,7 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
           from: expect(ref.typename, types),
           to: ref.holder,
           direction: "from",
-        }
+        };
       }
 
       relationships[ref.key] = {
@@ -357,8 +361,7 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
 }
 
 function inverseOf(field: GQLField): string | undefined {
-  let inverse =
-    field.astNode?.directives?.filter((d) => d.name.value === "inverse")[0];
+  let inverse = directiveOf(field, "inverse");
   if (inverse) {
     assert(
       inverse.arguments,
@@ -373,8 +376,12 @@ function inverseOf(field: GQLField): string | undefined {
 }
 
 function chanceOf(field: GQLField): number {
-  let has = field.astNode?.directives?.filter((d) => d.name.value === "has")[0];
+  let has = directiveOf(field, "has");
   if (has) {
+    assert(
+      !graphql.isListType(field.type),
+      `${field.name} is a List, and so the @has directive cannot be used`,
+    );
     assert(
       has.arguments,
       "has must have arguments. This should be guaranteed by syntax.",
@@ -405,8 +412,7 @@ function chanceOf(field: GQLField): number {
 }
 
 function methodOf(field: GQLField, defaultMethod: string) {
-  let gen =
-    field.astNode?.directives?.filter(({ name }) => name.value === "gen")[0];
+  let gen = directiveOf(field, "gen");
   if (gen) {
     assert(gen.arguments, "malformed @gen directive");
     let method = gen.arguments?.find((arg) => arg.name.value === "with");
@@ -417,20 +423,52 @@ function methodOf(field: GQLField, defaultMethod: string) {
   }
 }
 
+function directiveOf(field: GQLField, name: string) {
+  return field.astNode?.directives?.filter((directive) =>
+    directive.name.value === name
+  )[0];
+}
+
 function arityOf(field: GQLField): Arity {
   if (graphql.isListType(field.type)) {
     return {
       has: "many",
-      size: {
-        mean: 5,
-        max: 10,
-        standardDeviation: 10,
-      },
+      size: sizeOf(field),
     };
   } else {
     return {
       has: "one",
       chance: chanceOf(field),
+    };
+  }
+}
+
+interface Size {
+  mean: number;
+  max: number;
+  standardDeviation: number;
+}
+
+function sizeOf(field: GQLField): Size {
+  let directive = directiveOf(field, "size");
+  if (directive) {
+    assert(directive.arguments, "@size must have arguments");
+    let meanArg = directive.arguments?.find((arg) => arg.name.value === "mean");
+    let mean = parseInt((meanArg?.value as graphql.IntValueNode).value ?? 5);
+    let maxArg = directive.arguments?.find(({ name }) => name.value === "max");
+    let max = parseInt((maxArg?.value as graphql.IntValueNode).value ?? 10);
+    let standardDeviationArg = directive.arguments?.find(({ name }) =>
+      name.value === "standardDeviation"
+    );
+    let standardDeviation = parseInt(
+      (standardDeviationArg?.value as graphql.IntValueNode).value ?? 1,
+    );
+    return { mean, max, standardDeviation };
+  } else {
+    return {
+      mean: 5,
+      max: 10,
+      standardDeviation: 1,
     };
   }
 }
