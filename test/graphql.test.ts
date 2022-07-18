@@ -168,13 +168,13 @@ describe("using graphql", () => {
     }).toThrow("does not exist");
   });
 
-  it("checks to make sure that inverse relationships are of the correct type", () => {
+  it ("checks to make sure that inverse relationships are of the correct type", () => {
     expect(() => {
       createGraphGen({
         source:
           `type A { s: String! } type B { a: A! @inverse(of: "C.a")} type C { a: A!}`,
       });
-    }).toThrow("should be of type");
+    }).toThrow("does not reference type");
   });
 
   it("uses a normal distribution for 'many' relationships ", () => {
@@ -208,14 +208,18 @@ describe("using graphql", () => {
     }).toThrow("cannot be used");
   });
 
-  it.ignore("can handle polymorphic relationships", () => {
-    createGraphGen({
+  it("can handle polymorphic relationships", () => {
+    let person = createGraphGen({
       source: `
-type Person { name: String! }
-type Organization { name: String! }
+type Person { name: String! accounts: [Account] @inverse(of: "Account.owner") }
+type Organization { name: String! accounts: [Account] @inverse(of: "Account.owner") }
 union Owner = Person | Organization
 type Account { owner: Owner! }`,
-    });
+    }).create("Person");
+    expect(person.accounts.length).toEqual(4);
+    for (let account of person.accounts) {
+      expect(account.owner).toEqual(person);
+    }
   });
 
   it.ignore("forbids putting a @size on single relationships", () => {
