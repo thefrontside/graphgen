@@ -1,4 +1,4 @@
-import { build, emptyDir } from "https://deno.land/x/dnt@0.23.0/mod.ts";
+import { build, emptyDir } from "https://deno.land/x/dnt@0.28.0/mod.ts";
 
 const outDir = "./build/npm";
 
@@ -39,6 +39,13 @@ await build({
       node: ">= 14",
     },
   },
+  mappings: {
+    "https://esm.sh/graphql@16.5.0/graphql": {
+      name: "graphql",
+      version: "16.5.0",
+      peerDependency: false,
+    }
+  }
 });
 
 await Deno.copyFile("README.md", `${outDir}/README.md`);
