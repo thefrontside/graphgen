@@ -46,7 +46,7 @@ directive @size(mean: Int, max: Int, standardDeviation: Int) on FIELD_DEFINITION
 
   let schema = graphql.extendSchema(prelude, graphql.parse(options.source));
 
-  let { types, relationships } = analyze(schema);
+  let { types, edges, relationships } = analyze(schema);
 
   let fieldgen = createFieldGenerate(
     seed,
@@ -83,21 +83,11 @@ directive @size(mean: Int, max: Int, standardDeviation: Int) on FIELD_DEFINITION
           };
         }),
       })),
-      edge: Object.values<EdgeType>(
-        Object.values<Relationship>(relationships).reduce(
-          (edgeTypes, relationship) => {
-            return {
-              ...edgeTypes,
-              [relationship.name]: {
-                name: relationship.name,
-                from: relationship.from.name,
-                to: relationship.to.name,
-              },
-            };
-          },
-          {} as Record<string, EdgeType>,
-        ),
-      ),
+      edge: edges.map(edge => ({
+        name: edge.name,
+        from: edge.from.holder.name,
+        to: edge.to.map(t => t.holder.name) as [string, ...string[]],
+      })),
     },
   });
 
@@ -160,7 +150,7 @@ interface Type {
 
 interface Reference {
   name: string;
-  typename: string;
+  typenames: [string, ...string[]];
   holder: Type;
   probability: number;
   arity: Arity;
@@ -178,9 +168,16 @@ interface Field {
 
 interface Relationship {
   name: string;
-  from: Type;
-  to: Type;
   direction: "from" | "to";
+}
+
+interface Vector {
+  from: Reference;
+  to: Reference[];
+}
+
+interface Edge extends Vector {
+  name: string;
 }
 
 type Arity = {
@@ -225,6 +222,7 @@ function createFieldGenerate(seed: Seed, middlewares: FieldGen[]) {
 
 interface Analysis {
   types: Record<string, Type>;
+  edges: Edge[];
   relationships: Record<string, Relationship>;
 }
 
@@ -275,17 +273,19 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
           } as Field;
         }),
         references: relFields.map((field) => {
-          let typename = graphql.getNamedType(field.type).name;
+          let typenames = typesOf(field);
           let probability = chanceOf(field);
+          let inverse = inverseOf(field);
+          let ref = inverse ? { inverse } : {};
           return {
+            ...ref,
             name: field.name,
             get holder() {
               return type;
             },
-            typename,
+            typenames,
             probability,
             arity: arityOf(field),
-            inverse: inverseOf(field),
             key: `${graphqlType.name}.${field.name}`,
           };
         }),
@@ -297,8 +297,6 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
     }
   }, {} as Record<string, Type>);
 
-  let relationships = {} as Record<string, Relationship>;
-
   let allrefs = Object.values<Type>(types).reduce((refs, type) => {
     for (let ref of type.references) {
       refs[ref.key] = ref;
@@ -306,58 +304,66 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
     return refs;
   }, {} as Record<string, Reference>);
 
-  for (let ref of Object.values<Reference>(allrefs)) {
+  let vectors = Object.values<Reference>(allrefs).reduce((vectors, ref) => {
     if (ref.inverse) {
-      if (!allrefs[ref.inverse]) {
-        throw new Error(
-          `'${ref.key}' is declared as the inverse of '${ref.inverse}', but that type/field does not exist, or is not a reference to another vertex`,
-        );
-      } else {
-        let inverse = allrefs[ref.inverse];
-        if (inverse.holder.name !== ref.typename) {
-          throw new Error(
-            `the inverse of field '${ref.key}' was declared as '${ref.inverse}' which should be of type '${ref.holder.name}', but instead it was of type '${inverse.typename}'`,
-          );
-        }
-      }
-      let name = `${ref.inverse}->${ref.key}`;
-      // other side is present
-      if (relationships[ref.inverse]) {
-        let rel = expect(ref.inverse, relationships);
-        relationships[ref.inverse] = {
-          ...rel,
-          direction: "from",
-          name,
-        };
-      } else {
-        relationships[ref.inverse] = {
-          name,
-          from: expect(ref.typename, types),
-          to: ref.holder,
-          direction: "from",
-        };
-      }
+      let inverse = allrefs[ref.inverse]
+      assert(inverse, `'${ref.key}' is declared as the inverse of '${ref.inverse}', but that type/field does not exist, or is not a reference to another vertex`);
+      let referents = vectors[ref.inverse];
 
-      relationships[ref.key] = {
-        name,
-        from: expect(ref.typename, types),
-        to: ref.holder,
-        direction: "to",
-      };
-    } else {
-      relationships[ref.key] ??= {
-        name: ref.key,
-        from: ref.holder,
-        to: expect(ref.typename, types),
-        direction: "from",
-      };
+      if (!referents) {
+        vectors[inverse.key] = {
+          from: inverse,
+          to: [ref]
+        };
+      } else {
+        referents.to.push(ref);
+      }
     }
-  }
+
+    return vectors;
+  }, {} as Record<string, Vector>);
+
+  let edges = Object.values<Vector>(vectors).map(vector => {
+    for (let ref of vector.to) {
+      if (!ref.typenames.includes(vector.from.holder.name)) {
+        throw new Error(`'${ref.key}' is declared as the inverse of '${vector.from.key}', but '${vector.from.key}' does not reference type '${ref.holder.name}'. It references '${vector.from.typenames.join('|')}'`);
+      }
+    }
+    return ({
+      ...vector,
+      name: `${vector.from.key}->[${vector.to.map(t => t.key).join('|')}]`,
+    });
+  });
+
+  let relationships = edges.reduce((relationships, edge) => {
+    relationships[edge.from.key] = {
+      name: edge.name,
+      direction: 'from'
+    }
+    for (let ref of edge.to) {
+      relationships[ref.key] = {
+        name: edge.name,
+        direction: 'to',
+      }
+    }
+    return relationships;
+  }, {} as Record<string, Relationship>);
 
   return {
     types,
+    edges,
     relationships,
   };
+}
+
+function typesOf(field: GQLField): [string, ...string[]] {
+  let named = graphql.getNamedType(field.type);
+  if (graphql.isUnionType(named)) {
+    let types = named.getTypes();
+    return types.map(({ name }) => name) as [string, ...string[]];
+  } else {
+    return [named.name];
+  }
 }
 
 function inverseOf(field: GQLField): string | undefined {
@@ -475,7 +481,7 @@ function sizeOf(field: GQLField): Size {
 
 function isStructuralField(field: GQLField): boolean {
   let named = graphql.getNamedType(field.type);
-  return !graphql.isObjectType(named);
+  return !graphql.isObjectType(named) && !graphql.isUnionType(named);
 }
 
 function expect<T>(key: string, record: Record<string, T>): T {
