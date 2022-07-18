@@ -1,19 +1,20 @@
 import type { Seed } from "./distribution.ts";
 import { seedrandom } from "./seedrandom.ts";
 import { assert, evaluate, graphql, shift } from "./deps.ts";
-import { createGraph, createVertex, EdgeType, Vertex } from "./graph.ts";
+import { createGraph, createVertex, Vertex } from "./graph.ts";
 import { normal, weighted } from "./distribution.ts";
 
 export interface Node {
   id: string;
 }
 
-export interface GraphGen {
-  create(
-    typename: string,
-    preset?: Record<string, unknown>,
+//deno-lint-ignore no-explicit-any
+export interface GraphGen<API = Record<string, any>> {
+  create<T extends string & keyof API>(
+    typename: T,
     //deno-lint-ignore no-explicit-any
-  ): Record<string, any> & Node;
+    preset?: Record<string, any>,
+  ): Node & API[T];
 }
 
 export interface FieldGen {
@@ -35,7 +36,7 @@ export interface GraphQLOptions {
   seed?: Seed;
 }
 
-export function createGraphGen(options: GraphQLOptions): GraphGen {
+export function createGraphGen<API = Record<string, any>>(options: GraphQLOptions): GraphGen<API> {
   let { seed = seedrandom("graphgen") } = options;
   let prelude = graphql.buildSchema(`
 directive @has(chance: Float!) on FIELD_DEFINITION
@@ -134,8 +135,8 @@ directive @size(mean: Int, max: Int, standardDeviation: Int) on FIELD_DEFINITION
 
   return {
     create(typename, preset?: Record<string, unknown>) {
-      let vertex = createVertex(graph, typename, preset);
-      return toNode(vertex);
+      let vertex = createVertex(graph, typename , preset);
+      return toNode(vertex) as Node & API[typeof typename];
     },
   };
 }
