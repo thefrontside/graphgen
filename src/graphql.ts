@@ -30,9 +30,12 @@ export interface FieldGenInfo {
   next(): unknown;
 }
 
+export type ComputeMap = Record<string, <T extends Record<string, unknown>>(node: T) => unknown>
+
 export interface GraphQLOptions {
   source: string;
   fieldgen?: FieldGen | FieldGen[];
+  compute?: ComputeMap;
   seed?: Seed;
 }
 
@@ -43,6 +46,7 @@ directive @has(chance: Float!) on FIELD_DEFINITION
 directive @gen(with: String!) on FIELD_DEFINITION
 directive @inverse(of: String!) on FIELD_DEFINITION
 directive @size(mean: Int, max: Int, standardDeviation: Int) on FIELD_DEFINITION
+directive @computed on FIELD_DEFINITION
 `);
 
   let schema = graphql.extendSchema(prelude, graphql.parse(options.source));
@@ -92,6 +96,12 @@ directive @size(mean: Int, max: Int, standardDeviation: Int) on FIELD_DEFINITION
     },
   });
 
+  for (let type of Object.values(types)) {
+    for (let compute of type.computed) {
+      assert(options.compute && options.compute[compute.key], `field '${compute.key}' is declared as @computed, but there is nothing registered to compute it`);
+    }
+  }
+
   let nodes = {} as Record<number, Node>;
 
   function toNode(vertex: Vertex): Node {
@@ -129,7 +139,29 @@ directive @size(mean: Int, max: Int, standardDeviation: Int) on FIELD_DEFINITION
         };
       }, {} as PropertyDescriptorMap);
 
-      return nodes[vertex.id] = Object.defineProperties(node, properties);
+      Object.defineProperties(node, properties);
+
+      let computed = type.computed.reduce((props, compute) => {
+        return {
+          ...props,
+          [compute.name]: {
+            enumerable: true,
+            get() {
+              let map = options.compute ?? {};
+              let computer = map[compute.key];
+              if (computer) {
+                return computer(this);
+              } else {
+                throw new Error(`no computation registered for computed property ${compute.key}`);
+              }
+            }
+          }
+        }
+      }, {} as PropertyDescriptorMap);
+
+      Object.defineProperties(node, computed);
+
+      return nodes[vertex.id] = node;
     }
   }
 
@@ -146,6 +178,7 @@ type GQLField = graphql.GraphQLField<unknown, unknown>;
 interface Type {
   name: string;
   fields: Field[];
+  computed: Computed[];
   references: Reference[];
 }
 
@@ -165,6 +198,13 @@ interface Field {
   holder: Type;
   probability: number;
   valueGeneratorMethodName: string;
+}
+
+interface Computed {
+  name: string;
+  typename: string;
+  key: string;
+  holder: Type;
 }
 
 interface Relationship {
@@ -236,7 +276,8 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
     ) {
       return current;
     } else {
-      let fields = Object.values<GQLField>(graphqlType.getFields());
+
+      let [computedFields, fields] = partition(Object.values<GQLField>(graphqlType.getFields()), isComputed);
 
       let scalarFields = fields.flatMap((field) => {
         if (isStructuralField(field)) {
@@ -272,6 +313,19 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
             probability,
             valueGeneratorMethodName,
           } as Field;
+        }),
+        computed: computedFields.map(field => {
+          let typename = graphql.getNamedType(field.type).name;
+          let key = `${graphqlType.name}.${field.name}`;
+
+          return {
+            name: field.name,
+            typename,
+            get holder() {
+              return type;
+            },
+            key,
+          }
         }),
         references: relFields.map((field) => {
           let typenames = typesOf(field);
@@ -513,4 +567,23 @@ const generateRandomFromType: Invoke = (info) => {
     default:
       throw new Error(`Tried to default generate ${info.typename}.${info.fieldname}, but don't know how to handle ${info.typename}`);
   }
+}
+
+function partition<T>(ts: Iterable<T>, predicate: (t: T) => boolean): [T[], T[]] {
+  let is = [] as T[];
+  let isNot = [] as T[];
+
+  for (let t of ts) {
+    if (predicate(t)) {
+      is.push(t);
+    } else {
+      isNot.push(t);
+    }
+  }
+
+  return [is, isNot];
+}
+
+function isComputed(field: GQLField): boolean {
+  return !!directiveOf(field, "computed");
 }
