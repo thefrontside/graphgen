@@ -93,23 +93,19 @@ describe("using graphql", () => {
   });
 
   it("can use a custom field generator", () => {
-    expect(
-      createGraphGen({
-        source:
-          `type Person { name: String! @gen(with: "@faker/name.findName") occupation: String! }`,
-        fieldgen({ method, next }) {
-          if (method === "@faker/name.findName") {
-            return "Bob Dobalina";
-          } else {
-            return next();
-          }
-        },
-      }).create("Person"),
-    ).toEqual({
-      id: "1",
-      name: "Bob Dobalina",
-      occupation: "blork",
-    });
+    let person = createGraphGen({
+      source:
+      `type Person { name: String! @gen(with: "@faker/name.findName") occupation: String! }`,
+      fieldgen({ method, next }) {
+        if (method === "@faker/name.findName") {
+          return "Bob Dobalina";
+        } else {
+          return next();
+        }
+      },
+    }).create("Person");
+    expect(person.name).toEqual("Bob Dobalina");
+    expect(person.occupation).toMatch(/Person.occupation/);
   });
 
   it("can use a chain of field generators", () => {
@@ -216,7 +212,7 @@ type Organization { name: String! accounts: [Account] @inverse(of: "Account.owne
 union Owner = Person | Organization
 type Account { owner: Owner! }`,
     }).create("Person");
-    expect(person.accounts.length).toEqual(4);
+    expect(person.accounts.length).toEqual(5);
     for (let account of person.accounts) {
       expect(account.owner).toEqual(person);
     }

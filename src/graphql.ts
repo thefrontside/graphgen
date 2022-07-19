@@ -193,9 +193,9 @@ type Arity = {
   };
 };
 
-function createFieldGenerate(seed: Seed, middlewares: FieldGen[]) {
-  type Invoke = (info: Omit<FieldGenInfo, "next">) => unknown;
+type Invoke = (info: Omit<FieldGenInfo, "next">) => unknown;
 
+function createFieldGenerate(seed: Seed, middlewares: FieldGen[]) {
   let invoke = evaluate<Invoke>(function* () {
     for (let middleware of middlewares) {
       yield* shift<void>(function* (k) {
@@ -203,7 +203,7 @@ function createFieldGenerate(seed: Seed, middlewares: FieldGen[]) {
           middleware({ ...info, next: () => k()(info) })) as Invoke;
       });
     }
-    return () => "blork";
+    return generateRandomFromType;
   });
 
   return function (field: Field) {
@@ -492,4 +492,25 @@ function expect<T>(key: string, record: Record<string, T>): T {
     `expected map to contain value with key: '${key}', but it did not`,
   );
   return value;
+}
+
+
+/**
+ * Generate a field value using nothing other than its type. This
+ * is used as the last fallback, and will result in ugly values like
+ * "Person.name 34545"
+ */
+const generateRandomFromType: Invoke = (info) => {
+  switch (info.fieldtype) {
+    case "String":
+      return `${info.typename}.${info.fieldname} ${Math.floor(info.seed() * 10000000)}`
+    case "Int":
+      return Math.floor(info.seed() * 1000);
+    case "Float":
+      return info.seed() * 1000;
+    case "Boolean":
+      return info.seed() > .5 ? true : false;
+    default:
+      throw new Error(`Tried to default generate ${info.typename}.${info.fieldname}, but don't know how to handle ${info.typename}`);
+  }
 }
