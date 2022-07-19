@@ -218,6 +218,29 @@ type Account { owner: Owner! }`,
     }
   });
 
+  it("can compute properties", () => {
+    let person = createGraphGen({
+      source: `
+type Person { firstName: String! lastName: String! name: String! @computed }
+`,
+      fieldgen(info) {
+        return info.fieldname;
+      },
+      compute: {
+        "Person.name": (person: Record<string, unknown>) => `${person.firstName} ${person.lastName}`,
+      }
+    }).create("Person");
+    expect(person.name).toEqual('firstName lastName');
+  });
+
+  it("is an error to mark a field as @computed without also having a computation in the compute map", () => {
+    expect(() => createGraphGen({
+      source: `
+type Person { name: String! @computed }
+`,
+    })).toThrow('nothing registered');
+  });
+
   it.ignore("forbids putting a @size on single relationships", () => {
     expect(() => {
       createGraphGen({
@@ -230,7 +253,4 @@ type Account { owner: Owner! }`,
   });
 
   it.ignore("can report multiple errors in a single invocation", () => {});
-
-  it("minimatches", () => {
-  });
 });
