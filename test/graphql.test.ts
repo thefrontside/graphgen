@@ -108,6 +108,21 @@ describe("using graphql", () => {
     expect(person.occupation).toMatch(/Person.occupation/);
   });
 
+  it("can pass arguments to a custom field generator", () => {
+    let person = createGraphGen({
+      source:
+      `type Person { name: String! @gen(with: "@fn/join", args: ["Bob", "Dobalina"])  }`,
+      fieldgen({ method, args, next }) {
+        if (method === "@fn/join") {
+          return args.join(" ");
+        } else {
+          return next();
+        }
+      },
+    }).create("Person");
+    expect(person.name).toEqual("Bob Dobalina");
+  })
+
   it("can use a chain of field generators", () => {
     let name: FieldGen = ({ method, next }) =>
       method.endsWith("name") ? "Charles" : next();

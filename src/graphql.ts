@@ -4,6 +4,10 @@ import { assert, evaluate, graphql, shift } from "./deps.ts";
 import { createGraph, createVertex, Vertex } from "./graph.ts";
 import { normal, weighted } from "./distribution.ts";
 
+import { DispatchArg } from "./dispatch.ts";
+
+export * from "./dispatch.ts";
+
 export interface Node {
   id: string;
 }
@@ -23,6 +27,7 @@ export interface FieldGen {
 
 export interface FieldGenInfo {
   method: string;
+  args: DispatchArg[];
   typename: string;
   fieldname: string;
   fieldtype: string;
@@ -48,8 +53,9 @@ export function createGraphGen<API = Record<string, any>>(
 ): GraphGen<API> {
   let { seed = seedrandom("graphgen") } = options;
   let prelude = graphql.buildSchema(`
+union _Arg = String | Float | Int | Boolean
 directive @has(chance: Float!) on FIELD_DEFINITION
-directive @gen(with: String!) on FIELD_DEFINITION
+directive @gen(with: String! args: [_Arg] ) on FIELD_DEFINITION
 directive @affinity(of: Float!) on FIELD_DEFINITION
 directive @inverse(of: String!) on FIELD_DEFINITION
 directive @size(mean: Int, max: Int, standardDeviation: Int) on FIELD_DEFINITION
@@ -218,7 +224,10 @@ interface Field {
   typename: string;
   holder: Type;
   probability: number;
-  valueGeneratorMethodName: string;
+  gen: {
+    method: string;
+    args: DispatchArg[];
+  }
 }
 
 interface Computed {
@@ -280,7 +289,8 @@ function createFieldGenerate(seed: Seed, middlewares: FieldGen[]) {
       return invoke({
         seed,
         typename: field.holder.name,
-        method: field.valueGeneratorMethodName,
+        method: field.gen.method,
+        args: field.gen.args,
         fieldtype: field.typename,
         fieldname: field.name,
       });
@@ -329,10 +339,7 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
         fields: scalarFields.map((field) => {
           let typename = graphql.getNamedType(field.type).name;
           let probability = chanceOf(field);
-          let valueGeneratorMethodName = methodOf(
-            field,
-            `${graphqlType.name}.${field.name}`,
-          );
+          let gen = genOf(field,`${graphqlType.name}.${field.name}`);
           return {
             name: field.name,
             get holder() {
@@ -340,7 +347,7 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
             },
             typename,
             probability,
-            valueGeneratorMethodName,
+            gen,
           } as Field;
         }),
         computed: computedFields.map((field) => {
@@ -548,15 +555,31 @@ function chanceOf(field: GQLField): number {
   }
 }
 
-function methodOf(field: GQLField, defaultMethod: string) {
+function genOf(field: GQLField, defaultMethod: string) {
   let gen = directiveOf(field, "gen");
   if (gen) {
     assert(gen.arguments, "malformed @gen directive");
-    let method = gen.arguments?.find((arg) => arg.name.value === "with");
-    assert(method, "malformed @gen directive");
-    return String((method?.value as graphql.StringValueNode).value);
+    let methodArg = gen.arguments?.find((arg) => arg.name.value === "with");
+    assert(methodArg, "malformed @gen directive");
+
+    let method = String((methodArg?.value as graphql.StringValueNode).value);
+
+    let argArg = gen.arguments?.find((arg) => arg.name.value === "args");
+    let args = (() => {
+      if (argArg) {
+        assert(argArg.value.kind === "ListValue");
+        return argArg.value.values.map(readValue);
+      } else {
+        return [];
+      }
+    })();
+
+    return {
+      method,
+      args,
+    };
   } else {
-    return defaultMethod;
+    return { method: defaultMethod, args: [] };
   }
 }
 
@@ -616,6 +639,20 @@ function affinityOf(field: GQLField): number | undefined {
     assert(directive.arguments, "@affinity must have arguments");
     let valueArg = directive.arguments?.find((arg) => arg.name.value === "of");
     return parseFloat((valueArg?.value as graphql.IntValueNode).value);
+  }
+}
+
+function readValue(value: graphql.ASTNode): DispatchArg {
+  switch (value.kind) {
+    case "StringValue":
+    case "BooleanValue":
+      return value.value;
+    case "FloatValue":
+      return parseFloat(value.value);
+    case "IntValue":
+      return parseInt(value.value);
+    default:
+      throw new Error(`Don't know how to handle argument of kind ${value.kind}`);
   }
 }
 
