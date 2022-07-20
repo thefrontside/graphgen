@@ -290,8 +290,5 @@ type Bank { name: String! }
     }).toThrow("xyz");
   });
 
-  it.ignore("can derive fields from other fields based on the fully reified object", () => {
-  });
-
   it.ignore("can report multiple errors in a single invocation", () => {});
 });
