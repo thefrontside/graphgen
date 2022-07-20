@@ -265,7 +265,7 @@ type Person { name: String! @computed }
     ).toThrow("nothing registered");
   });
 
-  it("can pass bespoke values for relationships the create", () => {
+  it("can pass nested bespoke values for relationships to create()", () => {
     let person = createGraphGen({
       source:`
 type Person { account: Account! }
