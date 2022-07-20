@@ -21,11 +21,11 @@ export interface GraphGen<API = Record<string, any>> {
   ): Node & API[T];
 }
 
-export interface FieldGen {
-  (info: FieldGenInfo): unknown;
+export interface Generate {
+  (info: GenerateInfo): unknown;
 }
 
-export interface FieldGenInfo {
+export interface GenerateInfo {
   method: string;
   args: DispatchArg[];
   typename: string;
@@ -43,7 +43,7 @@ export type ComputeMap = Record<
 
 export interface GraphQLOptions {
   source: string;
-  fieldgen?: FieldGen | FieldGen[];
+  generate?: Generate | Generate[];
   compute?: ComputeMap;
   seed?: Seed;
 }
@@ -69,7 +69,7 @@ directive @computed on FIELD_DEFINITION
 
   let fieldgen = createFieldGenerate(
     seed,
-    options.fieldgen ? ([] as FieldGen[]).concat(options.fieldgen) : [],
+    options.generate ? ([] as Generate[]).concat(options.generate) : [],
   );
 
   let graph = createGraph({
@@ -269,9 +269,9 @@ type Arity = {
   };
 };
 
-type Invoke = (info: Omit<FieldGenInfo, "next">) => unknown;
+type Invoke = (info: Omit<GenerateInfo, "next">) => unknown;
 
-function createFieldGenerate(seed: Seed, middlewares: FieldGen[]) {
+function createFieldGenerate(seed: Seed, middlewares: Generate[]) {
   let invoke = evaluate<Invoke>(function* () {
     for (let middleware of middlewares) {
       yield* shift<void>(function* (k) {
