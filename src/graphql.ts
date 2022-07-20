@@ -32,7 +32,8 @@ export interface FieldGenInfo {
 
 export type ComputeMap = Record<
   string,
-  <T, R>(node: T) => R
+  // deno-lint-ignore no-explicit-any
+  (node: any) => any
 >;
 
 export interface GraphQLOptions {
