@@ -12,12 +12,17 @@ export interface Node {
   id: string;
 }
 
+export type Preset<T> = T extends object
+  ? {
+    [P in keyof T]?: Preset<T[P]>;
+  }
+  : T;
+
 //deno-lint-ignore no-explicit-any
 export interface GraphGen<API = Record<string, any>> {
   create<T extends string & keyof API>(
     typename: T,
-    //deno-lint-ignore no-explicit-any
-    preset?: Record<string, any>,
+    preset?: Preset<API[T]>,
   ): Node & API[T];
 }
 
@@ -197,7 +202,7 @@ directive @computed on FIELD_DEFINITION
         let relationship = expect(ref.key, relationships);
         return {
           ...transformed,
-          [relationship.name]: transform(target, preset[fieldname] as Record<string, unknown>),
+          [relationship.name]: transform(target, preset[fieldname] as Record<string, unknown> | undefined ),
         }
       } else {
         return {
@@ -210,9 +215,9 @@ directive @computed on FIELD_DEFINITION
   }
 
   return {
-    create(typename, preset?: Record<string, unknown>) {
+    create(typename, preset?) {
       let type = expect(typename, types, `unknown type '${typename}'`);
-      let vertex = createVertex(graph, typename, transform(type, preset ));
+      let vertex = createVertex(graph, typename, transform(type, preset as Record<string, unknown>));
       return toNode(vertex) as Node & API[typeof typename];
     },
   };
