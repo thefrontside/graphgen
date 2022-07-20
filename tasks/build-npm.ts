@@ -4,9 +4,9 @@ const outDir = "./build/npm";
 
 await emptyDir(outDir);
 
-let version = Deno.env.get("NPM_VERSION");
+let [version] = Deno.args;
 if (!version) {
-  throw new Error("NPM_VERSION is required to build npm package");
+  throw new Error("a version argument is required to build the npm package");
 }
 
 await build({

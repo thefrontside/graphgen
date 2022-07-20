@@ -32,7 +32,7 @@ export interface FieldGenInfo {
 
 export type ComputeMap = Record<
   string,
-  <T extends Record<string, unknown>>(node: T) => unknown
+  <T, R>(node: T) => R
 >;
 
 export interface GraphQLOptions {
