@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "./suite.ts";
-import { createGraphGen, FieldGen, GraphGen } from "../mod.ts";
+import { createGraphGen, Generate, GraphGen } from "../mod.ts";
 
 describe("using graphql", () => {
   let graphgen: GraphGen;
@@ -36,7 +36,7 @@ describe("using graphql", () => {
     beforeEach(() => {
       graphgen = createGraphGen({
         source: "type Person { name: String! occupation: String! }",
-        fieldgen({ typename, fieldname, fieldtype }) {
+        generate({ typename, fieldname, fieldtype }) {
           return `${typename}.${fieldname} is a ${fieldtype}`;
         },
       });
@@ -96,7 +96,7 @@ describe("using graphql", () => {
     let person = createGraphGen({
       source:
         `type Person { name: String! @gen(with: "@faker/name.findName") occupation: String! }`,
-      fieldgen({ method, next }) {
+      generate({ method, next }) {
         if (method === "@faker/name.findName") {
           return "Bob Dobalina";
         } else {
@@ -112,7 +112,7 @@ describe("using graphql", () => {
     let person = createGraphGen({
       source:
       `type Person { name: String! @gen(with: "@fn/join", args: ["Bob", "Dobalina"])  }`,
-      fieldgen({ method, args, next }) {
+      generate({ method, args, next }) {
         if (method === "@fn/join") {
           return args.join(" ");
         } else {
@@ -124,13 +124,13 @@ describe("using graphql", () => {
   })
 
   it("can use a chain of field generators", () => {
-    let name: FieldGen = ({ method, next }) =>
+    let name: Generate = ({ method, next }) =>
       method.endsWith("name") ? "Charles" : next();
-    let occupation: FieldGen = ({ method, next }) =>
+    let occupation: Generate = ({ method, next }) =>
       method.endsWith("occupation") ? "Developer" : next();
     let person = createGraphGen({
       source: `type Person { name: String! occupation: String! }`,
-      fieldgen: [name, occupation],
+      generate: [name, occupation],
     }).create("Person");
 
     expect(person).toEqual({
@@ -246,7 +246,7 @@ type Account { owner: Owner! }`,
       source: `
 type Person { firstName: String! lastName: String! name: String! @computed }
 `,
-      fieldgen(info) {
+      generate(info) {
         return info.fieldname;
       },
       compute: {
