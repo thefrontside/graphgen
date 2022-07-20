@@ -95,7 +95,7 @@ describe("using graphql", () => {
   it("can use a custom field generator", () => {
     let person = createGraphGen({
       source:
-      `type Person { name: String! @gen(with: "@faker/name.findName") occupation: String! }`,
+        `type Person { name: String! @gen(with: "@faker/name.findName") occupation: String! }`,
       fieldgen({ method, next }) {
         if (method === "@faker/name.findName") {
           return "Bob Dobalina";
@@ -149,7 +149,7 @@ describe("using graphql", () => {
   it("can have objects that are related to without an inverse relationship", () => {
     let person = createGraphGen({
       source:
-      `type Person { account: Account! } type Account { name: String! }`
+        `type Person { account: Account! } type Account { name: String! }`,
     }).create("Person");
     expect(person.account).toBeDefined();
   });
@@ -172,7 +172,7 @@ describe("using graphql", () => {
     }).toThrow("does not exist");
   });
 
-  it ("checks to make sure that inverse relationships are of the correct type", () => {
+  it("checks to make sure that inverse relationships are of the correct type", () => {
     expect(() => {
       createGraphGen({
         source:
@@ -235,18 +235,21 @@ type Person { firstName: String! lastName: String! name: String! @computed }
         return info.fieldname;
       },
       compute: {
-        "Person.name": (person: Record<string, unknown>) => `${person.firstName} ${person.lastName}`,
-      }
+        "Person.name": (person: Record<string, unknown>) =>
+          `${person.firstName} ${person.lastName}`,
+      },
     }).create("Person");
-    expect(person.name).toEqual('firstName lastName');
+    expect(person.name).toEqual("firstName lastName");
   });
 
   it("is an error to mark a field as @computed without also having a computation in the compute map", () => {
-    expect(() => createGraphGen({
-      source: `
+    expect(() =>
+      createGraphGen({
+        source: `
 type Person { name: String! @computed }
 `,
-    })).toThrow('nothing registered');
+      })
+    ).toThrow("nothing registered");
   });
 
   it.ignore("forbids putting a @size on single relationships", () => {

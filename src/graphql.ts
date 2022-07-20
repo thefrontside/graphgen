@@ -30,16 +30,21 @@ export interface FieldGenInfo {
   next(): unknown;
 }
 
-export type ComputeMap = Record<string, <T extends Record<string, unknown>>(node: T) => unknown>
+export type ComputeMap = Record<
+  string,
+  <T extends Record<string, unknown>>(node: T) => unknown
+>;
 
-  export interface GraphQLOptions {
-    source: string;
-    fieldgen?: FieldGen | FieldGen[];
-    compute?: ComputeMap;
-    seed?: Seed;
-  }
+export interface GraphQLOptions {
+  source: string;
+  fieldgen?: FieldGen | FieldGen[];
+  compute?: ComputeMap;
+  seed?: Seed;
+}
 
-export function createGraphGen<API = Record<string, any>>(options: GraphQLOptions): GraphGen<API> {
+export function createGraphGen<API = Record<string, any>>(
+  options: GraphQLOptions,
+): GraphGen<API> {
   let { seed = seedrandom("graphgen") } = options;
   let prelude = graphql.buildSchema(`
 directive @has(chance: Float!) on FIELD_DEFINITION
@@ -83,7 +88,6 @@ directive @computed on FIELD_DEFINITION
             ? normal(ref.arity.size)
             : weighted([[1, ref.probability], [0, 1 - ref.probability]]);
 
-
           let rel = {
             type: relationship.name,
             size,
@@ -91,13 +95,15 @@ directive @computed on FIELD_DEFINITION
           };
 
           let { affinity } = ref;
-          return affinity != null ? {... rel, affinity } : rel;
+          return affinity != null ? { ...rel, affinity } : rel;
         }),
       })),
-      edge: edges.map(edge => ({
+      edge: edges.map((edge) => ({
         name: edge.name,
         from: edge.vector.from.holder.name,
-        to: edge.vector.to.map(t => 'holder' in t ? t.holder.name : t.name) as [string, ...string[]],
+        to: edge.vector.to.map((t) =>
+          "holder" in t ? t.holder.name : t.name
+        ) as [string, ...string[]],
       })),
     },
   });
@@ -106,7 +112,10 @@ directive @computed on FIELD_DEFINITION
 
   for (let type of Object.values(types)) {
     for (let compute of type.computed) {
-      assert(options.compute && options.compute[compute.key], `field '${compute.key}' is declared as @computed, but there is nothing registered to compute it`);
+      assert(
+        options.compute && options.compute[compute.key],
+        `field '${compute.key}' is declared as @computed, but there is nothing registered to compute it`,
+      );
     }
   }
 
@@ -130,13 +139,13 @@ directive @computed on FIELD_DEFINITION
             get() {
               let relationship = expect(ref.key, relationships);
               let edges = (graph[relationship.direction][vertex.id] ?? [])
-                            .filter((e) => e.type === relationship.name);
+                .filter((e) => e.type === relationship.name);
               let direction: "from" | "to" = relationship.direction === "from"
                 ? "to"
                 : "from";
               let nodes = edges.map((edge) =>
                 toNode(graph.vertices[edge[direction]])
-                                   );
+              );
               if (ref.arity.has === "many") {
                 return nodes;
               } else {
@@ -160,11 +169,13 @@ directive @computed on FIELD_DEFINITION
               if (computer) {
                 return computer(this);
               } else {
-                throw new Error(`no computation registered for computed property ${compute.key}`);
+                throw new Error(
+                  `no computation registered for computed property ${compute.key}`,
+                );
               }
-            }
-          }
-        }
+            },
+          },
+        };
       }, {} as PropertyDescriptorMap);
 
       Object.defineProperties(node, computed);
@@ -175,7 +186,7 @@ directive @computed on FIELD_DEFINITION
 
   return {
     create(typename, preset?: Record<string, unknown>) {
-      let vertex = createVertex(graph, typename , preset);
+      let vertex = createVertex(graph, typename, preset);
       return toNode(vertex) as Node & API[typeof typename];
     },
   };
@@ -229,7 +240,7 @@ type Vector = {
   type: "unidirectional";
   from: Reference;
   to: Type[];
-}
+};
 
 interface Edge {
   name: string;
@@ -291,8 +302,10 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
     ) {
       return current;
     } else {
-
-      let [computedFields, fields] = partition(Object.values<GQLField>(graphqlType.getFields()), isComputed);
+      let [computedFields, fields] = partition(
+        Object.values<GQLField>(graphqlType.getFields()),
+        isComputed,
+      );
 
       let scalarFields = fields.flatMap((field) => {
         if (isStructuralField(field)) {
@@ -329,7 +342,7 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
             valueGeneratorMethodName,
           } as Field;
         }),
-        computed: computedFields.map(field => {
+        computed: computedFields.map((field) => {
           let typename = graphql.getNamedType(field.type).name;
           let key = `${graphqlType.name}.${field.name}`;
 
@@ -340,7 +353,7 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
               return type;
             },
             key,
-          }
+          };
         }),
         references: relFields.map((field) => {
           let typenames = typesOf(field);
@@ -348,7 +361,9 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
           let inverse = inverseOf(field);
           let affinity = affinityOf(field);
           let withInverse = inverse ? { inverse } : {};
-          let ref = affinity == null ? withInverse : { ...withInverse, affinity };
+          let ref = affinity == null
+            ? withInverse
+            : { ...withInverse, affinity };
 
           return {
             ...ref,
@@ -393,67 +408,73 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
 
   let vectors = Object.values<Reference>(allrefs).reduce((vectors, ref) => {
     if (ref.inverse) {
-      let inverse = allrefs[ref.inverse]
-      assert(inverse, `'${ref.key}' is declared as the inverse of '${ref.inverse}', but that type/field does not exist, or is not a reference to another vertex`);
+      let inverse = allrefs[ref.inverse];
+      assert(
+        inverse,
+        `'${ref.key}' is declared as the inverse of '${ref.inverse}', but that type/field does not exist, or is not a reference to another vertex`,
+      );
       let referents = vectors[ref.inverse];
 
       if (!referents) {
         vectors[inverse.key] = {
-          type: 'bidirectional',
+          type: "bidirectional",
           from: inverse,
-          to: [ref]
+          to: [ref],
         };
       } else {
-        if (referents.type === 'bidirectional') {
+        if (referents.type === "bidirectional") {
           referents.to.push(ref);
         } else {
           vectors[inverse.key] = {
-            type: 'bidirectional',
+            type: "bidirectional",
             from: inverse,
-            to: [ref]
-
-          }
+            to: [ref],
+          };
         }
       }
     } else if (!vectors[ref.key]) {
       vectors[ref.key] = {
-        type: 'unidirectional',
+        type: "unidirectional",
         from: ref,
-        to: ref.typenames.map(name => expect(name, types))
-      }
+        to: ref.typenames.map((name) => expect(name, types)),
+      };
     }
 
     return vectors;
   }, {} as Record<string, Vector>);
 
-  let edges = Object.values<Vector>(vectors).map(vector => {
-    if (vector.type === 'bidirectional') {
+  let edges = Object.values<Vector>(vectors).map((vector) => {
+    if (vector.type === "bidirectional") {
       for (let ref of vector.to) {
         if (!ref.typenames.includes(vector.from.holder.name)) {
-          throw new Error(`'${ref.key}' is declared as the inverse of '${vector.from.key}', but '${vector.from.key}' does not reference type '${ref.holder.name}'. It references '${vector.from.typenames.join('|')}'`);
+          throw new Error(
+            `'${ref.key}' is declared as the inverse of '${vector.from.key}', but '${vector.from.key}' does not reference type '${ref.holder.name}'. It references '${
+              vector.from.typenames.join("|")
+            }'`,
+          );
         }
       }
     }
-    let targets = vector.to.map(t => 'key' in t ? t.key : t.name)
+    let targets = vector.to.map((t) => "key" in t ? t.key : t.name);
     return ({
       vector,
-      name: `${vector.from.key}->[${targets.join('|')}]`,
+      name: `${vector.from.key}->[${targets.join("|")}]`,
     });
   });
 
   let relationships = edges.reduce((relationships, edge) => {
     relationships[edge.vector.from.key] = {
       name: edge.name,
-      direction: 'from'
-    }
+      direction: "from",
+    };
 
-    let refs = edge.vector.to.flatMap(t => 'key' in t ? [t]: []);
+    let refs = edge.vector.to.flatMap((t) => "key" in t ? [t] : []);
 
     for (let ref of refs) {
       relationships[ref.key] = {
         name: edge.name,
-        direction: 'to',
-      }
+        direction: "to",
+      };
     }
     return relationships;
   }, {} as Record<string, Relationship>);
@@ -541,7 +562,7 @@ function methodOf(field: GQLField, defaultMethod: string) {
 function directiveOf(field: GQLField, name: string) {
   return field.astNode?.directives?.filter((directive) =>
     directive.name.value === name
-                                          )[0];
+  )[0];
 }
 
 function arityOf(field: GQLField): Arity {
@@ -574,7 +595,7 @@ function sizeOf(field: GQLField): Size {
     let max = parseInt((maxArg?.value as graphql.IntValueNode).value ?? 10);
     let standardDeviationArg = directive.arguments?.find(({ name }) =>
       name.value === "standardDeviation"
-                                                        );
+    );
     let standardDeviation = parseInt(
       (standardDeviationArg?.value as graphql.IntValueNode).value ?? 1,
     );
@@ -592,8 +613,8 @@ function affinityOf(field: GQLField): number | undefined {
   let directive = directiveOf(field, "affinity");
   if (directive) {
     assert(directive.arguments, "@affinity must have arguments");
-    let valueArg = directive.arguments?.find(arg => arg.name.value === "of");
-    return parseFloat((valueArg?.value as graphql.IntValueNode).value)
+    let valueArg = directive.arguments?.find((arg) => arg.name.value === "of");
+    return parseFloat((valueArg?.value as graphql.IntValueNode).value);
   }
 }
 
@@ -611,7 +632,6 @@ function expect<T>(key: string, record: Record<string, T>): T {
   return value;
 }
 
-
 /**
  * Generate a field value using nothing other than its type. This
  * is used as the last fallback, and will result in ugly values like
@@ -620,7 +640,9 @@ function expect<T>(key: string, record: Record<string, T>): T {
 const generateRandomFromType: Invoke = (info) => {
   switch (info.fieldtype) {
     case "String":
-      return `${info.typename}.${info.fieldname} ${Math.floor(info.seed() * 10000000)}`
+      return `${info.typename}.${info.fieldname} ${
+        Math.floor(info.seed() * 10000000)
+      }`;
     case "Int":
       return Math.floor(info.seed() * 1000);
     case "Float":
@@ -628,11 +650,16 @@ const generateRandomFromType: Invoke = (info) => {
     case "Boolean":
       return info.seed() > .5 ? true : false;
     default:
-      throw new Error(`Tried to default generate ${info.typename}.${info.fieldname}, but don't know how to handle ${info.typename}`);
+      throw new Error(
+        `Tried to default generate ${info.typename}.${info.fieldname}, but don't know how to handle ${info.typename}`,
+      );
   }
-}
+};
 
-function partition<T>(ts: Iterable<T>, predicate: (t: T) => boolean): [T[], T[]] {
+function partition<T>(
+  ts: Iterable<T>,
+  predicate: (t: T) => boolean,
+): [T[], T[]] {
   let is = [] as T[];
   let isNot = [] as T[];
 
