@@ -1,5 +1,4 @@
-import { assert } from './deps.ts';
-import { globToRegExp } from 'https://deno.land/std@0.71.0/path/glob.ts';
+import { assert, globToRegExp } from './deps.ts';
 
 export interface Dispatch<T> {
   methods: string[]
@@ -50,15 +49,11 @@ function findMethod<T, TContext>(options: DispatchOptions<T, TContext>, name: st
 
 function matchMethod<T, TContext>(options: DispatchOptions<T, TContext>, name: string) {
   for (let [pattern, spec] of Object.entries(options.patterns)) {
-    if (match(pattern, name)) {
+    if (globToRegExp(pattern).test(name)) {
       let [name, ...args] = typeof spec === 'string' ? [spec] : spec;
       let fn = options.methods[name];
       assert(fn, `pattern '${pattern}' references an unknown method ${name}`);
       return (context: TContext) => fn(context, args);
     }
   }
-}
-
-function match(pattern: string, name: string): boolean {
-  return globToRegExp(pattern).test(name);
 }

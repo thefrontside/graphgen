@@ -32,18 +32,19 @@ export interface FieldGenInfo {
 
 export type ComputeMap = Record<string, <T extends Record<string, unknown>>(node: T) => unknown>
 
-export interface GraphQLOptions {
-  source: string;
-  fieldgen?: FieldGen | FieldGen[];
-  compute?: ComputeMap;
-  seed?: Seed;
-}
+  export interface GraphQLOptions {
+    source: string;
+    fieldgen?: FieldGen | FieldGen[];
+    compute?: ComputeMap;
+    seed?: Seed;
+  }
 
 export function createGraphGen<API = Record<string, any>>(options: GraphQLOptions): GraphGen<API> {
   let { seed = seedrandom("graphgen") } = options;
   let prelude = graphql.buildSchema(`
 directive @has(chance: Float!) on FIELD_DEFINITION
 directive @gen(with: String!) on FIELD_DEFINITION
+directive @affinity(of: Float!) on FIELD_DEFINITION
 directive @inverse(of: String!) on FIELD_DEFINITION
 directive @size(mean: Int, max: Int, standardDeviation: Int) on FIELD_DEFINITION
 directive @computed on FIELD_DEFINITION
@@ -52,6 +53,7 @@ directive @computed on FIELD_DEFINITION
   let schema = graphql.extendSchema(prelude, graphql.parse(options.source));
 
   let { types, edges, relationships } = analyze(schema);
+  //console.dir({ types, edges, relationships }, { depth: 5 });
 
   let fieldgen = createFieldGenerate(
     seed,
@@ -81,20 +83,26 @@ directive @computed on FIELD_DEFINITION
             ? normal(ref.arity.size)
             : weighted([[1, ref.probability], [0, 1 - ref.probability]]);
 
-          return {
+
+          let rel = {
             type: relationship.name,
             size,
             direction: relationship.direction,
           };
+
+          let { affinity } = ref;
+          return affinity != null ? {... rel, affinity } : rel;
         }),
       })),
       edge: edges.map(edge => ({
         name: edge.name,
-        from: edge.from.holder.name,
-        to: edge.to.map(t => t.holder.name) as [string, ...string[]],
+        from: edge.vector.from.holder.name,
+        to: edge.vector.to.map(t => 'holder' in t ? t.holder.name : t.name) as [string, ...string[]],
       })),
     },
   });
+
+  //console.dir({ graph }, { depth: 7 });
 
   for (let type of Object.values(types)) {
     for (let compute of type.computed) {
@@ -122,13 +130,13 @@ directive @computed on FIELD_DEFINITION
             get() {
               let relationship = expect(ref.key, relationships);
               let edges = (graph[relationship.direction][vertex.id] ?? [])
-                .filter((e) => e.type === relationship.name);
+                            .filter((e) => e.type === relationship.name);
               let direction: "from" | "to" = relationship.direction === "from"
                 ? "to"
                 : "from";
               let nodes = edges.map((edge) =>
                 toNode(graph.vertices[edge[direction]])
-              );
+                                   );
               if (ref.arity.has === "many") {
                 return nodes;
               } else {
@@ -190,6 +198,7 @@ interface Reference {
   arity: Arity;
   key: string;
   inverse?: string;
+  affinity?: number;
 }
 
 interface Field {
@@ -212,13 +221,19 @@ interface Relationship {
   direction: "from" | "to";
 }
 
-interface Vector {
+type Vector = {
+  type: "bidirectional";
   from: Reference;
   to: Reference[];
+} | {
+  type: "unidirectional";
+  from: Reference;
+  to: Type[];
 }
 
-interface Edge extends Vector {
+interface Edge {
   name: string;
+  vector: Vector;
 }
 
 type Arity = {
@@ -331,7 +346,10 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
           let typenames = typesOf(field);
           let probability = chanceOf(field);
           let inverse = inverseOf(field);
-          let ref = inverse ? { inverse } : {};
+          let affinity = affinityOf(field);
+          let withInverse = inverse ? { inverse } : {};
+          let ref = affinity == null ? withInverse : { ...withInverse, affinity };
+
           return {
             ...ref,
             name: field.name,
@@ -359,6 +377,20 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
     return refs;
   }, {} as Record<string, Reference>);
 
+  /*
+    Person.account
+
+    "Person.account": {type: 'unidirectional', from: "Person.manager", to: "Account" }
+
+    Account.owner @inverse(of: "Person.account")
+
+    "Person.account": {type: 'bidirectional', from: "Person.account", to: ['Account.owner']
+
+    Bicycle.owner @inverse(of: "Person.account")
+
+    "Person.account": {type: 'bidirectional', from: "Person.account", to: ['Account.owner', 'Bicycle.owner']
+  */
+
   let vectors = Object.values<Reference>(allrefs).reduce((vectors, ref) => {
     if (ref.inverse) {
       let inverse = allrefs[ref.inverse]
@@ -367,11 +399,27 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
 
       if (!referents) {
         vectors[inverse.key] = {
+          type: 'bidirectional',
           from: inverse,
           to: [ref]
         };
       } else {
-        referents.to.push(ref);
+        if (referents.type === 'bidirectional') {
+          referents.to.push(ref);
+        } else {
+          vectors[inverse.key] = {
+            type: 'bidirectional',
+            from: inverse,
+            to: [ref]
+
+          }
+        }
+      }
+    } else if (!vectors[ref.key]) {
+      vectors[ref.key] = {
+        type: 'unidirectional',
+        from: ref,
+        to: ref.typenames.map(name => expect(name, types))
       }
     }
 
@@ -379,23 +427,29 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
   }, {} as Record<string, Vector>);
 
   let edges = Object.values<Vector>(vectors).map(vector => {
-    for (let ref of vector.to) {
-      if (!ref.typenames.includes(vector.from.holder.name)) {
-        throw new Error(`'${ref.key}' is declared as the inverse of '${vector.from.key}', but '${vector.from.key}' does not reference type '${ref.holder.name}'. It references '${vector.from.typenames.join('|')}'`);
+    if (vector.type === 'bidirectional') {
+      for (let ref of vector.to) {
+        if (!ref.typenames.includes(vector.from.holder.name)) {
+          throw new Error(`'${ref.key}' is declared as the inverse of '${vector.from.key}', but '${vector.from.key}' does not reference type '${ref.holder.name}'. It references '${vector.from.typenames.join('|')}'`);
+        }
       }
     }
+    let targets = vector.to.map(t => 'key' in t ? t.key : t.name)
     return ({
-      ...vector,
-      name: `${vector.from.key}->[${vector.to.map(t => t.key).join('|')}]`,
+      vector,
+      name: `${vector.from.key}->[${targets.join('|')}]`,
     });
   });
 
   let relationships = edges.reduce((relationships, edge) => {
-    relationships[edge.from.key] = {
+    relationships[edge.vector.from.key] = {
       name: edge.name,
       direction: 'from'
     }
-    for (let ref of edge.to) {
+
+    let refs = edge.vector.to.flatMap(t => 'key' in t ? [t]: []);
+
+    for (let ref of refs) {
       relationships[ref.key] = {
         name: edge.name,
         direction: 'to',
@@ -487,7 +541,7 @@ function methodOf(field: GQLField, defaultMethod: string) {
 function directiveOf(field: GQLField, name: string) {
   return field.astNode?.directives?.filter((directive) =>
     directive.name.value === name
-  )[0];
+                                          )[0];
 }
 
 function arityOf(field: GQLField): Arity {
@@ -520,7 +574,7 @@ function sizeOf(field: GQLField): Size {
     let max = parseInt((maxArg?.value as graphql.IntValueNode).value ?? 10);
     let standardDeviationArg = directive.arguments?.find(({ name }) =>
       name.value === "standardDeviation"
-    );
+                                                        );
     let standardDeviation = parseInt(
       (standardDeviationArg?.value as graphql.IntValueNode).value ?? 1,
     );
@@ -531,6 +585,15 @@ function sizeOf(field: GQLField): Size {
       max: 10,
       standardDeviation: 1,
     };
+  }
+}
+
+function affinityOf(field: GQLField): number | undefined {
+  let directive = directiveOf(field, "affinity");
+  if (directive) {
+    assert(directive.arguments, "@affinity must have arguments");
+    let valueArg = directive.arguments?.find(arg => arg.name.value === "of");
+    return parseFloat((valueArg?.value as graphql.IntValueNode).value)
   }
 }
 

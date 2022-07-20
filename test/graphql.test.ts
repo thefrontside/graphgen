@@ -146,6 +146,14 @@ describe("using graphql", () => {
     expect(person.name).toEqual(person.account.owner.name);
   });
 
+  it("can have objects that are related to without an inverse relationship", () => {
+    let person = createGraphGen({
+      source:
+      `type Person { account: Account! } type Account { name: String! }`
+    }).create("Person");
+    expect(person.account).toBeDefined();
+  });
+
   it.ignore("does not care if both sides express the inverse relationship", () => {
     let person = createGraphGen({
       source:
