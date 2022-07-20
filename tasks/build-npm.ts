@@ -44,8 +44,8 @@ await build({
       name: "graphql",
       version: "16.5.0",
       peerDependency: false,
-    }
-  }
+    },
+  },
 });
 
 await Deno.copyFile("README.md", `${outDir}/README.md`);
