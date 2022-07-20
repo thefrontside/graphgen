@@ -25,8 +25,6 @@ describe("using graphql", () => {
       ).toEqual("Bob Dobalina");
     });
 
-    it.ignore("can pass bespoke values for relationships the create", () => {});
-
     it("fails to create anything that is not defined", () => {
       expect(() => graphgen.create("Bucksnort")).toThrow("unknown");
     });
@@ -265,6 +263,23 @@ type Person { name: String! @computed }
 `,
       })
     ).toThrow("nothing registered");
+  });
+
+  it("can pass bespoke values for relationships the create", () => {
+    let person = createGraphGen({
+      source:`
+type Person { account: Account! }
+type Account { bank: Bank! }
+type Bank { name: String! }
+`
+    }).create("Person", {
+      account: {
+        bank: {
+          name: "US Bank"
+        }
+      }
+    });
+    expect(person.account.bank.name).toEqual('US Bank');
   });
 
   it.ignore("forbids putting a @size on single relationships", () => {

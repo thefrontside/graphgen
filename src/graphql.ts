@@ -115,8 +115,6 @@ directive @computed on FIELD_DEFINITION
     },
   });
 
-  //console.dir({ graph }, { depth: 7 });
-
   for (let type of Object.values(types)) {
     for (let compute of type.computed) {
       assert(
@@ -191,9 +189,30 @@ directive @computed on FIELD_DEFINITION
     }
   }
 
+  function transform(type: Type, preset: Record<string, unknown> = {}): Record<string, unknown> {
+    let transformed = Object.entries<unknown>(preset).reduce((transformed, [fieldname, value]) => {
+      let ref: Reference | undefined = type.references.find(({ name }) => name === fieldname);
+      if (ref) {
+        let target = expect(ref.typenames[0], types);
+        let relationship = expect(ref.key, relationships);
+        return {
+          ...transformed,
+          [relationship.name]: transform(target, preset[fieldname] as Record<string, unknown>),
+        }
+      } else {
+        return {
+          ...transformed,
+          [fieldname]: value,
+        };
+      }
+    }, {} as Record<string, unknown>);
+    return transformed;
+  }
+
   return {
     create(typename, preset?: Record<string, unknown>) {
-      let vertex = createVertex(graph, typename, preset);
+      let type = expect(typename, types, `unknown type '${typename}'`);
+      let vertex = createVertex(graph, typename, transform(type, preset ));
       return toNode(vertex) as Node & API[typeof typename];
     },
   };
@@ -661,11 +680,11 @@ function isStructuralField(field: GQLField): boolean {
   return !graphql.isObjectType(named) && !graphql.isUnionType(named);
 }
 
-function expect<T>(key: string, record: Record<string, T>): T {
+function expect<T>(key: string, record: Record<string, T>, msg?: string): T {
   let value = record[key];
   assert(
     value,
-    `expected map to contain value with key: '${key}', but it did not`,
+    msg ?? `expected map to contain value with key: '${key}', but it did not`,
   );
   return value;
 }
