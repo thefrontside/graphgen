@@ -63,7 +63,7 @@ directive @has(chance: Float!) on FIELD_DEFINITION
 directive @gen(with: String! args: [_Arg] ) on FIELD_DEFINITION
 directive @affinity(of: Float!) on FIELD_DEFINITION
 directive @inverse(of: String!) on FIELD_DEFINITION
-directive @size(mean: Int, max: Int, standardDeviation: Int) on FIELD_DEFINITION
+directive @size(mean: Int, min: Int, max: Int, standardDeviation: Int) on FIELD_DEFINITION
 directive @computed on FIELD_DEFINITION
 `);
 
@@ -629,6 +629,7 @@ function arityOf(field: GQLField): Arity {
 
 interface Size {
   mean: number;
+  min: number;
   max: number;
   standardDeviation: number;
 }
@@ -639,6 +640,8 @@ function sizeOf(field: GQLField): Size {
     assert(directive.arguments, "@size must have arguments");
     let meanArg = directive.arguments?.find((arg) => arg.name.value === "mean");
     let mean = parseInt((meanArg?.value as graphql.IntValueNode).value ?? 5);
+    let minArg = directive.arguments?.find(({ name }) => name.value === "min");
+    let min = parseInt((minArg?.value as graphql.IntValueNode).value ?? 0);
     let maxArg = directive.arguments?.find(({ name }) => name.value === "max");
     let max = parseInt((maxArg?.value as graphql.IntValueNode).value ?? 10);
     let standardDeviationArg = directive.arguments?.find(({ name }) =>
@@ -647,9 +650,10 @@ function sizeOf(field: GQLField): Size {
     let standardDeviation = parseInt(
       (standardDeviationArg?.value as graphql.IntValueNode).value ?? 1,
     );
-    return { mean, max, standardDeviation };
+    return { mean, min, max, standardDeviation };
   } else {
     return {
+      min: 0,
       mean: 5,
       max: 10,
       standardDeviation: 1,
