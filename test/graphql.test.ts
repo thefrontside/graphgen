@@ -37,7 +37,13 @@ describe("using graphql", () => {
       let all = [...graphgen.all('Person')];
 
       expect(all.map(p => p.name)).toEqual(['Bob', 'Alice', 'Brian']);
-    })
+    });
+
+    it("can retrieve a list for a type", () => {
+      let all = [...graphgen.createMany('Person', 3)]
+
+      expect(all).toHaveLength(3);
+    });
   });
 
   describe("a global custom generator per field", () => {

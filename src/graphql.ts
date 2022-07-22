@@ -25,6 +25,7 @@ export interface GraphGen<API = Record<string, any>> {
     preset?: Preset<API[T]>,
   ): Node & API[T];
   all<T extends string & keyof API>(typename: T): Iterable<Node & API[T]>;
+  createMany<T extends string & keyof API>(typename: T, amount: number): Iterable<Node & API[T]>;
 }
 
 export interface Generate {
@@ -217,21 +218,35 @@ directive @computed on FIELD_DEFINITION
     return transformed;
   }
 
-  return {
-    create(typename, preset?) {
-      let type = expect(typename, types, `unknown type '${typename}'`);
-      let vertex = createVertex(graph, typename, transform(type, preset as Record<string, unknown>));
-      return toNode(vertex) as Node & API[typeof typename];
-    },
-    all(typename) {
-      return {
-        * [Symbol.iterator]() {
+  function all<T extends string & keyof API>(typename: T) {
+    return {
+      * [Symbol.iterator]() {
 
-          for(let id in graph.roots[typename]) {
-            yield toNode<API[typeof typename]>(graph.roots[typename][id]);
-          }
+        for(let id in graph.roots[typename]) {
+          yield toNode<API[typeof typename]>(graph.roots[typename][id]);
         }
       }
+    }
+  }
+
+  function create<T extends string & keyof API>(
+    typename: T,
+    preset?: Preset<API[T]>,
+  ): Node & API[T] {
+    let type = expect(typename, types, `unknown type '${typename}'`);
+    let vertex = createVertex(graph, typename, transform(type, preset as Record<string, unknown>));
+    return toNode(vertex) as Node & API[typeof typename];
+  }
+
+  return {
+    create,
+    all,
+    createMany(typename, amount) {
+      for(let i = 0; i < amount;i++) {
+        create(typename);
+      }
+
+      return all(typename);
     }
   };
 }
