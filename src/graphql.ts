@@ -41,21 +41,23 @@ export interface GenerateInfo {
   next(): unknown;
 }
 
-export type ComputeMap = Record<
-  string,
-  // deno-lint-ignore no-explicit-any
-  (node: any) => any
->;
+type DefaultComputeMap = Record<string, (node: any) => any>;
 
-export interface GraphQLOptions {
+type ComputeMap<API> = {
+  [K in keyof API]: {
+    [P in keyof API[K] as `${K & string}.${P & string}`]: (o: API[K]) => any;
+  }
+}[keyof API];
+
+export interface GraphQLOptions<API = Record<string, any>> {
   source: string;
   generate?: Generate | Generate[];
-  compute?: ComputeMap;
+  compute?: ComputeMap<API>;
   seed?: Seed;
 }
 
 export function createGraphGen<API = Record<string, any>>(
-  options: GraphQLOptions,
+  options: GraphQLOptions<API>,
 ): GraphGen<API> {
   let { seed = seedrandom("graphgen") } = options;
   let prelude = graphql.buildSchema(`
@@ -124,7 +126,7 @@ directive @computed on FIELD_DEFINITION
   for (let type of Object.values(types)) {
     for (let compute of type.computed) {
       assert(
-        options.compute && options.compute[compute.key],
+        options.compute && (options.compute as DefaultComputeMap)[compute.key],
         `field '${compute.key}' is declared as @computed, but there is nothing registered to compute it`,
       );
     }
@@ -175,7 +177,7 @@ directive @computed on FIELD_DEFINITION
           [compute.name]: {
             enumerable: true,
             get() {
-              let map = options.compute ?? {};
+              let map: DefaultComputeMap = options.compute ?? {};
               let computer = map[compute.key];
               if (computer) {
                 return computer(this);
