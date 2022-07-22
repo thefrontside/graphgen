@@ -28,6 +28,16 @@ describe("using graphql", () => {
     it("fails to create anything that is not defined", () => {
       expect(() => graphgen.create("Bucksnort")).toThrow("unknown");
     });
+
+    it("can retrieve a list for a type", () => {
+      graphgen.create("Person", { name: 'Bob' });
+      graphgen.create("Person", { name: 'Alice'});
+      graphgen.create("Person", { name: 'Brian' });
+
+      let all = [...graphgen.all('Person')];
+
+      expect(all.map(p => p.name)).toEqual(['Bob', 'Alice', 'Brian']);
+    })
   });
 
   describe("a global custom generator per field", () => {
