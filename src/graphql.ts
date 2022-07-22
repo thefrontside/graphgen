@@ -24,6 +24,7 @@ export interface GraphGen<API = Record<string, any>> {
     typename: T,
     preset?: Preset<API[T]>,
   ): Node & API[T];
+  all<T extends string & keyof API>(typename: T): Iterable<Node & API[T]>;
 }
 
 export interface Generate {
@@ -131,10 +132,10 @@ directive @computed on FIELD_DEFINITION
 
   let nodes = {} as Record<number, Node>;
 
-  function toNode(vertex: Vertex): Node {
+  function toNode<T>(vertex: Vertex): Node & T {
     let existing = nodes[vertex.id];
     if (existing) {
-      return existing;
+      return existing as Node & T;
     } else {
       let node = {
         id: String(vertex.id),
@@ -220,6 +221,16 @@ directive @computed on FIELD_DEFINITION
       let vertex = createVertex(graph, typename, transform(type, preset as Record<string, unknown>));
       return toNode(vertex) as Node & API[typeof typename];
     },
+    all(typename) {
+      return {
+        * [Symbol.iterator]() {
+
+          for(let id in graph.roots[typename]) {
+            yield toNode<API[typeof typename]>(graph.roots[typename][id]);
+          }
+        }
+      }
+    }
   };
 }
 
