@@ -8,6 +8,8 @@ import { DispatchArg } from "./dispatch.ts";
 
 export * from "./dispatch.ts";
 
+type EmptyObject = Record<never, never>;
+
 export interface Node {
   id: string;
 }
@@ -135,7 +137,7 @@ directive @computed on FIELD_DEFINITION
 
   let nodes = {} as Record<number, Node>;
 
-  function toNode<T>(vertex: Vertex): Node & T {
+  function toNode<T>(vertex: Vertex, preset: API | EmptyObject = {}): Node & T {
     let existing = nodes[vertex.id];
     if (existing) {
       return existing as Node & T;
@@ -172,7 +174,9 @@ directive @computed on FIELD_DEFINITION
 
       Object.defineProperties(node, properties);
 
-      let computed = type.computed.reduce((props, compute) => {
+      let presetKeys = Object.keys(preset);
+
+      let computed = type.computed.filter(compute => !presetKeys.includes(compute.name)).reduce((props, compute) => {
         return {
           ...props,
           [compute.name]: {
@@ -235,7 +239,7 @@ directive @computed on FIELD_DEFINITION
   ): Node & API[T] {
     let type = expect(typename, types, `unknown type '${typename}'`);
     let vertex = createVertex(graph, typename, transform(type, preset as Record<string, unknown>));
-    return toNode(vertex) as Node & API[typeof typename];
+    return toNode(vertex, preset) as Node & API[typeof typename];
   }
 
   return {
