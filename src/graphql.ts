@@ -48,7 +48,7 @@ type DefaultComputeMap = Record<string, (node: any) => any>;
 
 type ComputeMap<API> = {
   [K in keyof API]: {
-    [P in keyof API[K] as `${K & string}.${P & string}`]: (o: API[K]) => any;
+    [P in keyof API[K] as `${K & string}.${P & string}`]?: (o: API[K]) => any;
   }
 }[keyof API];
 
@@ -182,7 +182,7 @@ directive @computed on FIELD_DEFINITION
           [compute.name]: {
             enumerable: true,
             get() {
-              let map: DefaultComputeMap = options.compute ?? {};
+              let map = (options.compute ?? {}) as DefaultComputeMap;
               let computer = map[compute.key];
               if (computer) {
                 return computer(this);
