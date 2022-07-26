@@ -271,6 +271,23 @@ type Person { firstName: String! lastName: String! name: String! @computed }
     expect(person.name).toEqual("firstName lastName");
   });
 
+  it("does not call computed for properties that exist in the preset", () => {
+    let person = createGraphGen({
+      source: `
+type Person { firstName: String! lastName: String! name: String! @computed }
+`,
+      generate(info) {
+        return info.fieldname;
+      },
+      compute: {
+        "Person.name": (person: Record<string, unknown>) =>
+          `${person.firstName} ${person.lastName}`,
+      },
+    }).create("Person", { firstName: 'Sue', lastName: 'Barker', name: "Bob Jones" });
+    
+    expect(person.name).toEqual("Bob Jones");    
+  });
+
   it("is an error to mark a field as @computed without also having a computation in the compute map", () => {
     expect(() =>
       createGraphGen({
