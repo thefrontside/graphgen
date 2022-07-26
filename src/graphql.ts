@@ -10,6 +10,7 @@ export * from "./dispatch.ts";
 
 export interface Node {
   id: string;
+  __typename: string;
 }
 
 export type Preset<T> = T extends object
@@ -140,10 +141,16 @@ directive @computed on FIELD_DEFINITION
     if (existing) {
       return existing as Node & T;
     } else {
-      let node = {
+      let node = Object.defineProperties({
         id: String(vertex.id),
         ...vertex.data,
-      };
+      }, {
+        __typename: {
+          enumerable: false,
+          value: vertex.type,
+        }
+      });
+
       let type = expect(vertex.type, types);
       let properties = type.references.reduce((props, ref) => {
         return {
@@ -711,6 +718,8 @@ function readValue(value: graphql.ASTNode): DispatchArg {
       return parseFloat(value.value);
     case "IntValue":
       return parseInt(value.value);
+    case "ListValue":
+      return value.values.map(readValue) as DispatchArg;
     default:
       throw new Error(`Don't know how to handle argument of kind ${value.kind}`);
   }
