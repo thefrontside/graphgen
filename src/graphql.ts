@@ -172,7 +172,11 @@ directive @computed on FIELD_DEFINITION
 
       Object.defineProperties(node, properties);
 
-      let computed = type.computed.filter(compute => !vertex.data[compute.name]).reduce((props, compute) => {
+      let resolvedKeys = Object.keys(vertex.data);
+
+      let propsToCompute = type.computed.filter(compute => !resolvedKeys.includes(compute.name));
+
+      let computed = propsToCompute.reduce((props, compute) => {
         return {
           ...props,
           [compute.name]: {
