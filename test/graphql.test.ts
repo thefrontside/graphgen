@@ -44,6 +44,12 @@ describe("using graphql", () => {
 
       expect(all).toHaveLength(3);
     });
+
+    it("assigns an id and corresponding typename to each node", () => {
+      let person = graphgen.create("Person");
+      expect(person.id).toBe("1");
+      expect(person.__typename).toBe("Person");
+    })
   });
 
   describe("a global custom generator per field", () => {
@@ -135,6 +141,24 @@ describe("using graphql", () => {
       },
     }).create("Person");
     expect(person.name).toEqual("Bob Dobalina");
+  })
+
+  it("can pass a graphql ListValue as args to the @gen directive", () => {
+    let person = createGraphGen({
+      source:
+      `type Person { name: String! @gen(with: "@fn/join" args: [["Bob", "Smith"]])  }`,
+      generate({ method, args, next }) {
+        if (method === "@fn/join") {
+          if(Array.isArray(args[0])) {
+            return args[0].join(" ");
+          }
+        } else {
+          return next();
+        }
+      },
+    }).create("Person");
+
+    expect(person.name).toBe("Bob Smith");
   })
 
   it("can use a chain of field generators", () => {
