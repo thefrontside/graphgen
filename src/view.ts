@@ -8,8 +8,8 @@ export function createView(graph: Graph) {
         return {
           ...entries,
           [v.id]: createVertexView(v, graph),
-        }
-      }, {} as Record<number, VertexView>)
+        };
+      }, {} as Record<number, VertexView>),
     };
   }, {} as GraphView);
 }
@@ -19,7 +19,7 @@ export type GraphView = Record<string, Record<number, VertexView>>;
 export interface VertexView {
   id: number;
   attributes: Record<string, unknown>;
-  relationships?: Record<string, VertexView[]>
+  relationships?: Record<string, VertexView[]>;
 }
 
 function createVertexView(vertex: Vertex, graph: Graph) {
@@ -32,29 +32,37 @@ function createVertexView(vertex: Vertex, graph: Graph) {
   if (edges) {
     return {
       ...view,
-      relationships: Object.create({}, edges.reduce((properties, edge) => {
-        if (!properties[edge.type]) {
-          return {
-            ...properties,
-            [edge.type]: {
-              enumerable: true,
-              get(): Record<number, VertexView> {
-                return edges
-                  .filter(e => e.type === edge.type)
-                  .reduce((views, edge) => {
-                    let targetId = vertex.id === edge.from ? edge.to : edge.from;
-                    return {
-                      ...views,
-                      [targetId]: createVertexView(graph.vertices[targetId], graph),
-                    };
-                  }, {});
-              }
-            }
+      relationships: Object.create(
+        {},
+        edges.reduce((properties, edge) => {
+          if (!properties[edge.type]) {
+            return {
+              ...properties,
+              [edge.type]: {
+                enumerable: true,
+                get(): Record<number, VertexView> {
+                  return edges
+                    .filter((e) => e.type === edge.type)
+                    .reduce((views, edge) => {
+                      let targetId = vertex.id === edge.from
+                        ? edge.to
+                        : edge.from;
+                      return {
+                        ...views,
+                        [targetId]: createVertexView(
+                          graph.vertices[targetId],
+                          graph,
+                        ),
+                      };
+                    }, {});
+                },
+              },
+            };
+          } else {
+            return properties;
           }
-        } else {
-          return properties
-        }
-      }, {} as Record<string, PropertyDescriptor>)),
+        }, {} as Record<string, PropertyDescriptor>),
+      ),
     };
   } else {
     return view;
