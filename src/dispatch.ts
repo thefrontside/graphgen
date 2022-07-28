@@ -17,7 +17,7 @@ export interface DispatchMethod<TContext> {
   (context: TContext, args: unknown[]): unknown;
 }
 
-export type DispatchArg = string | number | boolean;
+export type DispatchArg = string | number | boolean | null;
 
 export interface DispatchOptions<T, TContext> {
   methods: Record<string, DispatchMethod<TContext>>;

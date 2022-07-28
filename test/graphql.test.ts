@@ -159,7 +159,23 @@ describe("using graphql", () => {
     }).create("Person");
 
     expect(person.name).toBe("Bob Smith");
-  })
+  });
+
+  it("can pass a graphql NullValue as args to the @gen directive", () => {
+    let person = createGraphGen({
+      source:
+        `type Person { name: String! @gen(with: "@fn/string" args: [null])  }`,
+      generate({ method, args, next }) {
+        if (method === "@fn/string") {
+          return args.map(String).join();
+        } else {
+          return next();
+        }
+      },
+    }).create("Person");
+
+    expect(person.name).toBe("null");
+  });
 
   it("can use a chain of field generators", () => {
     let name: Generate = ({ method, next }) =>
