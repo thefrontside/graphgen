@@ -720,6 +720,8 @@ function readValue(value: graphql.ASTNode): DispatchArg {
       return parseFloat(value.value);
     case "IntValue":
       return parseInt(value.value);
+    case "NullValue":
+      return null;
     default:
       throw new Error(`Don't know how to handle argument of kind ${value.kind}`);
   }
