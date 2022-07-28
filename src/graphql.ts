@@ -718,8 +718,6 @@ function readValue(value: graphql.ASTNode): DispatchArg {
       return parseFloat(value.value);
     case "IntValue":
       return parseInt(value.value);
-    case "ListValue":
-      return value.values.map(readValue) as DispatchArg;
     default:
       throw new Error(`Don't know how to handle argument of kind ${value.kind}`);
   }
