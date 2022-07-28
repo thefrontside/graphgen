@@ -631,7 +631,9 @@ function genOf(field: GQLField, defaultMethod: string) {
     let args = (() => {
       if (argArg) {
         assert(argArg.value.kind === "ListValue");
-        return argArg.value.values.map(readValue);
+        return argArg.value.values.map(argValue => {
+          return argValue.kind === 'ListValue' ? argValue.values.map(readValue) : readValue(argValue);
+        });
       } else {
         return [];
       }
