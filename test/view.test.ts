@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it } from "./suite.ts";
 
 import { seedrandom } from "../src/seedrandom.ts";
-import { createGraph, createVertex, constant, GraphView, createView } from "../mod.ts";
+import {
+  constant,
+  createGraph,
+  createVertex,
+  createView,
+  GraphView,
+} from "../mod.ts";
 
 describe("view", () => {
   let view: GraphView;
@@ -30,8 +36,8 @@ describe("view", () => {
       },
     });
 
-    createVertex(graph, 'User', {
-      name: 'Bob',
+    createVertex(graph, "User", {
+      name: "Bob",
     });
     view = createView(graph);
   });
@@ -40,12 +46,11 @@ describe("view", () => {
     let users = Object.values(view.User);
     expect(users).not.toHaveLength(0);
 
-
-    let [ user ] = users;
+    let [user] = users;
     expect(user.attributes).toEqual({ name: "Bob" });
 
     let relationships = user.relationships ?? {};
-    let [ repo ] = Object.values(relationships['User.repositories']);
+    let [repo] = Object.values(relationships["User.repositories"]);
 
     expect(repo).toBeDefined();
   });
