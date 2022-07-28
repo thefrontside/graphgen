@@ -13,8 +13,7 @@ export interface Node {
   __typename: string;
 }
 
-export type Preset<T> = T extends object
-  ? {
+export type Preset<T> = T extends object ? {
     [P in keyof T]?: Preset<T[P]>;
   }
   : T;
@@ -26,7 +25,10 @@ export interface GraphGen<API = Record<string, any>> {
     preset?: Preset<API[T]>,
   ): Node & API[T];
   all<T extends string & keyof API>(typename: T): Iterable<Node & API[T]>;
-  createMany<T extends string & keyof API>(typename: T, amount: number): Iterable<Node & API[T]>;
+  createMany<T extends string & keyof API>(
+    typename: T,
+    amount: number,
+  ): Iterable<Node & API[T]>;
 }
 
 export interface Generate {
@@ -48,7 +50,7 @@ type DefaultComputeMap = Record<string, (node: any) => any>;
 type ComputeMap<API> = {
   [K in keyof API]: {
     [P in keyof API[K] as `${K & string}.${P & string}`]?: (o: API[K]) => any;
-  }
+  };
 }[keyof API];
 
 export interface GraphQLOptions<API = Record<string, any>> {
@@ -148,7 +150,7 @@ directive @computed on FIELD_DEFINITION
         __typename: {
           enumerable: false,
           value: vertex.type,
-        }
+        },
       });
 
       let type = expect(vertex.type, types);
@@ -181,7 +183,9 @@ directive @computed on FIELD_DEFINITION
 
       let resolvedKeys = Object.keys(vertex.data);
 
-      let propsToCompute = type.computed.filter(compute => !resolvedKeys.includes(compute.name));
+      let propsToCompute = type.computed.filter((compute) =>
+        !resolvedKeys.includes(compute.name)
+      );
 
       let computed = propsToCompute.reduce((props, compute) => {
         return {
@@ -209,35 +213,45 @@ directive @computed on FIELD_DEFINITION
     }
   }
 
-  function transform(type: Type, preset: Record<string, unknown> = {}): Record<string, unknown> {
-    let transformed = Object.entries<unknown>(preset).reduce((transformed, [fieldname, value]) => {
-      let ref: Reference | undefined = type.references.find(({ name }) => name === fieldname);
-      if (ref) {
-        let target = expect(ref.typenames[0], types);
-        let relationship = expect(ref.key, relationships);
-        return {
-          ...transformed,
-          [relationship.name]: transform(target, preset[fieldname] as Record<string, unknown> | undefined ),
+  function transform(
+    type: Type,
+    preset: Record<string, unknown> = {},
+  ): Record<string, unknown> {
+    let transformed = Object.entries<unknown>(preset).reduce(
+      (transformed, [fieldname, value]) => {
+        let ref: Reference | undefined = type.references.find(({ name }) =>
+          name === fieldname
+        );
+        if (ref) {
+          let target = expect(ref.typenames[0], types);
+          let relationship = expect(ref.key, relationships);
+          return {
+            ...transformed,
+            [relationship.name]: transform(
+              target,
+              preset[fieldname] as Record<string, unknown> | undefined,
+            ),
+          };
+        } else {
+          return {
+            ...transformed,
+            [fieldname]: value,
+          };
         }
-      } else {
-        return {
-          ...transformed,
-          [fieldname]: value,
-        };
-      }
-    }, {} as Record<string, unknown>);
+      },
+      {} as Record<string, unknown>,
+    );
     return transformed;
   }
 
   function all<T extends string & keyof API>(typename: T) {
     return {
-      * [Symbol.iterator]() {
-
-        for(let id in graph.roots[typename]) {
+      *[Symbol.iterator]() {
+        for (let id in graph.roots[typename]) {
           yield toNode<API[typeof typename]>(graph.roots[typename][id]);
         }
-      }
-    }
+      },
+    };
   }
 
   function create<T extends string & keyof API>(
@@ -245,7 +259,11 @@ directive @computed on FIELD_DEFINITION
     preset?: Preset<API[T]>,
   ): Node & API[T] {
     let type = expect(typename, types, `unknown type '${typename}'`);
-    let vertex = createVertex(graph, typename, transform(type, preset as Record<string, unknown>));
+    let vertex = createVertex(
+      graph,
+      typename,
+      transform(type, preset as Record<string, unknown>),
+    );
     return toNode(vertex) as Node & API[typeof typename];
   }
 
@@ -253,12 +271,12 @@ directive @computed on FIELD_DEFINITION
     create,
     all,
     createMany(typename, amount) {
-      for(let i = 0; i < amount;i++) {
+      for (let i = 0; i < amount; i++) {
         create(typename);
       }
 
       return all(typename);
-    }
+    },
   };
 }
 
@@ -290,7 +308,7 @@ interface Field {
   gen: {
     method: string;
     args: DispatchArg[];
-  }
+  };
 }
 
 interface Computed {
@@ -402,7 +420,7 @@ function analyze(schema: graphql.GraphQLSchema): Analysis {
         fields: scalarFields.map((field) => {
           let typename = graphql.getNamedType(field.type).name;
           let probability = chanceOf(field);
-          let gen = genOf(field,`${graphqlType.name}.${field.name}`);
+          let gen = genOf(field, `${graphqlType.name}.${field.name}`);
           return {
             name: field.name,
             get holder() {
@@ -720,8 +738,12 @@ function readValue(value: graphql.ASTNode): DispatchArg {
       return parseInt(value.value);
     case "NullValue":
       return null;
+    case "ListValue":
+      return value.values.map(readValue);
     default:
-      throw new Error(`Don't know how to handle argument of kind ${value.kind}`);
+      throw new Error(
+        `Don't know how to handle argument of kind ${value.kind}`,
+      );
   }
 }
 

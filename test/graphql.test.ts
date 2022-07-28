@@ -30,17 +30,17 @@ describe("using graphql", () => {
     });
 
     it("can retrieve a list for a type", () => {
-      graphgen.create("Person", { name: 'Bob' });
-      graphgen.create("Person", { name: 'Alice'});
-      graphgen.create("Person", { name: 'Brian' });
+      graphgen.create("Person", { name: "Bob" });
+      graphgen.create("Person", { name: "Alice" });
+      graphgen.create("Person", { name: "Brian" });
 
-      let all = [...graphgen.all('Person')];
+      let all = [...graphgen.all("Person")];
 
-      expect(all.map(p => p.name)).toEqual(['Bob', 'Alice', 'Brian']);
+      expect(all.map((p) => p.name)).toEqual(["Bob", "Alice", "Brian"]);
     });
 
     it("can retrieve a list for a type", () => {
-      let all = [...graphgen.createMany('Person', 3)]
+      let all = [...graphgen.createMany("Person", 3)];
 
       expect(all).toHaveLength(3);
     });
@@ -49,7 +49,7 @@ describe("using graphql", () => {
       let person = graphgen.create("Person");
       expect(person.id).toBe("1");
       expect(person.__typename).toBe("Person");
-    })
+    });
   });
 
   describe("a global custom generator per field", () => {
@@ -131,7 +131,7 @@ describe("using graphql", () => {
   it("can pass arguments to a custom field generator", () => {
     let person = createGraphGen({
       source:
-      `type Person { name: String! @gen(with: "@fn/join", args: ["Bob", "Dobalina"])  }`,
+        `type Person { name: String! @gen(with: "@fn/join", args: ["Bob", "Dobalina"])  }`,
       generate({ method, args, next }) {
         if (method === "@fn/join") {
           return args.join(" ");
@@ -141,15 +141,15 @@ describe("using graphql", () => {
       },
     }).create("Person");
     expect(person.name).toEqual("Bob Dobalina");
-  })
+  });
 
   it("can pass a graphql ListValue as args to the @gen directive", () => {
     let person = createGraphGen({
       source:
-      `type Person { name: String! @gen(with: "@fn/join" args: [["Bob", "Smith"]])  }`,
+        `type Person { name: String! @gen(with: "@fn/join" args: [["Bob", "Smith"]])  }`,
       generate({ method, args, next }) {
         if (method === "@fn/join") {
-          if(Array.isArray(args[0])) {
+          if (Array.isArray(args[0])) {
             return args[0].join(" ");
           }
         } else {
@@ -323,9 +323,13 @@ type Person { firstName: String! lastName: String! name: String! @computed }
         "Person.name": (person: Record<string, unknown>) =>
           `${person.firstName} ${person.lastName}`,
       },
-    }).create("Person", { firstName: 'Sue', lastName: 'Barker', name: "Bob Jones" });
-    
-    expect(person.name).toEqual("Bob Jones");    
+    }).create("Person", {
+      firstName: "Sue",
+      lastName: "Barker",
+      name: "Bob Jones",
+    });
+
+    expect(person.name).toEqual("Bob Jones");
   });
 
   it("is an error to mark a field as @computed without also having a computation in the compute map", () => {
@@ -340,19 +344,19 @@ type Person { name: String! @computed }
 
   it("can pass nested bespoke values for relationships to create()", () => {
     let person = createGraphGen({
-      source:`
+      source: `
 type Person { account: Account! }
 type Account { bank: Bank! }
 type Bank { name: String! }
-`
+`,
     }).create("Person", {
       account: {
         bank: {
-          name: "US Bank"
-        }
-      }
+          name: "US Bank",
+        },
+      },
     });
-    expect(person.account.bank.name).toEqual('US Bank');
+    expect(person.account.bank.name).toEqual("US Bank");
   });
 
   it.ignore("forbids putting a @size on single relationships", () => {
