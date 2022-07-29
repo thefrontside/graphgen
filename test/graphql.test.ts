@@ -79,6 +79,19 @@ describe("using graphql", () => {
         occupation: "Person.occupation is a String",
       });
     });
+
+    it('can preset "many" relationships', () => {
+      let person = createGraphGen({
+        source: `
+type Person { name: String! accounts: [Account] }
+type Account { name: String! }`,
+      }).create("Person", {
+        accounts: [{
+          name: `Checking`,
+        }]
+      });
+      expect(person.accounts[0]?.name).toEqual("Checking");
+    });
   });
 
   it("can generate values for something that is nullable", () => {

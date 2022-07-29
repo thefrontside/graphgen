@@ -225,12 +225,10 @@ directive @computed on FIELD_DEFINITION
         if (ref) {
           let target = expect(ref.typenames[0], types);
           let relationship = expect(ref.key, relationships);
+          let targetPreset = Array.isArray(value) ? value.map(content => transform(target, content)) : transform(target, value as Record<string, unknown>);
           return {
             ...transformed,
-            [relationship.name]: transform(
-              target,
-              preset[fieldname] as Record<string, unknown> | undefined,
-            ),
+            [relationship.name]: targetPreset,
           };
         } else {
           return {
