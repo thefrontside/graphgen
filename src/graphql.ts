@@ -55,6 +55,7 @@ type ComputeMap<API> = {
 
 export interface GraphQLOptions<API = Record<string, any>> {
   source: string;
+  sourceName?: string;
   generate?: Generate | Generate[];
   compute?: ComputeMap<API>;
   seed?: Seed;
@@ -74,7 +75,10 @@ directive @size(mean: Int, min: Int, max: Int, standardDeviation: Int) on FIELD_
 directive @computed on FIELD_DEFINITION
 `);
 
-  let schema = graphql.extendSchema(prelude, graphql.parse(options.source));
+  let schema = graphql.extendSchema(
+    prelude,
+    parse(options.source, options.sourceName),
+  );
 
   let { types, edges, relationships } = analyze(schema);
 
@@ -804,4 +808,18 @@ function partition<T>(
 
 function isComputed(field: GQLField): boolean {
   return !!directiveOf(field, "computed");
+}
+
+function parse(source: string, name = "<anonymous>"): graphql.DocumentNode {
+  try {
+    return graphql.parse(source);
+  } catch (error) {
+    if (error instanceof graphql.GraphQLError) {
+      throw new Error(
+        `GraphQL ${error.message}\n${name} at position ${error.positions}`,
+      );
+    } else {
+      throw error;
+    }
+  }
 }
