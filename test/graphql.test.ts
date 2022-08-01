@@ -88,7 +88,7 @@ type Account { name: String! }`,
       }).create("Person", {
         accounts: [{
           name: `Checking`,
-        }]
+        }],
       });
       expect(person.accounts[0]?.name).toEqual("Checking");
     });

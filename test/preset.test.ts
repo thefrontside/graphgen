@@ -139,7 +139,7 @@ it("will override a decision to use an existing vertex based on affinity if a pr
           type: "consumes",
           direction: "from",
           size: normal({ mean: 1, standardDeviation: 1, min: 1 }),
-          affinity: 1
+          affinity: 1,
         }],
       }, {
         name: "API",
@@ -148,7 +148,7 @@ it("will override a decision to use an existing vertex based on affinity if a pr
             description: "Genate API Data",
             sample(seed) {
               return {
-                name: `API ${seed()}`
+                name: `API ${seed()}`,
               };
             },
           };
@@ -158,7 +158,7 @@ it("will override a decision to use an existing vertex based on affinity if a pr
           direction: "to",
           size: normal({ mean: 3, standardDeviation: 1, min: 0 }),
           affinity: .1,
-        }]
+        }],
       }],
       edge: [{
         name: "subComponents",
@@ -168,17 +168,19 @@ it("will override a decision to use an existing vertex based on affinity if a pr
         name: "consumes",
         from: "Component",
         to: "API",
-      }]
+      }],
     },
   });
 
   let vertex = createVertex(graph, "Component", {
     consumes: [{
-      name: 'github-enterprise'
+      name: "github-enterprise",
     }],
   });
 
-  let edges = (graph.from[vertex.id] ?? []).filter(edge => edge.type === 'consumes');
-  let consumedApis = edges.map(edge => graph.vertices[edge.to].data.name);
+  let edges = (graph.from[vertex.id] ?? []).filter((edge) =>
+    edge.type === "consumes"
+  );
+  let consumedApis = edges.map((edge) => graph.vertices[edge.to].data.name);
   expect(consumedApis).toContain("github-enterprise");
 });
