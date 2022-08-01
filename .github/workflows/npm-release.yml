@@ -37,7 +37,7 @@ jobs:
           registry-url: https://registry.npmjs.com
 
       - name: Build
-        run: deno task build:npm
+        run: deno task build:npm $NPM_VERSION
         env:
           NPM_VERSION: ${{steps.vars.outputs.version}}
 

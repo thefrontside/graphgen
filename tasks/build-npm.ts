@@ -1,12 +1,12 @@
-import { build, emptyDir } from "https://deno.land/x/dnt@0.23.0/mod.ts";
+import { build, emptyDir } from "https://deno.land/x/dnt@0.28.0/mod.ts";
 
 const outDir = "./build/npm";
 
 await emptyDir(outDir);
 
-let version = Deno.env.get("NPM_VERSION");
+let [version] = Deno.args;
 if (!version) {
-  throw new Error("NPM_VERSION is required to build npm package");
+  throw new Error("a version argument is required to build the npm package");
 }
 
 await build({
@@ -37,6 +37,13 @@ await build({
     },
     engines: {
       node: ">= 14",
+    },
+  },
+  mappings: {
+    "https://esm.sh/graphql@16.5.0/graphql": {
+      name: "graphql",
+      version: "16.5.0",
+      peerDependency: false,
     },
   },
 });

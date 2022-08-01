@@ -240,7 +240,11 @@ export function createVertex(
 
     let excluded = [source.id];
 
-    for (let i = existing.length; i < size; i++) {
+    for (
+      let i = existing.length;
+      i < Math.max(size, presets.length + existing.length);
+      i++
+    ) {
       let edgeType = graph.types.edge[relationship.type];
 
       // At this point, we have a choice to make. We could create a new vertex
@@ -273,7 +277,11 @@ export function createVertex(
         Math.pow(1 - (relationship.affinity ?? 0), population.length);
 
       let [targetId, exists] = (function (): [number, boolean] {
-        if (population.length > excluded.length && graph.seed() < affinity) {
+        let hasPreset = i - existing.length < presets.length;
+        if (
+          !hasPreset &&
+          (population.length > excluded.length && graph.seed() < affinity)
+        ) {
           while (true) {
             let vertex = uniform(population as [Vertex, ...Vertex[]]).sample(
               graph.seed,
@@ -317,7 +325,13 @@ export function createVertex(
           }
         }
 
-        createVertex(graph, getTargetType(), presets[i], targetId, edge);
+        createVertex(
+          graph,
+          getTargetType(),
+          presets[i - existing.length],
+          targetId,
+          edge,
+        );
       }
     }
   }

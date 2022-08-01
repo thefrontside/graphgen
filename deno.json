@@ -14,5 +14,10 @@
     "files": {
       "exclude": ["README.md", "build/"]
     }
+  },
+  "test": {
+    "files": {
+      "exclude": ["build"]
+    }
   }
 }
