@@ -6,13 +6,13 @@
 # This workflow will install Deno then run Deno lint and test.
 # For more information see: https://github.com/denoland/setup-deno
 
-name: Lint and Test
+name: Verify
 
 on:
   push:
-    branches: [v0]
+    branches: v[0-9]
   pull_request:
-    branches: [v0]
+    branches: v[0-9]
 
 permissions:
   contents: read
