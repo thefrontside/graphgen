@@ -13,6 +13,7 @@ export interface Node {
   __typename: string;
 }
 
+//deno-lint-ignore ban-types
 export type Preset<T> = T extends object ? {
     [P in keyof T]?: Preset<T[P]>;
   }
@@ -45,14 +46,17 @@ export interface GenerateInfo {
   next(): unknown;
 }
 
+//deno-lint-ignore no-explicit-any
 type DefaultComputeMap = Record<string, (node: any) => any>;
 
 type ComputeMap<API> = {
   [K in keyof API]: {
+    //deno-lint-ignore no-explicit-any
     [P in keyof API[K] as `${K & string}.${P & string}`]?: (o: API[K]) => any;
   };
 }[keyof API];
 
+//deno-lint-ignore no-explicit-any
 export interface GraphQLOptions<API = Record<string, any>> {
   source: string;
   sourceName?: string;
@@ -61,6 +65,7 @@ export interface GraphQLOptions<API = Record<string, any>> {
   seed?: Seed;
 }
 
+//deno-lint-ignore no-explicit-any
 export function createGraphGen<API = Record<string, any>>(
   options: GraphQLOptions<API>,
 ): GraphGen<API> {
