@@ -77,7 +77,6 @@ directive @computed on FIELD_DEFINITION
   let schema = graphql.extendSchema(prelude, graphql.parse(options.source));
 
   let { types, edges, relationships } = analyze(schema);
-  //console.dir({ types, edges, relationships }, { depth: 5 });
 
   let fieldgen = createFieldGenerate(
     seed,
@@ -225,7 +224,9 @@ directive @computed on FIELD_DEFINITION
         if (ref) {
           let target = expect(ref.typenames[0], types);
           let relationship = expect(ref.key, relationships);
-          let targetPreset = Array.isArray(value) ? value.map(content => transform(target, content)) : transform(target, value as Record<string, unknown>);
+          let targetPreset = Array.isArray(value)
+            ? value.map((content) => transform(target, content))
+            : transform(target, value as Record<string, unknown>);
           return {
             ...transformed,
             [relationship.name]: targetPreset,
