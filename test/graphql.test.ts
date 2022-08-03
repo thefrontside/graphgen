@@ -372,6 +372,16 @@ type Bank { name: String! }
     expect(person.account.bank.name).toEqual("US Bank");
   });
 
+  it("should create an array non-nullable list type fields", () => {
+    let person = createGraphGen({
+      source: `
+type Person { name: String! accounts: [Account]! }
+type Account { name: String! }`,
+    }).create("Person");
+
+    expect(Array.isArray(person.accounts)).toBe(true);
+  });
+
   it.ignore("forbids putting a @size on single relationships", () => {
     expect(() => {
       createGraphGen({

@@ -678,8 +678,16 @@ function directiveOf(field: GQLField, name: string) {
   )[0];
 }
 
+function isListType(type: GQLField["type"]): boolean {
+  if (graphql.isNonNullType(type)) {
+    return isListType(type.ofType);
+  }
+
+  return graphql.isListType(type);
+}
+
 function arityOf(field: GQLField): Arity {
-  if (graphql.isListType(field.type)) {
+  if (isListType(field.type)) {
     return {
       has: "many",
       size: sizeOf(field),
