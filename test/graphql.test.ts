@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from "./suite.ts";
-import { createGraphGen, Generate, GraphGen } from "../mod.ts";
+import { createGraphGen, Generate, GraphGen, Vertex } from "../mod.ts";
+import { cachekey } from "../src/cache.ts";
+import { Alea, createAlea } from "../src/alea.ts";
 
 describe("using graphql", () => {
   let graphgen: GraphGen;
@@ -96,7 +98,7 @@ type Account { name: String! }`,
 
   it("can generate values for something that is nullable", () => {
     let graphgen = createGraphGen({
-      seed: () => 0,
+      seed: always(0),
       source: `type Person { car: String }`,
     });
     expect(graphgen.create("Person").car).toBeNull();
@@ -104,13 +106,13 @@ type Account { name: String! }`,
 
   it("You can attach a probability that a field will be generated when it is nullable", () => {
     let graphgen = createGraphGen({
-      seed: () => 0.65,
+      seed: always(.65),
       source: `type Person { car: String @has(chance: 0.7)} `,
     });
     expect(graphgen.create("Person").car).toBeNull();
 
     graphgen = createGraphGen({
-      seed: () => 0.9,
+      seed: always(.9),
       source: `type Person { car: String @has(chance: 0.7)} `,
     });
     expect(graphgen.create("Person").car).not.toBeNull();
@@ -119,7 +121,7 @@ type Account { name: String! }`,
   it("is an error to try and attach a less than one probability to a non nullable field", () => {
     expect(() =>
       createGraphGen({
-        seed: () => 0,
+        seed: always(0),
         source: `type Person { name: String! @has(chance: 0.7)} `,
       })
     ).toThrow();
@@ -302,7 +304,7 @@ type Organization { name: String! accounts: [Account] @inverse(of: "Account.owne
 union Owner = Person | Organization
 type Account { owner: Owner! }`,
     }).create("Person");
-    expect(person.accounts.length).toEqual(5);
+    expect(person.accounts.length).toEqual(4);
     for (let account of person.accounts) {
       expect(account.owner).toEqual(person);
     }
@@ -391,4 +393,156 @@ type Account { name: String! }`,
   });
 
   it.ignore("can report multiple errors in a single invocation", () => {});
+
+  describe("caching", () => {
+    it("can load values from a cache", () => {
+      let bob: Vertex = {
+        type: "Person",
+        id: 1,
+        data: {
+          name: "Bob",
+        },
+      };
+      let source = `type Person { name: String! }`;
+
+      let storage = new Map([
+        [cachekey.schema(source).create("Person").value, {
+          prngState: createAlea().exportState(),
+          currentId: 2,
+          vertexId: 1,
+          roots: {
+            Person: {
+              1: bob,
+            },
+          },
+          vertices: {
+            1: bob,
+          },
+          from: {},
+          to: {},
+        }],
+      ]);
+
+      let factory = createGraphGen({
+        source,
+        storage,
+      });
+
+      let person = factory.create("Person");
+      expect(person.name).toEqual("Bob");
+      let other = factory.create("Person");
+      expect(other.name).not.toEqual("Bob");
+    });
+
+    it("generates the same objects depending on whether it picked up in the middle", () => {
+      let storage = new Map();
+
+      let factory = createGraphGen({
+        source: `type Person { name: String! random: String! }`,
+        storage,
+      });
+
+      let bob = factory.create("Person", { name: "Bob" });
+
+      let alice = factory.create("Person", { name: "Alice" });
+
+      let snapshot = new Map(storage);
+
+      let pedro = factory.create("Person", { name: "Pedro" });
+
+      let factory2 = createGraphGen({
+        source: `type Person { name: String! random: String! }`,
+        storage: snapshot,
+      });
+
+      let bob2 = factory2.create("Person", { name: "Bob" });
+      let alice2 = factory2.create("Person", { name: "Alice" });
+      let pedro2 = factory2.create("Person", { name: "Pedro" });
+
+      expect(bob).toEqual(bob2);
+      expect(alice).toEqual(alice2);
+      expect(pedro).toEqual(pedro2);
+    });
+
+    it("uses different cache keys for different schema versions", () => {
+      let v1 = `type Person { name: String! }`;
+      let v2 = `type Person { name: String! address: String! }`;
+
+      let prngState = createAlea().exportState();
+
+      let bob: Vertex = {
+        type: "Person",
+        id: 1,
+        data: {
+          name: "Bob",
+        },
+      };
+
+      let pedro: Vertex = {
+        type: "Person",
+        id: 1,
+        data: {
+          name: "Pedro",
+        },
+      };
+
+      let storage = new Map([
+        [cachekey.schema(v1).create("Person").value, {
+          prngState,
+          currentId: 2,
+          vertexId: 1,
+          roots: {
+            Person: {
+              1: bob,
+            },
+          },
+          vertices: {
+            1: bob,
+          },
+          from: {},
+          to: {},
+        }],
+        [cachekey.schema(v2).create("Person").value, {
+          prngState,
+          currentId: 2,
+          vertexId: 1,
+          roots: {
+            Person: {
+              1: pedro,
+            },
+          },
+          vertices: {
+            1: pedro,
+          },
+          from: {},
+          to: {},
+        }],
+      ]);
+
+      expect(
+        createGraphGen({
+          source: `type Person { name: String! }`,
+          storage,
+        }).create("Person").name,
+      ).toEqual("Bob");
+
+      expect(
+        createGraphGen({
+          source: `type Person { name: String! address: String! }`,
+          storage,
+        }).create("Person").name,
+      ).toEqual("Pedro");
+    });
+
+    it.ignore("caches edges", () => {});
+    it.ignore("loads different values for different sequences of graph mutation", () => {
+    });
+  });
 });
+
+function always(num: number): Alea {
+  return Object.assign(() => num, {
+    importState() {},
+    exportState: () => [],
+  });
+}
