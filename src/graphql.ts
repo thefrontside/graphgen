@@ -49,7 +49,7 @@ export interface GenerateInfo {
 //deno-lint-ignore no-explicit-any
 type DefaultComputeMap = Record<string, (node: any) => any>;
 
-type BannedComputeMapKeys = '__typename' | 'id';
+type BannedComputeMapKeys = "__typename" | "id";
 
 type ComputeMap<API> = {
   [K in keyof API]: {
