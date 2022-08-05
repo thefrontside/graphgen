@@ -1,6 +1,6 @@
 import type { Seed } from "./distribution.ts";
 import { assert, evaluate, graphql, shift } from "./deps.ts";
-import { createGraph, createVertex, Vertex } from "./graph.ts";
+import { createGraph, createVertex, Graph, Vertex } from "./graph.ts";
 import { normal, weighted } from "./distribution.ts";
 import { CacheStorage, createCache, NullCache } from "./cache.ts";
 import { Alea, createAlea } from "./alea.ts";
@@ -23,6 +23,7 @@ export type Preset<T> = T extends object ? {
 
 //deno-lint-ignore no-explicit-any
 export interface GraphGen<API = Record<string, any>> {
+  graph: Graph;
   create<T extends string & keyof API>(
     typename: T,
     preset?: Preset<API[T]>,
@@ -297,6 +298,7 @@ directive @computed on FIELD_DEFINITION
   }
 
   return {
+    graph,
     create,
     all,
     createMany(typename, amount) {
