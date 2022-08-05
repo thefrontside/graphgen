@@ -15,9 +15,11 @@ export interface Node {
   __typename: string;
 }
 
+type NonOverridableKeys = "__typename" | "id";
+
 //deno-lint-ignore ban-types
 export type Preset<T> = T extends object ? {
-    [P in keyof T]?: Preset<T[P]>;
+    [P in keyof T as P extends NonOverridableKeys ? never : P]?: Preset<T[P]>;
   }
   : T;
 
@@ -52,12 +54,10 @@ export interface GenerateInfo {
 //deno-lint-ignore no-explicit-any
 type DefaultComputeMap = Record<string, (node: any) => any>;
 
-type BannedComputeMapKeys = "__typename" | "id";
-
 type ComputeMap<API> = {
   [K in keyof API]: {
     [
-      P in keyof API[K] as P extends BannedComputeMapKeys ? never
+      P in keyof API[K] as P extends NonOverridableKeys ? never
         : `${K & string}.${P & string}`
       //deno-lint-ignore no-explicit-any
     ]?: (o: API[K]) => any;
