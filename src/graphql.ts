@@ -1,12 +1,14 @@
 import type { Seed } from "./distribution.ts";
-import { seedrandom } from "./seedrandom.ts";
 import { assert, evaluate, graphql, shift } from "./deps.ts";
 import { createGraph, createVertex, Vertex } from "./graph.ts";
 import { normal, weighted } from "./distribution.ts";
+import { CacheStorage, createCache, NullCache } from "./cache.ts";
+import { Alea, createAlea } from "./alea.ts";
 
 import { DispatchArg } from "./dispatch.ts";
 
 export * from "./dispatch.ts";
+export type { CacheStorage, CacheValue } from "./cache.ts";
 
 export interface Node {
   id: string;
@@ -67,14 +69,17 @@ export interface GraphQLOptions<API = Record<string, any>> {
   sourceName?: string;
   generate?: Generate | Generate[];
   compute?: ComputeMap<API>;
-  seed?: Seed;
+  seed?: string | Alea;
+  storage?: CacheStorage;
 }
 
 //deno-lint-ignore no-explicit-any
 export function createGraphGen<API = Record<string, any>>(
   options: GraphQLOptions<API>,
 ): GraphGen<API> {
-  let { seed = seedrandom("graphgen") } = options;
+  let seed = typeof options.seed === "function"
+    ? options.seed
+    : createAlea(options.seed ?? "graphgen");
   let prelude = graphql.buildSchema(`
 union _Arg = String | Float | Int | Boolean
 directive @has(chance: Float!) on FIELD_DEFINITION
@@ -139,6 +144,15 @@ directive @computed on FIELD_DEFINITION
       })),
     },
   });
+
+  let cache = options.storage
+    ? createCache({
+      graph,
+      source: options.source,
+      storage: options.storage,
+      seed,
+    })
+    : NullCache;
 
   for (let type of Object.values(types)) {
     for (let compute of type.computed) {
@@ -271,12 +285,14 @@ directive @computed on FIELD_DEFINITION
     typename: T,
     preset?: Preset<API[T]>,
   ): Node & API[T] {
-    let type = expect(typename, types, `unknown type '${typename}'`);
-    let vertex = createVertex(
-      graph,
-      typename,
-      transform(type, preset as Record<string, unknown>),
-    );
+    let vertex = cache.create(typename, preset, () => {
+      let type = expect(typename, types, `unknown type '${typename}'`);
+      return createVertex(
+        graph,
+        typename,
+        transform(type, preset as Record<string, unknown>),
+      );
+    });
     return toNode(vertex) as Node & API[typeof typename];
   }
 
