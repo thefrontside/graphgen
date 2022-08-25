@@ -4,10 +4,10 @@ import { RunButton } from '../RunButton/RunButton'
 import { assert } from 'assert-ts';
 
 interface TopBarProps {
-  setSchema(schema: string): void;
+  setSchema?: (schema: string) => void;
 }
 
-export function TopBar({ setSchema }: TopBarProps): JSX.Element {
+export function TopBar({ setSchema = () => void 0 }: TopBarProps = {}): JSX.Element {
   const [input, setInput] = useState('https://raw.githubusercontent.com/thefrontside/backstage/main/packages/graphgen/src/world.graphql');
 
   const onChangeHandler: ChangeEventHandler<HTMLInputElement> = event => {

@@ -8,10 +8,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@faker-js/faker": "^7.4.0",
     "@frontside/graphgen": "^1.6.0",
     "assert-ts": "^0.3.4",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-inspector": "^6.0.1"
   },
   "devDependencies": {
     "@types/react": "^18.0.17",

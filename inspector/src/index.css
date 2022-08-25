@@ -1,17 +1,27 @@
-*{
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  padding: 0;
+}
+
+html {
+  position: relative;
+}
+
+body {
   margin: 0;
 }
+
+html, body, #root {
+  height: 100%;
+}
+
 
 main {
   display: grid;
   border-style: solid;
   grid-template-rows: [top-bar] 3rem [main] 1fr;
   grid-template-columns: 1fr;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
 }
 
 ul {

@@ -1,28 +1,41 @@
 import { useEffect, useState } from 'react'
 import { TopBar } from './components/TopBar/TopBar'
-import type { GraphGen, GraphQLOptions } from '@frontside/graphgen';
 import './App.css'
 import { useGraphgen } from './hooks/useGraphgen/useGraphgen';
+import type { GraphGen } from '@frontside/graphgen';
+import { GraphInspector } from './components/Inspector/Inspector';
 
 function App() {
-  const [schema, setSchema] = useState<string>();
-  const factory = useGraphgen({ source: schema });
-
+  const factory = useGraphgen();
+  const isLoading = !factory;
+  const [graph, setGraph] = useState<{[k: string]: any}>();
+  
   useEffect(() => {
-    console.log(factory);
-  }, [factory]);
- 
+    if(!factory || !!graph) {
+      return;
+    }
+    const roots = {} as {[k: string]: any};
+    
+    for(const root of Object.keys(factory.graph.roots)) {
+      roots[root] = [factory.create(root)];
+    }
+
+    setGraph(roots);
+  }, [factory, graph]);
+
+  console.log(graph);
+
   return (
     <>
-      <TopBar setSchema={setSchema} />
+      <TopBar />
       <section className="main">
         <section className="margin"/>
         <section className="left">
-          <div className="top">top</div>
-          <div className="bottom">bottom</div>
+          <div className="top"></div>
+          <div className="bottom"></div>
         </section>
         <section className="right">
-          right
+          <GraphInspector graph={graph}/>
         </section>
       </section>
     </>

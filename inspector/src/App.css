@@ -1,9 +1,8 @@
 .main {
   display: grid;
   grid-row: main;
-  grid-template-columns: [margin] 2rem [left] 1fr [right] 1fr;
-  width: 100vw;
-  height: 100vh;
+  grid-template-columns: [margin] 2rem [left] 1fr [right] 2fr;
+  overflow: hidden;
 }
 
 .margin {
@@ -33,6 +32,8 @@
 
 .right {
   grid-column: right;
+  overflow: scroll;
+  height: 100%;
 }
 
 .top {
