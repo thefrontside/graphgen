@@ -1,0 +1,13 @@
+
+.run-button button {
+  display: flex;
+  align-items: flex-end;
+  border-radius: 50%;
+  border: none;
+  background: #d0d0d0;
+  cursor: pointer;
+}
+
+.run-button button:hover {
+  background: transparent;
+} 

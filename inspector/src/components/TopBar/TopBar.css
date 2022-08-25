@@ -1,0 +1,19 @@
+.top-bar {
+  display: flex;
+  align-content: center;
+  position: relative;
+}
+
+.top-bar label {
+  position: absolute;
+  top: -1000px
+}
+
+.top-bar input {
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #d0d0d0;
+  padding: .25rem .5rem;
+  font-size: 13px;
+  flex: 0 1 50%;
+}

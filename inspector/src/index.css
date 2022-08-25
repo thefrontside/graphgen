@@ -1,0 +1,19 @@
+*{
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+main {
+  display: grid;
+  border-style: solid;
+  grid-template-rows: [top-bar] 3rem [main] 1fr;
+  grid-template-columns: 1fr;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+ul {
+  list-style: none;
+}
