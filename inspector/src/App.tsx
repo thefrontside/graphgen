@@ -6,9 +6,8 @@ import type { GraphGen } from '@frontside/graphgen';
 import { GraphInspector } from './components/Inspector/Inspector';
 
 function App() {
-  const factory = useGraphgen();
-  const isLoading = !factory;
   const [graph, setGraph] = useState<{[k: string]: any}>();
+  const factory = useGraphgen({loaded: !!graph});
   
   useEffect(() => {
     if(!factory || !!graph) {
@@ -27,7 +26,7 @@ function App() {
 
   return (
     <>
-      <TopBar />
+    <TopBar />
       <section className="main">
         <section className="margin"/>
         <section className="left">

@@ -2,11 +2,19 @@ import { GraphGen } from '@frontside/graphgen';
 import { createGraphGen } from '@frontside/graphgen';
 import { useEffect, useState } from 'react';
 import { compute, fakergen, gen } from './compute';
+import { join } from 'path';
+
+interface UseGraphGen { 
+  source?: string | undefined;
+  seed?: string;
+  loaded?: boolean 
+}
 
 export function useGraphgen({
   source = 'https://raw.githubusercontent.com/thefrontside/backstage/main/packages/graphgen/src/world.graphql',
-  seed = 'factory'
-}: { source?: string | undefined, seed?: string } = {}): GraphGen<Record<string, any>> | undefined {
+  seed = 'factory',
+  loaded = false
+}: UseGraphGen = {}): GraphGen<Record<string, any>> | undefined {
   const [schema, setSchema] = useState<string>();
 
   useEffect(() => {
@@ -30,10 +38,11 @@ export function useGraphgen({
     fetchSchema().catch(console.error)
   }, [source]);
 
-  if(!schema) {
+  if(!schema || loaded) {
     return;
   }
-  
+
+
   return createGraphGen({
     seed,
     source: schema,
