@@ -5,7 +5,7 @@ export interface Dispatch<T> {
   methods: string[];
   dispatch(name: string, input: T, args: unknown[]): DispatchResult;
 }
-
+``
 export type DispatchResult = {
   handled: true;
   value: unknown;

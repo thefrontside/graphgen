@@ -1,41 +1,71 @@
 import { gql } from 'graphql_tag';
+import GraphQLJSON, { GraphQLJSONObject } from 'graphql-type-json';
+
 
 export const typeDefs = gql`
-  type User {
-    id: Int 
-    first_name: String
-    last_name: String
-  }
+scalar JSON
+scalar JSONObject
 
-  type UserOutput {
-    id: Int 
-  }
+interface Node {
+  id: ID!
+  typename: String!
+}
 
-  type Query {
-    fetchUser(id: Int): User 
-  }
+type NodeEdge {
+  node: Node
+  cursor: String!
+}
 
-  type Mutation {
-    insertUser(first_name: String!, last_name: String!): UserOutput!
-  }
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type NodeConnection {
+  count: Int
+  pageInfo: PageInfo
+  edges: [NodeEdge!]
+}
+
+type Vertex {
+  id: ID!
+  typename: String!
+  fields: JSON
+  computed: JSON
+  references: [VertexEntry]
+}
+
+type VertexEntry {
+  key: String!
+  value: Vertex!
+}
+
+type VertexEdge {
+  node: Vertex
+  cursor: String
+}
+
+type VertexConnection {
+  count: Int
+  pageInfo: PageInfo
+  edges: [VertexEdge!]
+}
+
+type Type {
+  name: String
+  count: Int
+  nodes: NodeConnection
+  vertices: VertexConnection
+}
+
+type Query {
+  meta: [Type]
+}
 `;
 
 export const resolvers = {
-  Query: {
-    fetchUser: (parent: any, { id }: any, context: any, info: any) => {
-      return {
-        id: 1,
-        first_name: "Paul",
-        last_name: "Cowan",
-      };
-    },
-  },
-  Mutation: {
-    insertUser: (parent: any, { first_name, last_name }: any, context: any, info: any) => {
-      console.log("input:", first_name, last_name);
-      return {
-        id: 1,
-      };
-    },
-  },
+  JSON: GraphQLJSON,
+  JSONObject: GraphQLJSONObject,
 };

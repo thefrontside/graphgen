@@ -3,6 +3,8 @@
     "graphql": "https://esm.sh/graphql@16.5.0",
     "graphql_tag": "https://deno.land/x/graphql_tag@0.0.1/mod.ts",
     "http/": "https://deno.land/std@0.153.0/http/",
-    "@graphql-yoga/common": "https://cdn.skypack.dev/@graphql-yoga/common"
+    "@graphql-yoga/common": "https://cdn.skypack.dev/@graphql-yoga/common",
+    "graphql_modules": "https://cdn.skypack.dev/graphql-modules",
+    "graphql-type-json": "https://cdn.skypack.dev/graphql-type-json"
   }
 }

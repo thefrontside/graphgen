@@ -1,17 +1,26 @@
 import { serve } from 'http/server.ts'
 import { createServer } from '@graphql-yoga/common'
-import { typeDefs } from '../graphql/schema.ts';
+import { resolvers, typeDefs } from '../graphql/schema.ts';
+
+declare namespace Deno {
+  export const env:  {
+    PORT?: number;
+  }
+}
+
+const PORT = Deno.env.PORT ?? 4000;
 
 export function main() {
   const graphQLServer = createServer({
     schema: {
-      typeDefs
+      typeDefs,
+      resolvers
     }
   })
 
   serve(graphQLServer.handleRequest, {
-    port: 4000,
+    port: PORT,
   });
 
-  console.log('Server is running on http://localhost:4000/graphql')
+  console.log(`Server is running on http://localhost:${PORT}/graphql`)
 }
