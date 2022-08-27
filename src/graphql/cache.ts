@@ -35,6 +35,7 @@ export function createCache(options: CacheOptions): Cache {
     create(typename, preset, onMiss) {
       let { next, value: thisKey } = key.create(typename, preset);
 
+      console.log({ thisKey })
       let vertex: Vertex;
       if (storage.get(thisKey)) {
         let cacheValue = storage.get(thisKey);

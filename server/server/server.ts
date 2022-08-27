@@ -1,6 +1,7 @@
 import { serve } from 'http/server.ts'
 import { createServer } from '@graphql-yoga/common'
 import { resolvers, typeDefs } from '../graphql/schema.ts';
+import { makeContext } from '../context/context.ts';
 
 declare namespace Deno {
   export const env:  {
@@ -15,7 +16,8 @@ export function main() {
     schema: {
       typeDefs,
       resolvers
-    }
+    },
+    context: makeContext()
   })
 
   serve(graphQLServer.handleRequest, {
