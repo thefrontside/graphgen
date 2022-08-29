@@ -49,10 +49,11 @@ export interface Query {
 
 export interface Type {
   __typename?: 'Type';
-  count: Maybe<Scalars['Int']>;
+  count: Scalars['Int'];
   name: Maybe<Scalars['String']>;
   nodes?: Maybe<NodeConnection>;
-  vertices: Scalars['JSONObject'];
+  vertices?: Scalars['JSONObject']
+  // vertices: VertexConnection;
 }
 
 export interface Vertex {

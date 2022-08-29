@@ -1,9 +1,7 @@
-// deno-lint-ignore-file no-explicit-any
-import { CacheValue, createGraphGen, weighted } from '../../mod.ts'
+import { createGraphGen, weighted } from '../../mod.ts'
 import type { GraphGen, Generate, CacheStorage } from '../../mod.ts';
 import { fakergen } from "./fakerGen.ts";
-import { existsSync } from 'fs';
-import { join } from 'posix';
+import flatCache from 'flat-cache';
 
 export type Factory = GraphGen;
 
@@ -19,36 +17,27 @@ const gen: Generate = (info) => {
   }
 }
 
-function createCacheStorage(filename: string): CacheStorage {
-  let values = {} as Record<string, CacheValue>;
-  let unread = true;
+
+function createCacheStorage(): CacheStorage {
+  const cache = flatCache.load('factory', '.cache');
+
   const map = {
     get(key) {
-      if (unread) {
-        unread = false;
-        if (existsSync(filename)) {
-          const buffer = Deno.readTextFileSync(filename);
-          values = JSON.parse(String(buffer));
-        } else {
-          values = {};
-        }
-      }
-      return values[key];
+      return cache.getKey(key);
     },
     set(key, value) {
-      values[key] = value;
-      Deno.writeTextFileSync(filename, JSON.stringify(values));
+      cache.setKey(key, value);
+      cache.save(true);
       return map;
     },
   } as CacheStorage;
   return map;
 }
 
-// eslint-disable-next-line no-restricted-syntax
 const sourceName = 'world.graphql';
 
 export function createFactory(seed = 'factory'): Factory {
-  const storage = createCacheStorage('cache.json');
+  const storage = createCacheStorage();
   const source = Deno.readTextFileSync('world.graphql');
 
   return createGraphGen({
@@ -58,17 +47,17 @@ export function createFactory(seed = 'factory'): Factory {
     sourceName,
     generate: [gen, fakergen],
     compute: {
-      "User.name": ({ displayName }: any) => `${displayName.toLowerCase().replace(/\s+/g, '.')}`,
-      "User.email": ({ name }: any) => `${name}@example.com`,
-      "Group.name": ({ department }: any) => `${department.toLowerCase()}-department`,
-      "Group.description": ({ department }: any) => `${department} Department`,
-      "Group.displayName": ({ department }: any) => `${department} Department`,
-      "Group.email": ({ department }: any) => `${department.toLowerCase()}@acme.com`,
+      "User.name": ({ displayName }) => `${displayName.toLowerCase().replace(/\s+/g, '.')}`,
+      "User.email": ({ name }) => `${name}@example.com`,
+      "Group.name": ({ department }) => `${department.toLowerCase()}-department`,
+      "Group.description": ({ department }) => `${department} Department`,
+      "Group.displayName": ({ department }) => `${department} Department`,
+      "Group.email": ({ department }) => `${department.toLowerCase()}@acme.com`,
 
       "Component.type": () => "website",
 
-      "System.name": ({ displayName }: any) => displayName.toLowerCase().replace(/\s+/g, '-'),
-      "System.description": ({ displayName }: any) => `Everything related to ${displayName}`,
+      "System.name": ({ displayName }) => displayName.toLowerCase().replace(/\s+/g, '-'),
+      "System.description": ({ displayName }) => `Everything related to ${displayName}`,
     },
   });
 }

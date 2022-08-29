@@ -4,11 +4,12 @@
     "graphql_tag": "https://deno.land/x/graphql_tag@0.0.1/mod.ts",
     "http/": "https://deno.land/std@0.153.0/http/",
     "posix": "https://deno.land/std@0.153.0/path/posix.ts",
-    "fs": "https://deno.land/std@0.153.0/fs/exists.ts",
     "@graphql-yoga/common": "https://cdn.skypack.dev/@graphql-yoga/common",
     "graphql_modules": "https://cdn.skypack.dev/graphql-modules",
     "graphql-type-json": "https://cdn.skypack.dev/graphql-type-json",
     "@faker-js/faker": "https://cdn.skypack.dev/@faker-js/faker",
-    "@frontside/graphgen-backstage": "https://cdn.skypack.dev/@frontside/graphgen-backstage"
+    "assert-ts": "https://cdn.skypack.dev/assert-ts",
+    "flat-cache": "https://esm.sh/flat-cache@3.0.4",
+    "oak": "https://deno.land/x/oak@v11.1.0/mod.ts"
   }
 }
