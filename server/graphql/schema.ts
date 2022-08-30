@@ -1,52 +1,20 @@
 // deno-lint-ignore-file no-explicit-any
 import { gql } from 'graphql_tag';
 import GraphQLJSON, { GraphQLJSONObject } from 'graphql-type-json';
-import { Type } from "./types.ts";
+import { CreateInput, Type } from "./types.ts";
 import type { GraphQLContext } from '../context/context.ts';
-import { Factory } from '../factory/factory.ts';
-import { Vertex } from "../../mod.ts";
 
 export const typeDefs = gql(Deno.readTextFileSync('./graphql/base.graphql'));
 
-export function traverse(factory: Factory, result: Type, node: Vertex<any>, depth = 0) {
-  const froms = factory.graph.from[Number(node.id)];
-  // console.log('--------------------------------');
-  // console.dir({ node, froms });
-  if (!froms) {
-    // console.log('--------------------------------');
-    return;
+function safeJsonStringify(value: Record<string, unknown>) {
+  const visitedObjs: any[] = [];
+  function replacerFn(_key: string, obj: Record<string, unknown>) {
+    const refIndex = visitedObjs.indexOf(obj);
+    if (refIndex >= 0) return `cyclic-ref:${refIndex}`;
+    if (typeof obj === 'object' && obj !== null) visitedObjs.push(obj);
+    return obj;
   }
-
-  for (const from of froms) {
-    const next = factory.graph.vertices[from.to];
-
-    const field = from.type.substring(from.type.indexOf('.') + 1, from.type.indexOf('->'));
-    
-    if(next.id === node.id) {
-      console.log(field);
-      continue;
-    }
-
-    // console.dir({ from, next, depth });
-
-    
-    if (!result.vertices[field]) {
-      result.vertices[field] = {
-        name: next.type,
-        field,
-        id: next.id,
-        count: 1,
-        depth,
-        vertices: {}
-      }
-    } else {
-      result.vertices[field].count += 1;
-    }
-    // console.dir({ from, next, depth })
-    // console.log({ next })
-    // console.log('--------------------------------');
-    traverse(factory, result.vertices[field], next, depth++);
-  }
+  return JSON.stringify(value, replacerFn);
 }
 
 export const resolvers = {
@@ -54,52 +22,62 @@ export const resolvers = {
   JSONObject: GraphQLJSONObject,
   Query: {
     meta(_: any, __: any, context: GraphQLContext) {
-      const factory = context.factory;
-      const results: Record<string, Type> = {};
+      const graph = context.factory.graph;
+      const models = Object.keys(graph.roots)
+        .flatMap(typename => {
+          const values = Object.values(graph.roots[typename]).map(v => ({ ...v, from: graph.from[Number(v.id)] ?? [] }));
 
-      const types = ['Component'];//Object.keys(factory.graph.roots);
-
-      // const cs = [...factory.all('Component')].find(x => x.id === "1");
-
-      // console.dir({cs}, {getters: true, depth: 7})
-
-      for (const typename of types) {
-        const root = factory.graph.roots[typename];
-        const keys = Object.keys(root);
-
-        if (keys.length === 0) {
-          continue;
-        }
-
-        // TODO: how do we know this is a top level node?
-        const node = root[Number(keys[0])];
-
-        if (!factory.graph.from[node.id]) {
-          continue;
-        }
-
-        if (!results[typename]) {
-          results[typename] = {
-            name: typename,
-            count: 1,
-            vertices: {}
+          return {
+            typename,
+            values,
+            relationships: graph.types.vertex[typename].relationships
           }
-        } else {
-          results[typename].count += 1;
-        }
+        }).filter(t => t.values.length > 0);
 
-        try {
-          traverse(factory, results[typename], node);
-        } catch (e) {
-          console.error(e);
-
-          throw e;
-        }
+      if (models.length === 0) {
+        return [];
       }
 
-      console.dir({ results }, { depth: 33 });
+      console.dir(context.factory.graph, { depth: 333, getters: true })
 
-      return Object.keys(results).map(k => results[k]);
+      const types: Type[] = [];
+
+      for (const model of models) {
+        types.push({
+          typename: model.typename,
+          count: model.values.length,
+          references: model.relationships.map(r => {
+            const froms = model.values.flatMap(x => x.from.filter(f => f.type === r.type));
+
+            // console.dir({ r: r.type, froms }, { depth: 444 })
+            return {
+              typename: model.typename,
+              fieldname: r.type.substring(r.type.indexOf('.') + 1, r.type.indexOf('->')),
+              path: r.type,
+              count: froms.length
+            }
+          }).filter(r => r.count > 0)
+        })
+      }
+
+      return types;
     }
   },
+  Mutation: {
+    create(_: any, { typename, preset }: CreateInput, context: GraphQLContext) {
+      const node = context.factory.create(typename, preset);
+
+      return JSON.parse(safeJsonStringify(node));
+    },
+    createMany(_: any, { inputs }: { inputs: CreateInput[] }, context: GraphQLContext) {
+      const nodes: Record<string, unknown>[] = [];
+      for (const { typename, preset } of inputs) {
+        const node = context.factory.create(typename, preset);
+
+        nodes.push(JSON.parse(safeJsonStringify(node)));
+      }
+
+      return nodes;
+    }
+  }
 };

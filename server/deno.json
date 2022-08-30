@@ -1,6 +1,12 @@
 {
   "tasks": {
-    "start": "deno run -A --watch=graphql/,server/ dev.ts"
+    "start": "deno run -A --watch=graphql/,server/ dev.ts",
+    "static": "deno run -A --no-check --watch ./server/static.tsx",
+    "build": "deno run -A ./build.ts"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsxdev",
+    "jsxImportSource": "react"
   },
   "importMap": "./import_map.json"
 }

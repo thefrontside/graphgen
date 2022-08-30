@@ -45,6 +45,9 @@ export function createFactory(seed = 'factory'): Factory {
     storage,
     source,
     sourceName,
+    // importMap: {
+    //   "@frontside/compute": import("./fakerGen.ts").compute
+    // },
     generate: [gen, fakergen],
     compute: {
       "User.name": ({ displayName }) => `${displayName.toLowerCase().replace(/\s+/g, '.')}`,

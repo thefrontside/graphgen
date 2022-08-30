@@ -16,30 +16,26 @@ export interface Scalars {
   JSONObject: any;
 }
 
-export interface Node {
-  id: Scalars['ID'];
+export interface CreateInput {
+  preset: InputMaybe<Scalars['JSON']>;
   typename: Scalars['String'];
 }
 
-export interface NodeConnection {
-  __typename?: 'NodeConnection';
-  count: Maybe<Scalars['Int']>;
-  edges: Maybe<Array<NodeEdge>>;
-  pageInfo: Maybe<PageInfo>;
+export interface Mutation {
+  __typename?: 'Mutation';
+  create: Maybe<Scalars['JSON']>;
+  createMany: Maybe<Scalars['JSON']>;
 }
 
-export interface NodeEdge {
-  __typename?: 'NodeEdge';
-  cursor: Scalars['String'];
-  node: Maybe<Node>;
+
+export interface MutationCreateArgs {
+  typename: Scalars['String'];
+  preset: InputMaybe<Scalars['JSON']>;
 }
 
-export interface PageInfo {
-  __typename?: 'PageInfo';
-  endCursor: Maybe<Scalars['String']>;
-  hasNextPage: Scalars['Boolean'];
-  hasPreviousPage: Scalars['Boolean'];
-  startCursor: Maybe<Scalars['String']>;
+
+export interface MutationCreateManyArgs {
+  inputs: Array<CreateInput>;
 }
 
 export interface Query {
@@ -47,39 +43,17 @@ export interface Query {
   meta: Maybe<Array<Maybe<Type>>>;
 }
 
+export interface Reference {
+  __typename?: 'Reference';
+  count: Scalars['Int'];
+  typename: Scalars['String'];
+  fieldname: Scalars['String'];
+  path: Scalars['String']
+}
+
 export interface Type {
   __typename?: 'Type';
   count: Scalars['Int'];
-  name: Maybe<Scalars['String']>;
-  nodes?: Maybe<NodeConnection>;
-  vertices?: Scalars['JSONObject']
-  // vertices: VertexConnection;
-}
-
-export interface Vertex {
-  __typename?: 'Vertex';
-  computed: Maybe<Scalars['JSON']>;
-  fields: Maybe<Scalars['JSON']>;
-  id: Scalars['ID'];
-  references: Maybe<Array<Maybe<VertexEntry>>>;
+  references?: Array<Reference>;
   typename: Scalars['String'];
-}
-
-export interface VertexConnection {
-  __typename?: 'VertexConnection';
-  count: Maybe<Scalars['Int']>;
-  edges: Maybe<Array<VertexEdge>>;
-  pageInfo: Maybe<PageInfo>;
-}
-
-export interface VertexEdge {
-  __typename?: 'VertexEdge';
-  cursor: Maybe<Scalars['String']>;
-  node: Maybe<Vertex>;
-}
-
-export interface VertexEntry {
-  __typename?: 'VertexEntry';
-  key: Scalars['String'];
-  value: Vertex;
 }

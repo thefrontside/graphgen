@@ -12,7 +12,7 @@ body {
   margin: 0;
 }
 
-html, body, #root {
+html, body, #root, main {
   height: 100%;
 }
 

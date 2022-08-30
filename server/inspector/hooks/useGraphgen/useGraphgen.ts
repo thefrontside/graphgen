@@ -2,7 +2,7 @@ import { GraphGen } from '@frontside/graphgen';
 import { createGraphGen } from '@frontside/graphgen';
 import { useEffect, useState } from 'react';
 import { compute, fakergen, gen } from './compute';
-import { join } from 'path';
+import { join } from 'posix';
 
 interface UseGraphGen { 
   source?: string | undefined;

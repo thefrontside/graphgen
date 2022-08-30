@@ -1,3 +1,8 @@
+# type Meta {
+#   computeMap: String! @import(modules: ["./compute.ts", "./compute2.ts"])
+#   generators: String! @import(modules: ["@frontside/fakergen", "./dist/myfakergen.js"])
+# }
+
 type User {
   displayName: String! @gen(with: "@faker/name.fullName")
   email: String! @computed
