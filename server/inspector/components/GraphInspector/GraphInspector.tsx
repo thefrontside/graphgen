@@ -1,6 +1,7 @@
 import { TopBar } from "../TopBar/TopBar.tsx";
 import { Inspector } from "../Inspector/Inspector.tsx";
 import { Suspense, useState, useEffect } from "react";
+import { load } from "https://esm.sh/v92/@types/flat-cache@latest/index~.d.ts";
 
 export function GraphInspector() {
   const [graph, setGraph] = useState();
@@ -8,6 +9,28 @@ export function GraphInspector() {
   useEffect(() => {
     if(graph) {
       return;
+    }
+
+    async function createGraph() {
+
+      const response = await fetch('http://localhost:4000', {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          query: `mutation CreateMany {
+            createMany(inputs: [
+              {typename:"Component"},
+              {typename:"Group"},
+              {typename:"API"},
+              {typename:"Resource"},
+              {typename:"User"},
+              {typename:"Domain"}
+            ])
+          }`
+        })
+      }); 
     }
 
     async function loadGraph() {
@@ -19,9 +42,16 @@ export function GraphInspector() {
         body: JSON.stringify({
           query: `{
           meta {
-            name
+            typename
             count
-            vertices
+            references {
+              typename
+              fieldname
+              path
+              count
+              description
+              affinity
+            }
           }
         }`
         })
@@ -32,7 +62,9 @@ export function GraphInspector() {
       setGraph(graph);
     }
 
-    loadGraph().catch(console.error);
+    createGraph()
+      .then(loadGraph)
+      .catch(console.error);
   }, [graph])
   
   if (typeof window === "undefined" || !graph) {

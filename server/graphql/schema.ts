@@ -3,18 +3,15 @@ import { gql } from 'graphql_tag';
 import GraphQLJSON, { GraphQLJSONObject } from 'graphql-type-json';
 import { CreateInput, Type } from "./types.ts";
 import type { GraphQLContext } from '../context/context.ts';
+import { Node } from '../../mod.ts';
 
 export const typeDefs = gql(Deno.readTextFileSync('./graphql/base.graphql'));
 
-function safeJsonStringify(value: Record<string, unknown>) {
-  const visitedObjs: any[] = [];
-  function replacerFn(_key: string, obj: Record<string, unknown>) {
-    const refIndex = visitedObjs.indexOf(obj);
-    if (refIndex >= 0) return `cyclic-ref:${refIndex}`;
-    if (typeof obj === 'object' && obj !== null) visitedObjs.push(obj);
-    return obj;
+function toNode<T extends { id: string, typename: string }>(typename: string, value: T): Node {
+  return {
+    id: value.id,
+    __typename: typename
   }
-  return JSON.stringify(value, replacerFn);
 }
 
 export const resolvers = {
@@ -38,8 +35,6 @@ export const resolvers = {
         return [];
       }
 
-      console.dir(context.factory.graph, { depth: 333, getters: true })
-
       const types: Type[] = [];
 
       for (const model of models) {
@@ -49,14 +44,15 @@ export const resolvers = {
           references: model.relationships.map(r => {
             const froms = model.values.flatMap(x => x.from.filter(f => f.type === r.type));
 
-            // console.dir({ r: r.type, froms }, { depth: 444 })
             return {
               typename: model.typename,
               fieldname: r.type.substring(r.type.indexOf('.') + 1, r.type.indexOf('->')),
               path: r.type,
+              description: r.size.description,
+              affinity: r.affinity,
               count: froms.length
             }
-          }).filter(r => r.count > 0)
+          })
         })
       }
 
@@ -65,19 +61,10 @@ export const resolvers = {
   },
   Mutation: {
     create(_: any, { typename, preset }: CreateInput, context: GraphQLContext) {
-      const node = context.factory.create(typename, preset);
-
-      return JSON.parse(safeJsonStringify(node));
+      return toNode(typename, context.factory.create(typename, preset));
     },
     createMany(_: any, { inputs }: { inputs: CreateInput[] }, context: GraphQLContext) {
-      const nodes: Record<string, unknown>[] = [];
-      for (const { typename, preset } of inputs) {
-        const node = context.factory.create(typename, preset);
-
-        nodes.push(JSON.parse(safeJsonStringify(node)));
-      }
-
-      return nodes;
+      return inputs.map(({ typename, preset }) => toNode(typename, context.factory.create(typename, preset)));
     }
   }
 };

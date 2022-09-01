@@ -5,6 +5,8 @@ type Reference {
   fieldname: String!
   path: String!
   typename: String!
+  description: String!
+  affinity: Float
   count: Int!
 }
 

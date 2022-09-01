@@ -45,10 +45,12 @@ export interface Query {
 
 export interface Reference {
   __typename?: 'Reference';
+  description: Scalars['String'];
   count: Scalars['Int'];
   typename: Scalars['String'];
   fieldname: Scalars['String'];
-  path: Scalars['String']
+  path: Scalars['String'];
+  affinity: Scalars['String'];
 }
 
 export interface Type {

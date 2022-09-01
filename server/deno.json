@@ -1,7 +1,7 @@
 {
   "tasks": {
-    "start": "deno run -A --watch=graphql/,server/ dev.ts",
-    "static": "deno run -A --no-check --watch ./server/static.tsx",
+    "graphql": "deno run -A --watch=graphql/,server/ dev.ts",
+    "web": "deno run -A --no-check --watch ./server/web.tsx",
     "build": "deno run -A ./build.ts"
   },
   "compilerOptions": {
