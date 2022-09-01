@@ -18,45 +18,36 @@ export const resolvers = {
   JSON: GraphQLJSON,
   JSONObject: GraphQLJSONObject,
   Query: {
-    meta(_: any, __: any, context: GraphQLContext) {
+    meta(_: any, __: any, context: GraphQLContext): Type[] {
       const graph = context.factory.graph;
-      const models = Object.keys(graph.roots)
+      
+      return Object.keys(graph.roots)
         .flatMap(typename => {
-          const values = Object.values(graph.roots[typename]).map(v => ({ ...v, from: graph.from[Number(v.id)] ?? [] }));
+          const values = Object.values(graph.roots[typename])
+                                .map(v => ({ ...v, from: graph.from[Number(v.id)] ?? [] }));
 
           return {
             typename,
             values,
             relationships: graph.types.vertex[typename].relationships
           }
-        }).filter(t => t.values.length > 0);
-
-      if (models.length === 0) {
-        return [];
-      }
-
-      const types: Type[] = [];
-
-      for (const model of models) {
-        types.push({
-          typename: model.typename,
-          count: model.values.length,
-          references: model.relationships.map(r => {
-            const froms = model.values.flatMap(x => x.from.filter(f => f.type === r.type));
-
-            return {
-              typename: model.typename,
-              fieldname: r.type.substring(r.type.indexOf('.') + 1, r.type.indexOf('->')),
-              path: r.type,
-              description: r.size.description,
-              affinity: r.affinity,
-              count: froms.length
-            }
-          })
-        })
-      }
-
-      return types;
+        }).filter(t => t.values.length > 0)
+          .map((model) => ({
+            typename: model.typename,
+            count: model.values.length,
+            references: model.relationships.map(r => {
+              const fromRelationships = model.values.flatMap(v => v.from.filter(f => f.type === r.type));
+  
+              return {
+                typename: model.typename,
+                fieldname: r.type.substring(r.type.indexOf('.') + 1, r.type.indexOf('->')),
+                path: r.type,
+                description: r.size.description,
+                affinity: r.affinity,
+                count: fromRelationships.length
+              }
+            }).sort((left, right) => right.count - left.count)
+          })).sort((left, right) => right.count - left.count);
     }
   },
   Mutation: {

@@ -50,7 +50,7 @@ export interface Reference {
   typename: Scalars['String'];
   fieldname: Scalars['String'];
   path: Scalars['String'];
-  affinity: Scalars['String'];
+  affinity?: Scalars['Float'];
 }
 
 export interface Type {
