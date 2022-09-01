@@ -17,6 +17,10 @@
     "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
     "react-dom/server": "https://esm.sh/react-dom@18.2.0/server",
     "ultra/": "https://deno.land/x/ultra@v2.0.0-alpha.18/",
-    "react-inspector": "https://esm.sh/react-inspector"
+    "react-inspector": "https://esm.sh/react-inspector",
+    "@vx/responsive": "https://es,m.sh/@vx/responsive",
+    "react-d3-tree": "https://esm.sh/react-d3-tree",
+    "@cutting/use-get-parent-size": "https://esm.sh/@cutting/use-get-parent-size",
+    "@cutting/component-library": "https://esm.sh/@cutting/component-library"
   }
 }

@@ -11,13 +11,15 @@ declare namespace Deno {
 
 const PORT = Deno.env.PORT ?? 4000;
 
-export function main() {
+export async function main() {
+  const context = await makeContext();
+  
   const graphQLServer = createServer({
     schema: {
       typeDefs,
       resolvers
     },
-    context: makeContext()
+    context
   })
 
   serve(graphQLServer.handleRequest, {

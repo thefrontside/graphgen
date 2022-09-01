@@ -1,7 +1,5 @@
 import { createBuilder } from "ultra/build.ts";
 
-console.log(import.meta.resolve("./import_map.json"))
-
 const builder = createBuilder({
   browserEntrypoint: import.meta.resolve("./server/client.tsx"),
   serverEntrypoint: import.meta.resolve("./server/web.tsx"),

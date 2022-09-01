@@ -1,11 +1,17 @@
-import { createFactory } from "../factory/factory.ts";
+import { createFactory, Factory } from "../factory/factory.ts";
+const computedPath = '../factory/computed.ts';
 
-export function makeContext() {
-  const factory = createFactory();
+export async function makeContext() {
+  // we need to load the schema here also
+  const { computed } = await import(computedPath);
+
+  const factory = createFactory(computed, 'inspector');
 
   return {
     factory
   }
 }
 
-export type GraphQLContext = ReturnType<typeof makeContext>;
+export interface GraphQLContext {
+  factory: Factory;
+}

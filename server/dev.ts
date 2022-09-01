@@ -2,4 +2,4 @@
 
 import { main } from "./server/server.ts";
 
-main();
+await main();

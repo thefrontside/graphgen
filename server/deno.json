@@ -2,6 +2,7 @@
   "tasks": {
     "graphql": "deno run -A --watch=graphql/,server/ dev.ts",
     "web": "deno run -A --no-check --watch ./server/web.tsx",
+    "start": "deno task graphql & deno task web",
     "build": "deno run -A ./build.ts"
   },
   "compilerOptions": {

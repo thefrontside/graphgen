@@ -1,10 +1,13 @@
 import { TopBar } from "../TopBar/TopBar.tsx";
 import { Inspector } from "../Inspector/Inspector.tsx";
-import { Suspense, useState, useEffect } from "react";
-import { load } from "https://esm.sh/v92/@types/flat-cache@latest/index~.d.ts";
+import { Suspense, useState, useEffect, useRef } from "react";
+import { RadioGroup, defaultTheme } from '@cutting/component-library';
+import { views, Views } from "../types.ts";
 
 export function GraphInspector() {
   const [graph, setGraph] = useState();
+  const [view, setView] = useState<Views>('Relationships');
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if(graph) {
@@ -12,8 +15,7 @@ export function GraphInspector() {
     }
 
     async function createGraph() {
-
-      const response = await fetch('http://localhost:4000', {
+      await fetch('http://localhost:4000', {
         method: 'POST',
         headers: {
           "Content-Type": "application/json"
@@ -74,14 +76,29 @@ export function GraphInspector() {
   return (
     <Suspense>
       <TopBar />
-      <section className="main">
+      <section className={`main ${defaultTheme}`}>
         <section className="margin" />
         <section className="left">
-          <div className="top"></div>
+          <div className="top">
+            <RadioGroup
+              name="large-inline-radio"
+              checkableLayout={'stacked'}
+              checkableSize={'large'}
+              legend="large inline"
+              options={views.map(v => ({
+                content: v,
+                value: v,
+                checked: v === view
+              }))}
+              onChange={(e) => {
+                setView(e.target.value as Views)
+              }}
+            />
+          </div>
           <div className="bottom"></div>
         </section>
-        <section className="right">
-          <Inspector graph={graph} />
+        <section ref={ref} className="right">
+          <Inspector view={view} innerRef={ref} graph={graph} />
         </section>
       </section>
     </Suspense>
