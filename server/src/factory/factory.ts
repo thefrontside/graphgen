@@ -1,5 +1,5 @@
-import { createGraphGen } from '../../mod.ts'
-import type { GraphGen, CacheStorage } from '../../mod.ts';
+import { createGraphGen } from '@frontside/graphgen'
+import type { GraphGen, CacheStorage } from '@frontside/graphgen';
 import flatCache from 'flat-cache';
 import { Computed } from '../server/types.ts';
 

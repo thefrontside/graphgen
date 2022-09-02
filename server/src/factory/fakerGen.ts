@@ -1,5 +1,5 @@
 import { faker as globalFaker, Faker } from '@faker-js/faker';
-import { Seed, createDispatch, Generate, GenerateInfo } from '../../mod.ts';
+import { Seed, createDispatch, Generate, GenerateInfo } from '@frontside/graphgen';
 
 function createFaker(seed: Seed) {
  const faker = new Faker({ locales: globalFaker.locales });

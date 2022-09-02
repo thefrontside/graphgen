@@ -4,7 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { defaultTheme, RadioGroup } from "@cutting/component-library";
 import { Views, views } from "../types.ts";
 
-const graphqlServer = 'http://localhost:8000/graphql  ';
+const graphqlServer = 'http://localhost:8000/graphql';
 
 export function GraphInspector() {
   const [data, setData] = useState();

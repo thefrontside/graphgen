@@ -1,5 +1,5 @@
 import useAsset from "ultra/hooks/use-asset.js";
-import { GraphInspector } from '../inspector/components/GraphInspector/GraphInspector.tsx';
+import { GraphInspector } from './inspector/components/GraphInspector/GraphInspector.tsx';
 
 export default function App() {
   return (

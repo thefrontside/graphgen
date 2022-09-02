@@ -1,13 +1,13 @@
 {
   "tasks": {
-    "graphql": "deno run -A --watch=graphql/,server/ dev.ts",
-    "web": "deno run -A --no-check --watch ./server/web.tsx",
-    "start": "deno task graphql & deno task web",
+    "dev": "deno run -A ./server.tsx",
+    "start": "ULTRA_MODE=production deno run -A --no-check --no-remote ./server.tsx",
     "build": "deno run -A ./build.ts"
   },
   "compilerOptions": {
     "jsx": "react-jsxdev",
     "jsxImportSource": "react"
-  },
+},
   "importMap": "./importMap.json"
 }
+  

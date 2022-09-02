@@ -1,5 +1,5 @@
 /// <reference lib="DOM" />
 import { hydrateRoot } from "react-dom/client";
-import App from "./app.tsx";
+import App from "./src/app.tsx";
 
 hydrateRoot(document, <App />);

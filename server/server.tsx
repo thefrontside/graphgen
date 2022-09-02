@@ -1,13 +1,12 @@
-import { serve } from 'http/server.ts';
+import { serve } from "https://deno.land/std@0.153.0/http/server.ts";
 import { createServer } from "ultra/server.ts";
-import { makeContext } from "../context/context.ts";
-import { resolvers, typeDefs } from "../graphql/schema.ts";
-import App from "./App.tsx";
+import { makeContext } from "./src/context/context.ts";
+import { resolvers, typeDefs } from "./src/graphql/schema.ts";
+import App from "./src/app.tsx";
 import { createServer as createGraphqlServer } from '@graphql-yoga/common'
-import { Context, Next } from 'Hono';
 
 const server = await createServer({
-  importMapPath: import.meta.resolve("../importMap.json"),
+  importMapPath: import.meta.resolve("./importMap.json"),
   browserEntrypoint: import.meta.resolve("./client.tsx"),
 });
 
@@ -21,7 +20,8 @@ export const graphQLServer = createGraphqlServer({
   context
 })
 
-server.use('/graphql', (ctx: Context, next: Next) => {
+// deno-lint-ignore no-explicit-any
+server.use('/graphql', (ctx: any, next: any) => {
   return graphQLServer.handleRequest(ctx.req, ctx.res, next);
 })
 
