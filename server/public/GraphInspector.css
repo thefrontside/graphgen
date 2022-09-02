@@ -34,11 +34,9 @@
   grid-column: right;
   overflow: scroll;
   height: 100%;
-  border: 10px solid green;
 }
 
 .right > div {
-  border: 10px solid red;
 }
 
 .top {

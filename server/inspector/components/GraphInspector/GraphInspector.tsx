@@ -1,45 +1,59 @@
 import { TopBar } from "../TopBar/TopBar.tsx";
 import { Inspector } from "../Inspector/Inspector.tsx";
-import { Suspense, useState, useEffect, useRef } from "react";
-import { RadioGroup, defaultTheme } from '@cutting/component-library';
-import { views, Views } from "../types.ts";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { defaultTheme, RadioGroup } from "@cutting/component-library";
+import { Views, views } from "../types.ts";
 
 export function GraphInspector() {
-  const [graph, setGraph] = useState();
-  const [view, setView] = useState<Views>('Relationships');
+  const [data, setData] = useState();
+  const [view, setView] = useState<Views>("Meta");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if(graph) {
-      return;
-    }
-
-    async function createGraph() {
-      await fetch('http://localhost:4000', {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          query: `mutation CreateMany {
-            createMany(inputs: [
-              {typename:"Component"},
-              {typename:"Group"},
-              {typename:"API"},
-              {typename:"Resource"},
-              {typename:"User"},
-              {typename:"Domain"}
-            ])
-          }`
-        })
-      }); 
-    }
+    // async function createGraph() {
+    //   await fetch('http://localhost:4000', {
+    //     method: 'POST',
+    //     headers: {
+    //       "Content-Type": "application/json"
+    //     },
+    //     body: JSON.stringify({
+    //       query: `mutation CreateMany {
+    //         createMany(inputs: [
+    //           {typename:"Component"},
+    //           {typename:"Group"},
+    //           {typename:"API"},
+    //           {typename:"Resource"},
+    //           {typename:"User"},
+    //           {typename:"Domain"}
+    //         ])
+    //       }`
+    //     })
+    //   });
+    // }
 
     async function loadGraph() {
-      const response = await fetch('http://localhost:4000', {
-        method: 'POST',
+      const response = await fetch("http://localhost:4000", {
+        method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `{
+        graph
+      }`,
+        }),
+      });
+
+      const graph = await response.json();
+
+      setData(graph);
+    }
+
+    async function loadMeta() {
+      const response = await fetch("http://localhost:4000", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           query: `{
@@ -55,24 +69,31 @@ export function GraphInspector() {
               affinity
             }
           }
-        }`
-        })
+        }`,
+        }),
       });
-  
-      const graph = await response.json();
-  
-      setGraph(graph);
+
+      const meta = await response.json();
+
+      setData(meta);
     }
 
-    createGraph()
-      .then(loadGraph)
+    console.log(view)
+
+    const func = {
+      Meta: loadMeta,
+      Tree: loadMeta,
+      Graph: loadGraph,
+    }[view]
+
+    func()
       .catch(console.error);
-  }, [graph])
-  
-  if (typeof window === "undefined" || !graph) {
+  }, [view]);
+
+  if (typeof window === "undefined" || !data) {
     return <div>loading......</div>;
   }
-  
+
   return (
     <Suspense>
       <TopBar />
@@ -82,23 +103,23 @@ export function GraphInspector() {
           <div className="top">
             <RadioGroup
               name="large-inline-radio"
-              checkableLayout={'stacked'}
-              checkableSize={'large'}
+              checkableLayout={"stacked"}
+              checkableSize={"large"}
               legend="large inline"
-              options={views.map(v => ({
+              options={views.map((v) => ({
                 content: v,
                 value: v,
-                checked: v === view
+                checked: v === view,
               }))}
               onChange={(e) => {
-                setView(e.target.value as Views)
+                setView(e.target.value as Views);
               }}
             />
           </div>
           <div className="bottom"></div>
         </section>
         <section ref={ref} className="right">
-          <Inspector view={view} innerRef={ref} graph={graph} />
+          <Inspector view={view} innerRef={ref} data={data} />
         </section>
       </section>
     </Suspense>

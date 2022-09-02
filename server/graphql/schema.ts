@@ -4,6 +4,7 @@ import GraphQLJSON, { GraphQLJSONObject } from 'graphql-type-json';
 import { CreateInput, Type } from "./types.ts";
 import type { GraphQLContext } from '../context/context.ts';
 import { Node } from '../../mod.ts';
+import { safeJSON } from './safeJSON.ts';
 
 export const typeDefs = gql(Deno.readTextFileSync('./graphql/base.graphql'));
 
@@ -48,6 +49,18 @@ export const resolvers = {
               }
             }).sort((left, right) => right.count - left.count)
           })).sort((left, right) => right.count - left.count);
+    },
+    graph(_: any, __: any, context: GraphQLContext) {
+      const rootKeys = Object.keys(context.factory.graph.roots);
+
+      const all = rootKeys.flatMap(root => {
+        const nodes = [...context.factory.all(root)];
+
+         return nodes.length === 0 ? [] : [{[root]: nodes}]
+      });
+
+      // remove circular references
+      return safeJSON(all);
     }
   },
   Mutation: {

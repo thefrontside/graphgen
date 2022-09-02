@@ -18,6 +18,7 @@ type Type {
 
 type Query {
   meta: [Type]
+  graph: JSON
 }
 
 input CreateInput {
