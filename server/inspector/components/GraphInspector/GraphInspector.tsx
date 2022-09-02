@@ -4,6 +4,8 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { defaultTheme, RadioGroup } from "@cutting/component-library";
 import { Views, views } from "../types.ts";
 
+const graphqlServer = 'http://localhost:8000/graphql  ';
+
 export function GraphInspector() {
   const [data, setData] = useState();
   const [view, setView] = useState<Views>("Meta");
@@ -11,7 +13,7 @@ export function GraphInspector() {
 
   useEffect(() => {
     // async function createGraph() {
-    //   await fetch('http://localhost:4000', {
+    //   await fetch(graphqlServer, {
     //     method: 'POST',
     //     headers: {
     //       "Content-Type": "application/json"
@@ -32,7 +34,7 @@ export function GraphInspector() {
     // }
 
     async function loadGraph() {
-      const response = await fetch("http://localhost:4000", {
+      const response = await fetch(graphqlServer, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -50,7 +52,7 @@ export function GraphInspector() {
     }
 
     async function loadMeta() {
-      const response = await fetch("http://localhost:4000", {
+      const response = await fetch(graphqlServer, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -77,8 +79,6 @@ export function GraphInspector() {
 
       setData(meta);
     }
-
-    console.log(view)
 
     const func = {
       Meta: loadMeta,

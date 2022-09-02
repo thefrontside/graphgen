@@ -53,3 +53,7 @@
 .right {
   padding: .5rem;
 }
+
+svg {
+  font-size: 1rem;  
+}

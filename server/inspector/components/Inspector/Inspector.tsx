@@ -7,7 +7,7 @@ import { useLayoutEffect, useRef } from "react";
 import { ObjectInspector } from "react-inspector";
 import { Views } from "../types.ts";
 
-export function Inspector<V extends Views>(
+export function Inspector(
   { data, innerRef, view }: {
     innerRef: RefObject<HTMLDivElement>;
     // deno-lint-ignore no-explicit-any
@@ -46,7 +46,7 @@ export function Inspector<V extends Views>(
 
   switch (view) {
     case "Graph":
-      return <ObjectInspector data={data}  expandLevel={6} />;
+      return <ObjectInspector data={data} expandLevel={6} />;
     case "Meta":
       return <ObjectInspector data={data.data.meta} expandLevel={6} />;
     case "Tree": {
