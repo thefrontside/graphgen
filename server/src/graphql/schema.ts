@@ -3,7 +3,7 @@ import { gql } from 'graphql_tag';
 import GraphQLJSON, { GraphQLJSONObject } from 'graphql-type-json';
 import { CreateInput, Type } from "./types.ts";
 import type { GraphQLContext } from '../context/context.ts';
-import { Node } from '@frontside/graphgen';
+import { Node, Vertex } from '@frontside/graphgen';
 import { safeJSON } from './safeJSON.ts';
 
 export const typeDefs = gql(Deno.readTextFileSync('./src/graphql/base.graphql'));

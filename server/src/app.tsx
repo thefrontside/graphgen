@@ -12,7 +12,6 @@ export default function App() {
         <link rel="stylesheet" href={useAsset("./index.css")} />
         <link rel="stylesheet" href={useAsset("./GraphInspector.css")} />
         <link rel="stylesheet" href={useAsset("./TopBar.css")} />
-        <link rel="stylesheet" href={useAsset("https://esm.sh/@cutting/component-library@5.27.0/dist/esm/src.css")} />
       </head>
       <body>
         <main>

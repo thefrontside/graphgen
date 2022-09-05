@@ -1,36 +1,38 @@
 import { TopBar } from "../TopBar/TopBar.tsx";
 import { Inspector } from "../Inspector/Inspector.tsx";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { StrictMode, Suspense, useLayoutEffect, useRef, useState } from "react";
 import { defaultTheme, RadioGroup } from "@cutting/component-library";
 import { Views, views } from "../types.ts";
-const graphqlServer = 'http://localhost:8000/graphql';
+import { Reference, Type } from "../../../graphql/types.ts";
+
+const graphqlServer = "http://localhost:8000/graphql";
 
 export function GraphInspector() {
-  const [data, setData] = useState();
+  const [data, setData] = useState<any>({ meta: [] });
   const [view, setView] = useState<Views>("Meta");
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // async function createGraph() {
-    //   await fetch(graphqlServer, {
-    //     method: 'POST',
-    //     headers: {
-    //       "Content-Type": "application/json"
-    //     },
-    //     body: JSON.stringify({
-    //       query: `mutation CreateMany {
-    //         createMany(inputs: [
-    //           {typename:"Component"},
-    //           {typename:"Group"},
-    //           {typename:"API"},
-    //           {typename:"Resource"},
-    //           {typename:"User"},
-    //           {typename:"Domain"}
-    //         ])
-    //       }`
-    //     })
-    //   });
-    // }
+  useLayoutEffect(() => {
+    async function createGraph() {
+      await fetch(graphqlServer, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `mutation CreateMany {
+            createMany(inputs: [
+              {typename:"Component"},
+              {typename:"Group"},
+              {typename:"API"},
+              {typename:"Resource"},
+              {typename:"User"},
+              {typename:"Domain"}
+            ])
+          }`,
+        }),
+      });
+    }
 
     async function loadGraph() {
       const response = await fetch(graphqlServer, {
@@ -76,51 +78,75 @@ export function GraphInspector() {
 
       const meta = await response.json();
 
-      setData(meta);
+      console.dir(meta);
+
+      const data = {
+        name: "Graph",
+        id: 1,
+        children: meta.data.meta.map((
+          { typename, references, count, ...rest }: Type,
+        ) => ({
+          id: typename,
+          name: `${typename} (${count})`,
+          attributes: {
+            count,
+            ...rest,
+          },
+          children: references?.map((
+            { fieldname, count, ...rest }: Reference,
+            i,
+          ) => ({
+            id: i,
+            name: `${fieldname} (${count})`,
+            attributes: {
+              ...rest,
+            },
+          })),
+        })),
+      };
+
+      setData(data);
     }
 
     const func = {
       Meta: loadMeta,
-      Tree: loadMeta,
       Graph: loadGraph,
-    }[view]
+    }[view];
 
-    func()
+    createGraph().then(func)
       .catch(console.error);
   }, [view]);
 
-  if (typeof window === "undefined" || !data) {
-    return <div>loading......</div>;
-  }
-
   return (
     <Suspense>
-      <TopBar />
-      <section className={`main ${defaultTheme}`}>
-        <section className="margin" />
-        <section className="left">
-          <div className="top">
-            <RadioGroup
-              name="large-inline-radio"
-              checkableLayout={"stacked"}
-              checkableSize={"large"}
-              legend="large inline"
-              options={views.map((v) => ({
-                content: v,
-                value: v,
-                checked: v === view,
-              }))}
-              onChange={(e) => {
-                setView(e.target.value as Views);
-              }}
-            />
-          </div>
-          <div className="bottom"></div>
+      <StrictMode>
+        <TopBar />
+        <section className={`main ${defaultTheme}`}>
+          <section className="margin" />
+          <section className="left">
+            <div className="top">
+              <RadioGroup
+                name="large-inline-radio"
+                checkableLayout={"stacked"}
+                checkableSize={"large"}
+                legend="large inline"
+                options={views.map((v) => ({
+                  content: v,
+                  value: v,
+                  checked: v === view,
+                }))}
+                onChange={(e) => {
+                  setView(e.target.value as Views);
+                }}
+              />
+            </div>
+            <div className="bottom"></div>
+          </section>
+          <section ref={ref} className="right">
+            <Inspector view={view} innerRef={ref} data={data} />
+          </section>
         </section>
-        <section ref={ref} className="right">
-          <Inspector view={view} innerRef={ref} data={data} />
-        </section>
-      </section>
+      </StrictMode>
     </Suspense>
   );
 }

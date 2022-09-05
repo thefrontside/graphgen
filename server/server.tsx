@@ -11,34 +11,32 @@ const server = await createServer({
 });
 
 const context = await makeContext();
+
+const PORT = Number(Deno.env.get('PORT') ?? 8000);
   
 export const graphQLServer = createGraphqlServer({
   schema: {
-    typeDefs,
+    // deno-lint-ignore no-explicit-any
+    typeDefs: typeDefs as any,
     resolvers
   },
   context
 })
 
 // deno-lint-ignore no-explicit-any
-server.use('/graphql', (ctx: any, next: any) => {
-  return graphQLServer.handleRequest(ctx.req, ctx.res, next);
+server.use('/graphql', (ctx: any) => {
+  return graphQLServer.handleRequest(ctx.req, ctx.res);
 })
 
 // deno-lint-ignore no-explicit-any
 server.get('*', async (context: any) => {
-  // const url = context.req.url;
-
-  // if (url.indexOf('/graphql') > - 1) {
-
-  // }
   const result = await server.render(<App />);
 
   return context.body(result, 200, {
     "content-type": "text/html",
   });
 }, {
-  port: 8000
+  port: PORT
 });
 
 serve(server.fetch);
