@@ -1,7 +1,13 @@
 import useAsset from "ultra/hooks/use-asset.js";
-import { GraphInspector } from './inspector/components/GraphInspector/GraphInspector.tsx';
+import { GraphInspector } from "./inspector/components/GraphInspector/GraphInspector.tsx";
+import { useEffect, useState } from "react";
 
 export default function App() {
+  const [pageLoaded, setPageLoaded] = useState(false);
+
+  useEffect(() => {
+    setPageLoaded(true);
+  }, []);
   return (
     <html lang="en">
       <head>
@@ -15,7 +21,7 @@ export default function App() {
       </head>
       <body>
         <main>
-          <GraphInspector />
+          {pageLoaded ? <GraphInspector /> : null}
         </main>
       </body>
     </html>

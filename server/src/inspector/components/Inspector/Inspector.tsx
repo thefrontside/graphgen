@@ -1,37 +1,85 @@
 /// <reference lib="DOM" />
-import type { Reference, Type } from "../../../graphql/types.ts";
-import { RefObject } from "react";
-import { ObjectInspector } from "react-inspector";
+import { Component, ReactNode, RefObject } from "react";
 import { Views } from "../types.ts";
-import Tree, { useTreeState } from "react-hyper-tree";
-import { DefaultNode } from "./Node.tsx";
+import Tree, { TreeProps } from "react-animated-tree-v2";
+import { Meta } from "../types.ts";
+import { close, minus, plus } from "./icons.tsx";
+
+// deno-lint-ignore no-explicit-any
+function NoCheck(props: any) {
+  return <></>;
+}
+
+function IconTree(props: Partial<TreeProps> & { children?: ReactNode }) {
+  return (
+    <Tree
+      icons={{ closeIcon: close }}
+      {
+        // deno-lint-ignore no-explicit-any
+        ...props as any
+      }
+    />
+  );
+}
+
+export function SubMeta(
+  { name, attributes, ...rest }: Omit<Meta, "children">,
+): JSX.Element {
+  console.log(rest);
+  return (
+    <div className="sub-meta" style={{ display: "inline-block" }}>
+      <table>
+        <thead>
+          <tr>
+            <th colSpan={2}>
+              <strong>{name}</strong>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(attributes).flatMap(([k, v]) =>
+            !v || k === "typename" ? [] : [[k, v]]
+          ).map(([k, v]) => (
+            <tr>
+              <td>{k}</td>
+              <td>{v}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function Meta({ name }: Meta): JSX.Element {
+  return (
+    <div className="meta">
+      <strong>{name}</strong>
+    </div>
+  );
+}
 
 export function Inspector(
-  { data, innerRef, view }: {
-    innerRef: RefObject<HTMLDivElement>;
-    // deno-lint-ignore no-explicit-any
-    data: any;
+  { data, view }: {
+    data: Meta[];
     view: Views;
   },
 ): JSX.Element {
-  console.log({data})
-  const { required, handlers } = useTreeState({
-    data: data ?? [],
-    id: "your_tree_id",
-    defaultOpened: true
-  });
-
   return (
-    <Tree
-      depth={0}
-      gapMode="padding"
-      depthGap={20}
-      {...required}
-      {...handlers}
-      renderNode={(props) => {
-        console.log(props);
-        return <DefaultNode {...props} />
-      }}
-    />
+    <>
+      {data.map((d, i) => (
+        <IconTree
+          key={i}
+          content={<Meta {...d}/>}
+          canHide={d.children.length > 0}
+          open={d.children.length > 0}
+        >
+          {d.children.length > 0 &&
+            d.children.map((r, j) => (
+              <IconTree key={j} content={<SubMeta {...r} />} />
+            ))}
+        </IconTree>
+      ))}
+    </>
   );
 }

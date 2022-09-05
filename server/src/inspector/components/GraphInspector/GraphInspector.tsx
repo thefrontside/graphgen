@@ -1,6 +1,6 @@
 import { TopBar } from "../TopBar/TopBar.tsx";
 import { Inspector } from "../Inspector/Inspector.tsx";
-import { StrictMode, Suspense, useLayoutEffect, useRef, useState } from "react";
+import { StrictMode, Suspense, useEffect, useRef, useState } from "react";
 import { defaultTheme, RadioGroup } from "@cutting/component-library";
 import { Views, views } from "../types.ts";
 import { Reference, Type } from "../../../graphql/types.ts";
@@ -8,11 +8,11 @@ import { Reference, Type } from "../../../graphql/types.ts";
 const graphqlServer = "http://localhost:8000/graphql";
 
 export function GraphInspector() {
-  const [data, setData] = useState<any>({ meta: [] });
+  const [data, setData] = useState<any>([]);
   const [view, setView] = useState<Views>("Meta");
   const ref = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     async function createGraph() {
       await fetch(graphqlServer, {
         method: "POST",
@@ -78,12 +78,7 @@ export function GraphInspector() {
 
       const meta = await response.json();
 
-      console.dir(meta);
-
-      const data = {
-        name: "Graph",
-        id: 1,
-        children: meta.data.meta.map((
+      const data = meta.data.meta.map((
           { typename, references, count, ...rest }: Type,
         ) => ({
           id: typename,
@@ -102,8 +97,7 @@ export function GraphInspector() {
               ...rest,
             },
           })),
-        })),
-      };
+        }));
 
       setData(data);
     }
@@ -116,6 +110,8 @@ export function GraphInspector() {
     createGraph().then(func)
       .catch(console.error);
   }, [view]);
+
+  console.log(data)
 
   return (
     <Suspense>

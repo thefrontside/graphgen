@@ -1,3 +1,8 @@
+main {
+  font-family: "Monospaced Number", "Chinese Quote", -apple-system,
+  BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB",
+  "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
 .main {
   display: grid;
   grid-row: main;
@@ -58,18 +63,59 @@ svg {
   font-size: 1rem;  
 }
 
-.loading-spinner {
-  animation: ht-loading-spinner 1s linear infinite;
-  margin-right: 4px;
+html,
+body,
+div,
+a,
+i,
+button,
+select,
+option,
+optgroup,
+hr,
+br {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: default;
 }
 
-@keyframes ht-loading-spinner {
-  from {
-      transform: rotate(0deg);
-  }
-  to {
-      transform: rotate(360deg);
-  }
+
+.treeview > .toggle {
+  pointer-events: all;
+  cursor: pointer;
+}
+.treeview > .toggle:hover {
+  color: #77eb67;
+  fill: #77eb67;
 }
 
+.sub-meta thead tr th {
+  font-weight: 900;
+  /* background: #ea6153; */
+  /* background: linear-gradient(#f7f7f7, #e2e2e2); */
+  text-align: left;
+}
 
+.sub-meta tbody tr td, .sub-meta thead th {
+  padding: .5rem;
+}
+
+.sub-meta table, .sub-meta table th, .sub-meta table td {
+  border: 1px solid #e2e2e2;
+}
+
+.sub-meta tr:nth-of-type(even){
+  background: #f7f7f7;
+}
+
+.meta {
+  display: inline-block;
+  /* background: #27ae60; */
+  /* background: linear-gradient(#f7f7f7, #e2e2e2); */
+  padding: .5rem;
+  width: 90%;
+}
