@@ -1,5 +1,6 @@
 {
   "imports": {
+    "https://deno.land/x/mesozoic@v1.0.0-alpha.36/": "https://deno.land/x/mesozoic@v1.0.0-alpha.39/",
     "@frontside/graphgen": "https://esm.sh/@frontside/graphgen@1.6.0",
     "graphql": "https://esm.sh/graphql@16.5.0",
     "graphql_tag": "https://deno.land/x/graphql_tag@0.0.1/mod.ts",

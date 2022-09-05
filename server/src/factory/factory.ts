@@ -33,8 +33,5 @@ export function createFactory(computed: Computed, seed = 'factory'): Factory {
     source,
     sourceName,
     ...computed
-    // importMap: {
-    //   "@frontside/compute": import("./fakerGen.ts").compute
-    // },
   });
 }

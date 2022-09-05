@@ -3,13 +3,7 @@ import { serve } from "https://deno.land/std@0.153.0/http/server.ts";
 import { resolvers, typeDefs } from '../graphql/schema.ts';
 import { makeContext } from '../context/context.ts';
 
-declare namespace Deno {
-  export const env:  {
-    PORT?: number;
-  }
-}
-
-const PORT = Deno.env.PORT ?? 4000;
+const PORT = Number(Deno.env.get('PORT') ?? 4000);
 
 export async function main() {
   const context = await makeContext();
