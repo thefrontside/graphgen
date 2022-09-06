@@ -1,9 +1,13 @@
 /// <reference lib="DOM" />
-import { Component, ReactNode, RefObject } from "react";
+import { ReactNode } from "react";
 import { Views } from "../types.ts";
 import Tree, { TreeProps } from "react-animated-tree-v2";
 import { Meta } from "../types.ts";
 import { close, minus, plus } from "./icons.tsx";
+import TreeView from "@mui/lab/TreeView";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import TreeItem from "@mui/lab/TreeItem";
 
 function IconTree(props: Partial<TreeProps> & { children?: ReactNode }) {
   return (
@@ -34,9 +38,10 @@ export function SubMeta(
           {Object.entries(attributes).flatMap(([k, v]) =>
             !v || k === "typename" ? [] : [[k, v]]
           ).map(([k, v]) => (
-            <tr>
+            <tr key={k}>
               <td>{k}</td>
               <td>{v}</td>
+              {/* <td>{k === "affinity" ? `affinity ${v}` : v}</td> */}
             </tr>
           ))}
         </tbody>
@@ -54,25 +59,31 @@ function Meta({ name }: Meta): JSX.Element {
 }
 
 export function MetaInspector(
-  { data }: {
+  { data = [] }: {
     data: Meta[];
   },
 ): JSX.Element {
+  console.log(data);
   return (
-    <>
-      {data.map((d, i) => (
-        <IconTree
-          key={i}
-          content={<Meta {...d} />}
-          canHide={d.children.length > 0}
-          open={d.children.length > 0}
+    <TreeView
+      aria-label="file system navigator"
+      defaultCollapseIcon={<ExpandMoreIcon />}
+      defaultExpandIcon={<ChevronRightIcon />}
+      defaultExpanded={data.map(d => d.name)}
+      sx={{ height: '100%', flexGrow: 1, width: '100%', overflowY: "auto" }}
+    >
+      {(data ?? []).map((d) => (
+        <TreeItem
+          key={d.name}
+          nodeId={d.name}
+          label={<Meta {...d} />}
         >
           {d.children.length > 0 &&
-            d.children.map((r, j) => (
-              <IconTree key={j} content={<SubMeta {...r} />} />
+            d.children.map((r) => (
+              <TreeItem key={r.id} nodeId={r.id} label={<SubMeta {...r}/>} />
             ))}
-        </IconTree>
+        </TreeItem>
       ))}
-    </>
+    </TreeView>
   );
 }

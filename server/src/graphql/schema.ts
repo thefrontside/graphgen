@@ -52,15 +52,20 @@ export const resolvers = {
     },
     graph(_: any, __: any, context: GraphQLContext) {
       const rootKeys = Object.keys(context.factory.graph.roots);
-
-      const all = rootKeys.flatMap(root => {
+      const result = {} as Record<string, any>
+      
+      for(const root of rootKeys) {
         const nodes = [...context.factory.all(root)];
 
-         return nodes.length === 0 ? [] : [{[root]: nodes}]
-      });
+        if(nodes.length === 0) {
+          continue;
+        }
+ 
+        result[root] = nodes;
+      }
 
       // remove circular references
-      return safeJSON(all);
+      return safeJSON(result);
     }
   },
   Mutation: {

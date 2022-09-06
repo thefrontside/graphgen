@@ -5,18 +5,19 @@ import { StrictMode, Suspense, useEffect, useRef, useState } from "react";
 import { defaultTheme, RadioGroup } from "@cutting/component-library";
 import { Meta, Views, views } from "../types.ts";
 import { Reference, Type } from "../../../graphql/types.ts";
+import { StyledEngineProvider } from "@mui/material/styles";
 
 const graphqlServer = "http://localhost:8000/graphql";
 
 const Inspectors = {
   Graph: GraphInspector,
-  Meta: MetaInspector
+  Meta: MetaInspector,
 } as const;
 
 export function GraphgenInspector() {
   // deno-lint-ignore no-explicit-any
   const [data, setData] = useState<any>([]);
-  const [view, setView] = useState<Views>("Meta");
+  const [view, setView] = useState<Views>("Graph");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -56,7 +57,9 @@ export function GraphgenInspector() {
 
       const graph = await response.json();
 
-      setData(graph);
+      console.log(graph);
+
+      setData(graph.data.graph);
     }
 
     async function loadMeta() {
@@ -86,25 +89,25 @@ export function GraphgenInspector() {
       const meta = await response.json();
 
       const data = meta.data.meta.map((
-          { typename, references, count, ...rest }: Type,
+        { typename, references, count, ...rest }: Type,
+      ) => ({
+        id: typename,
+        name: `${typename} (${count})`,
+        attributes: {
+          count,
+          ...rest,
+        },
+        children: references?.map((
+          { fieldname, count, ...rest }: Reference,
+          i,
         ) => ({
-          id: typename,
-          name: `${typename} (${count})`,
+          id: i,
+          name: `${fieldname} (${count})`,
           attributes: {
-            count,
             ...rest,
           },
-          children: references?.map((
-            { fieldname, count, ...rest }: Reference,
-            i,
-          ) => ({
-            id: i,
-            name: `${fieldname} (${count})`,
-            attributes: {
-              ...rest,
-            },
-          })),
-        }));
+        })),
+      }));
 
       setData(data);
     }
@@ -123,32 +126,34 @@ export function GraphgenInspector() {
   return (
     <Suspense>
       <StrictMode>
-        <TopBar />
-        <section className={`main ${defaultTheme}`}>
-          <section className="margin" />
-          <section className="left">
-            <div className="top">
-              <RadioGroup
-                name="large-inline-radio"
-                checkableLayout={"stacked"}
-                checkableSize={"large"}
-                legend="View"
-                options={views.map((v) => ({
-                  content: v,
-                  value: v,
-                  checked: v === view,
-                }))}
-                onChange={(e) => {
-                  setView(e.target.value as Views);
-                }}
-              />
-            </div>
-            <div className="bottom"></div>
+        <StyledEngineProvider injectFirst>
+          <TopBar />
+          <section className={`main ${defaultTheme}`}>
+            <section className="margin" />
+            <section className="left">
+              <div className="top">
+                <RadioGroup
+                  name="large-inline-radio"
+                  checkableLayout={"stacked"}
+                  checkableSize={"large"}
+                  legend="View"
+                  options={views.map((v) => ({
+                    content: v,
+                    value: v,
+                    checked: v === view,
+                  }))}
+                  onChange={(e) => {
+                    setView(e.target.value as Views);
+                  }}
+                />
+              </div>
+              <div className="bottom"></div>
+            </section>
+            <section ref={ref} className="right">
+              <Inspector data={data} />
+            </section>
           </section>
-          <section ref={ref} className="right">
-            <Inspector  data={data} />
-          </section>
-        </section>
+        </StyledEngineProvider>
       </StrictMode>
     </Suspense>
   );

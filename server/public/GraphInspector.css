@@ -119,3 +119,7 @@ br {
   padding: 0 .5rem;
   width: 80%;
 }
+
+.right ul {
+  height: 100%;
+}

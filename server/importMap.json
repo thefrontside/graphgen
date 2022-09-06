@@ -4,6 +4,7 @@
     "@faker-js/faker": "https://esm.sh/@faker-js/faker@7.5.0",
     "@frontside/graphgen": "https://esm.sh/@frontside/graphgen@1.6.0",
     "@graphql-yoga/common": "https://cdn.skypack.dev/@graphql-yoga/common@2.12.11?dts",
+    "@mui/material/": "https://esm.sh/@mui/material/",
     "@mui/lab/": "https://esm.sh/@mui/lab/",
     "@mui/icons-material/": "https://esm.sh/@mui/icons-material/",
     "https://deno.land/x/mesozoic@v1.0.0-alpha.36/": "https://deno.land/x/mesozoic@v1.0.0-alpha.39/",
