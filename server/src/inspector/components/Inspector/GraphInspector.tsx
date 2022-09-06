@@ -1,10 +1,12 @@
 import type { SyntheticEvent } from "react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import TreeView from "@mui/lab/TreeView";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import TreeItem from "@mui/lab/TreeItem";
 import { Loader } from "../Loader/Loader.tsx";
+import { Views } from "../types.ts";
+import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
 
 interface Node {
   id: string;
@@ -12,16 +14,29 @@ interface Node {
 }
 
 export function GraphInspector(
-  { data = [] }: {
-    data: string[];
-  },
 ): JSX.Element {
+  const [data, setData] = useState<string[]>([]);
+  
   const handleChange = useCallback((e: SyntheticEvent, nodeIds: string[]) => {
     if(nodeIds.length === 0) {
       return;
     }
     console.log({e, nodeIds})
   }, [])
+
+  useEffect(() => {
+    async function loadGraph() {
+      const graph = await fetchGraphQL(`
+      query Graph {
+        graph
+      }
+      `);
+
+      setData(graph.data.graph);
+    }
+
+    loadGraph().catch(console.error);
+  }, []);
 
   return (
     <TreeView

@@ -1,5 +1,6 @@
 /// <reference lib="DOM" />
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useState } from 'react';
 import { Views } from "../types.ts";
 import Tree, { TreeProps } from "react-animated-tree-v2";
 import { Meta } from "../types.ts";
@@ -8,62 +9,60 @@ import TreeView from "@mui/lab/TreeView";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import TreeItem from "@mui/lab/TreeItem";
+import { SubMeta } from "./SubMeta.tsx";
+import { MetaView } from "./Meta.tsx";
+import { Reference, Type } from "../../../graphql/types.ts";
+import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
 
-function IconTree(props: Partial<TreeProps> & { children?: ReactNode }) {
-  return (
-    <Tree
-      icons={{ closeIcon: close }}
-      {
-        // deno-lint-ignore no-explicit-any
-        ...props as any
+export function MetaInspector(): JSX.Element {
+  const [data, setData] = useState<Meta[]>([]);
+
+  useEffect(() => {
+    async function loadMeta() {
+      const meta = await fetchGraphQL(`
+      query Meta {
+        meta {
+          typename
+          count
+          references {
+            typename
+            fieldname
+            path
+            count
+            description
+            affinity
+          }
+        }
       }
-    />
-  );
-}
+      `);
 
-export function SubMeta(
-  { name, attributes, ...rest }: Omit<Meta, "children">,
-): JSX.Element {
-  return (
-    <div className="sub-meta" style={{ display: "inline-block" }}>
-      <table>
-        <thead>
-          <tr>
-            <th colSpan={2}>
-              <strong>{name}</strong>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.entries(attributes).flatMap(([k, v]) =>
-            !v || k === "typename" ? [] : [[k, v]]
-          ).map(([k, v]) => (
-            <tr key={k}>
-              <td>{k}</td>
-              <td>{v}</td>
-              {/* <td>{k === "affinity" ? `affinity ${v}` : v}</td> */}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+      const data = meta.data.meta.map((
+        { typename, references, count, ...rest }: Type,
+      ) => ({
+        id: typename,
+        name: `${typename} (${count})`,
+        attributes: {
+          count,
+          ...rest,
+        },
+        children: references?.map((
+          { fieldname, count, ...rest }: Reference,
+          i,
+        ) => ({
+          id: i,
+          name: `${fieldname} (${count})`,
+          attributes: {
+            ...rest,
+          },
+        })),
+      }));
 
-function Meta({ name }: Meta): JSX.Element {
-  return (
-    <div className="meta">
-      <strong>{name}</strong>
-    </div>
-  );
-}
+      setData(data);
+    }
 
-export function MetaInspector(
-  { data = [] }: {
-    data: Meta[];
-  },
-): JSX.Element {
-  console.log(data);
+    loadMeta().catch(console.error);
+  }, [])
+  
   return (
     <TreeView
       aria-label="file system navigator"
@@ -76,7 +75,7 @@ export function MetaInspector(
         <TreeItem
           key={d.name}
           nodeId={d.name}
-          label={<Meta {...d} />}
+          label={<MetaView {...d} />}
         >
           {d.children.length > 0 &&
             d.children.map((r) => (
