@@ -5,11 +5,6 @@ import Tree, { TreeProps } from "react-animated-tree-v2";
 import { Meta } from "../types.ts";
 import { close, minus, plus } from "./icons.tsx";
 
-// deno-lint-ignore no-explicit-any
-function NoCheck(props: any) {
-  return <></>;
-}
-
 function IconTree(props: Partial<TreeProps> & { children?: ReactNode }) {
   return (
     <Tree
@@ -25,7 +20,6 @@ function IconTree(props: Partial<TreeProps> & { children?: ReactNode }) {
 export function SubMeta(
   { name, attributes, ...rest }: Omit<Meta, "children">,
 ): JSX.Element {
-  console.log(rest);
   return (
     <div className="sub-meta" style={{ display: "inline-block" }}>
       <table>
@@ -59,10 +53,9 @@ function Meta({ name }: Meta): JSX.Element {
   );
 }
 
-export function Inspector(
-  { data, view }: {
+export function MetaInspector(
+  { data }: {
     data: Meta[];
-    view: Views;
   },
 ): JSX.Element {
   return (
@@ -70,7 +63,7 @@ export function Inspector(
       {data.map((d, i) => (
         <IconTree
           key={i}
-          content={<Meta {...d}/>}
+          content={<Meta {...d} />}
           canHide={d.children.length > 0}
           open={d.children.length > 0}
         >

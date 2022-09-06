@@ -1,13 +1,20 @@
 import { TopBar } from "../TopBar/TopBar.tsx";
-import { Inspector } from "../Inspector/Inspector.tsx";
+import { MetaInspector } from "../Inspector/MetaInspector.tsx";
+import { GraphInspector } from "../Inspector/GraphInspector.tsx";
 import { StrictMode, Suspense, useEffect, useRef, useState } from "react";
 import { defaultTheme, RadioGroup } from "@cutting/component-library";
-import { Views, views } from "../types.ts";
+import { Meta, Views, views } from "../types.ts";
 import { Reference, Type } from "../../../graphql/types.ts";
 
 const graphqlServer = "http://localhost:8000/graphql";
 
-export function GraphInspector() {
+const Inspectors = {
+  Graph: GraphInspector,
+  Meta: MetaInspector
+} as const;
+
+export function GraphgenInspector() {
+  // deno-lint-ignore no-explicit-any
   const [data, setData] = useState<any>([]);
   const [view, setView] = useState<Views>("Meta");
   const ref = useRef<HTMLDivElement>(null);
@@ -111,7 +118,7 @@ export function GraphInspector() {
       .catch(console.error);
   }, [view]);
 
-  console.log(data)
+  const Inspector = Inspectors[view];
 
   return (
     <Suspense>
@@ -125,7 +132,7 @@ export function GraphInspector() {
                 name="large-inline-radio"
                 checkableLayout={"stacked"}
                 checkableSize={"large"}
-                legend="large inline"
+                legend="View"
                 options={views.map((v) => ({
                   content: v,
                   value: v,
@@ -139,7 +146,7 @@ export function GraphInspector() {
             <div className="bottom"></div>
           </section>
           <section ref={ref} className="right">
-            <Inspector view={view} innerRef={ref} data={data} />
+            <Inspector  data={data} />
           </section>
         </section>
       </StrictMode>

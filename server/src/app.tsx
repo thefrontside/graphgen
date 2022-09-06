@@ -1,5 +1,5 @@
 import useAsset from "ultra/hooks/use-asset.js";
-import { GraphInspector } from "./inspector/components/GraphInspector/GraphInspector.tsx";
+import { GraphgenInspector } from "./inspector/components/GraphgenInspector/GraphgenInspector.tsx";
 import { useEffect, useState } from "react";
 
 export default function App() {
@@ -21,7 +21,7 @@ export default function App() {
       </head>
       <body>
         <main>
-          {pageLoaded ? <GraphInspector /> : null}
+          {pageLoaded ? <GraphgenInspector /> : null}
         </main>
       </body>
     </html>

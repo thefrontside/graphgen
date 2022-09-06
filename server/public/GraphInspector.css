@@ -105,10 +105,10 @@ br {
 }
 
 .sub-meta table, .sub-meta table th, .sub-meta table td {
-  border: 1px solid #e2e2e2;
+  /* border: 1px solid #e2e2e2; */
 }
 
-.sub-meta tr:nth-of-type(even){
+.sub-meta th {
   background: #f7f7f7;
 }
 
@@ -116,6 +116,6 @@ br {
   display: inline-block;
   /* background: #27ae60; */
   /* background: linear-gradient(#f7f7f7, #e2e2e2); */
-  padding: .5rem;
-  width: 90%;
+  padding: 0 .5rem;
+  width: 80%;
 }
