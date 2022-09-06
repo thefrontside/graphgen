@@ -13,7 +13,7 @@ interface Node {
 
 export function GraphInspector(
   { data = [] }: {
-    data: Node[];
+    data: string[];
   },
 ): JSX.Element {
   const handleChange = useCallback((e: SyntheticEvent, nodeIds: string[]) => {
@@ -31,7 +31,7 @@ export function GraphInspector(
       sx={{ height: 240, flexGrow: 1, maxWidth: 400, overflowY: "auto" }}
       onNodeToggle={handleChange}
     >
-      {Object.keys(data).map((key) => (
+      {data.map((key) => (
         <TreeItem key={key} nodeId={key} label={key}>
           <Loader />
         </TreeItem>

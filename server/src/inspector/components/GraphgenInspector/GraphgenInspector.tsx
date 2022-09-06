@@ -6,8 +6,7 @@ import { defaultTheme, RadioGroup } from "@cutting/component-library";
 import { Meta, Views, views } from "../types.ts";
 import { Reference, Type } from "../../../graphql/types.ts";
 import { StyledEngineProvider } from "@mui/material/styles";
-
-const graphqlServer = "http://localhost:8000/graphql";
+import { fetchGraphQL, graphqlServer } from "../../graphql/fetchGraphql.ts";
 
 const Inspectors = {
   Graph: GraphInspector,
@@ -17,76 +16,50 @@ const Inspectors = {
 export function GraphgenInspector() {
   // deno-lint-ignore no-explicit-any
   const [data, setData] = useState<any>([]);
-  const [view, setView] = useState<Views>("Graph");
+  const [view, setView] = useState<Views>("Meta");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function createGraph() {
-      await fetch(graphqlServer, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: `mutation CreateMany {
-            createMany(inputs: [
-              {typename:"Component"},
-              {typename:"Group"},
-              {typename:"API"},
-              {typename:"Resource"},
-              {typename:"User"},
-              {typename:"Domain"}
-            ])
-          }`,
-        }),
-      });
+      await fetchGraphQL(`mutation CreateMany {
+        createMany(inputs: [
+          {typename:"Component"},
+          {typename:"Group"},
+          {typename:"API"},
+          {typename:"Resource"},
+          {typename:"User"},
+          {typename:"Domain"}
+        ])
+      }`);
     }
 
     async function loadGraph() {
-      const response = await fetch(graphqlServer, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: `{
+      const graph = await fetchGraphQL(`
+      query Graph {
         graph
-      }`,
-        }),
-      });
-
-      const graph = await response.json();
-
-      console.log(graph);
+      }
+      `);
 
       setData(graph.data.graph);
     }
 
     async function loadMeta() {
-      const response = await fetch(graphqlServer, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: `{
-          meta {
+      const meta = await fetchGraphQL(`
+      query Meta {
+        meta {
+          typename
+          count
+          references {
             typename
+            fieldname
+            path
             count
-            references {
-              typename
-              fieldname
-              path
-              count
-              description
-              affinity
-            }
+            description
+            affinity
           }
-        }`,
-        }),
-      });
-
-      const meta = await response.json();
+        }
+      }
+      `);
 
       const data = meta.data.meta.map((
         { typename, references, count, ...rest }: Type,
