@@ -66,6 +66,9 @@ export const resolvers = {
 
       // remove circular references
       return rootKeys;
+    },
+    root(_: any, args: {  typename: string }, context: GraphQLContext) {
+      console.log(args);
     }
   },
   Mutation: {

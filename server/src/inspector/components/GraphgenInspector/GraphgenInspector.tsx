@@ -6,6 +6,8 @@ import { defaultTheme, RadioGroup } from "@cutting/component-library";
 import { Views, views } from "../types.ts";
 import { StyledEngineProvider } from "@mui/material/styles";
 import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
+// import { RelayEnvironmentProvider } from "react-relay/hooks";
+import relayEnvironment from "../../graphql/relayEnvironment.ts";
 
 const Inspectors = {
   Graph: GraphInspector,
@@ -38,38 +40,40 @@ export function GraphgenInspector() {
   const Inspector = Inspectors[view];
 
   return (
-    <Suspense>
-      <StrictMode>
-        <StyledEngineProvider injectFirst>
-          <TopBar />
-          <section className={`main ${defaultTheme}`}>
-            <section className="margin" />
-            <section className="left">
-              <div className="top">
-                <RadioGroup
-                  name="large-inline-radio"
-                  checkableLayout={"stacked"}
-                  checkableSize={"large"}
-                  legend="View"
-                  options={views.map((v) => ({
-                    content: v,
-                    value: v,
-                    checked: v === view,
-                  }))}
-                  onChange={(e) => {
-                    console.log(e.target.value)
-                    setView(e.target.value as Views);
-                  }}
-                />
-              </div>
-              <div className="bottom"></div>
+    // <RelayEnvironmentProvider environment={relayEnvironment}>
+      <Suspense>
+        <StrictMode>
+          <StyledEngineProvider injectFirst>
+            <TopBar />
+            <section className={`main ${defaultTheme}`}>
+              <section className="margin" />
+              <section className="left">
+                <div className="top">
+                  <RadioGroup
+                    name="large-inline-radio"
+                    checkableLayout={"stacked"}
+                    checkableSize={"large"}
+                    legend="View"
+                    options={views.map((v) => ({
+                      content: v,
+                      value: v,
+                      checked: v === view,
+                    }))}
+                    onChange={(e) => {
+                      console.log(e.target.value);
+                      setView(e.target.value as Views);
+                    }}
+                  />
+                </div>
+                <div className="bottom"></div>
+              </section>
+              <section ref={ref} className="right">
+                <Inspector />
+              </section>
             </section>
-            <section ref={ref} className="right">
-              <Inspector />
-            </section>
-          </section>
-        </StyledEngineProvider>
-      </StrictMode>
-    </Suspense>
+          </StyledEngineProvider>
+        </StrictMode>
+      </Suspense>
+    // </RelayEnvironmentProvider>
   );
 }

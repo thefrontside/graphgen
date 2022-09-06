@@ -19,6 +19,7 @@ type Type {
 type Query {
   meta: [Type]
   graph: JSON
+  root(typename: String!): JSON
 }
 
 input CreateInput {

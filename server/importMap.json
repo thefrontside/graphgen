@@ -21,6 +21,9 @@
     "react-dom": "https://esm.sh/react-dom@18.2.0",
     "react-dom/server": "https://esm.sh/react-dom@18.2.0/server",
     "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-    "react-inspector": "https://esm.sh/react-inspector@6.0.1"
+    "react-inspector": "https://esm.sh/react-inspector@6.0.1",
+    "react-relay": "https://esm.sh/react-relay",
+    "react-relay/hooks": "https://esm.sh/react-relay/hooks",
+    "relay-runtime": "https://esm.sh/relay-runtime"
   }
 }

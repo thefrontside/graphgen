@@ -1,5 +1,5 @@
 import type { SyntheticEvent } from "react";
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useReducer } from "react";
 import TreeView from "@mui/lab/TreeView";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -13,16 +13,31 @@ interface Node {
   displayName: string;
 }
 
-export function GraphInspector(
-): JSX.Element {
-  const [data, setData] = useState<string[]>([]);
-  
+interface State {
+  roots: string[];
+}
+
+type Actions = {
+  type: "SET_ROOTS";
+  payload: string[];
+};
+
+function graphReducer(state: State, action: Actions): State {
+  switch (action.type) {
+    case "SET_ROOTS":
+      return { ...state, roots: action.payload };
+  }
+}
+
+export function GraphInspector(): JSX.Element {
+  const [state, dispatch] = useReducer(graphReducer, { roots: [] });
+
   const handleChange = useCallback((e: SyntheticEvent, nodeIds: string[]) => {
-    if(nodeIds.length === 0) {
+    if (nodeIds.length === 0) {
       return;
     }
-    console.log({e, nodeIds})
-  }, [])
+    console.log({ e, nodeIds });
+  }, []);
 
   useEffect(() => {
     async function loadGraph() {
@@ -32,7 +47,7 @@ export function GraphInspector(
       }
       `);
 
-      setData(graph.data.graph);
+      dispatch({ type: "SET_ROOTS", payload: graph.data.graph });
     }
 
     loadGraph().catch(console.error);
@@ -46,7 +61,7 @@ export function GraphInspector(
       sx={{ height: 240, flexGrow: 1, maxWidth: 400, overflowY: "auto" }}
       onNodeToggle={handleChange}
     >
-      {data.map((key) => (
+      {state.roots.map((key) => (
         <TreeItem key={key} nodeId={key} label={key}>
           <Loader />
         </TreeItem>
