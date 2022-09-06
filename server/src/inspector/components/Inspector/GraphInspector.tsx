@@ -5,7 +5,6 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import TreeItem from "@mui/lab/TreeItem";
 import { Loader } from "../Loader/Loader.tsx";
-import { Views } from "../types.ts";
 import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
 
 interface Node {
@@ -17,11 +16,15 @@ interface State {
   roots: string[];
 }
 
-type Actions = {
+type Actions = 
+{
   type: "SET_ROOTS";
   payload: string[];
-};
-
+} |
+{
+  type: "SET_ROOT";
+  payload: Record<string, unknown>;
+} 
 function graphReducer(state: State, action: Actions): State {
   switch (action.type) {
     case "SET_ROOTS":

@@ -8,6 +8,7 @@ export default function App() {
   useEffect(() => {
     setPageLoaded(true);
   }, []);
+  
   return (
     <html lang="en">
       <head>
