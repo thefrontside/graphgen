@@ -6,17 +6,13 @@ import { defaultTheme, RadioGroup } from "@cutting/component-library";
 import { Views, views } from "../types.ts";
 import { StyledEngineProvider } from "@mui/material/styles";
 import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
-// import { RelayEnvironmentProvider } from "react-relay/hooks";
-import relayEnvironment from "../../graphql/relayEnvironment.ts";
 
 const Inspectors = {
   Graph: GraphInspector,
   Meta: MetaInspector,
 } as const;
 
-export function GraphgenInspector() {
-  // deno-lint-ignore no-explicit-any
-  const [data, setData] = useState<any>([]);
+export function Factory() {
   const [view, setView] = useState<Views>("Graph");
   const ref = useRef<HTMLDivElement>(null);
 

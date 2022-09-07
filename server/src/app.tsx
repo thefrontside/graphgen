@@ -1,5 +1,5 @@
 import useAsset from "ultra/hooks/use-asset.js";
-import { GraphgenInspector } from "./inspector/components/GraphgenInspector/GraphgenInspector.tsx";
+import { Factory } from "./inspector/components/Factory/Factory.tsx";
 import { useEffect, useState } from "react";
 
 export default function App() {
@@ -22,7 +22,7 @@ export default function App() {
       </head>
       <body>
         <main>
-          {pageLoaded ? <GraphgenInspector /> : null}
+          {pageLoaded ? <Factory /> : null}
         </main>
       </body>
     </html>

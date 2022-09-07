@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run -A ./server.tsx",
+    "dev": "deno run -A --watch ./server.tsx",
     "start": "ULTRA_MODE=production deno run -A --no-check --no-remote ./server.tsx",
     "build": "deno run -A ./build.ts"
   },

@@ -51,19 +51,22 @@ export const resolvers = {
     },
     graph(_: any, __: any, context: GraphQLContext) {
       const rootKeys = Object.keys(context.factory.graph.roots);
-      // const result = {} as Record<string, any>
+      const result: { typename: string, size: number }[] = [];
 
-      // for(const root of rootKeys) {
-      //   const nodes = [...context.factory.all(root)];
+      for(const root of rootKeys) {
+        const nodes = [...context.factory.all(root)];
 
-      //   if(nodes.length === 0) {
-      //     continue;
-      //   }
+        if(nodes.length === 0) {
+          continue;
+        }
 
-      //   result[root] = nodes;
-      // }
+        result.push({
+          typename: root,
+          size: nodes.length
+        });
+      }
 
-      return rootKeys;
+      return result;
     },
     root(_: any, { typename }: { typename: string }, context: GraphQLContext) {
       const nodes = [...context.factory.all(typename)];
@@ -71,19 +74,28 @@ export const resolvers = {
       if (nodes.length === 0) {
         return [];
       }
-      
-      // const getters = Object.entries(Object.getOwnPropertyDescriptors(nodes[0]))//.filter(([, v]) => typeof v === 'function');
-      
-      // console.dir({getters})
 
+      const relationships = context.factory.graph.types.vertex[typename].relationships.map((r) => r.type.substring(r.type.indexOf('.') + 1, r.type.indexOf('->')));
+
+      const shallow = nodes.map(n => Object.entries(n).reduce((acc, [k, v]) => {
+        if(relationships.includes(k)) {
+          acc[k] = { kind: 'relationship', loaded: false, data: [] }
+        } else {
+          acc[k] = v;
+        }
+
+        return acc;
+      }, {} as any));
+
+      return shallow;
     }
   },
   Mutation: {
     create(_: any, { typename, preset }: CreateInput, context: GraphQLContext) {
       return toNode(typename, context.factory.create(typename, preset));
     },
-createMany(_: any, { inputs }: { inputs: CreateInput[] }, context: GraphQLContext) {
-  return inputs.map(({ typename, preset }) => toNode(typename, context.factory.create(typename, preset)));
-}
+    createMany(_: any, { inputs }: { inputs: CreateInput[] }, context: GraphQLContext) {
+      return inputs.map(({ typename, preset }) => toNode(typename, context.factory.create(typename, preset)));
+    }
   }
 };
