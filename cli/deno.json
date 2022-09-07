@@ -1,0 +1,24 @@
+{
+  "tasks": {
+    "packup": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts",
+    "serve": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts serve ui/index.html",
+    "build": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts build ui/index.html",
+    "dev": "deno run --watch -A graphql/server.ts",
+    "compile": "RUST_BACKTRACE=1 deno compile -A --no-check ./mod.ts"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["prefer-const", "require-yield", "no-inner-declarations"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "exclude": ["README.md", "build/"]
+    }
+  },
+  "test": {
+    "files": {
+      "exclude": ["build"]
+    }
+  }
+}
