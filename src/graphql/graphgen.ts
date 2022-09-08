@@ -32,11 +32,15 @@ export interface GraphGen<API = Record<string, any>> {
     typename: T,
     preset?: Preset<API[T]>,
   ): Node & API[T];
-  all<T extends string & keyof API>(typename: T): Iterable<Node & API[T]>;
+  all<T extends string & keyof API>(typename: T): Collection<Node & API[T]>;
   createMany<T extends string & keyof API>(
     typename: T,
     amount: number,
   ): Iterable<Node & API[T]>;
+}
+
+export interface Collection<T> extends Iterable<T> {
+  get(id: string): T | undefined;
 }
 
 export interface Generate {
@@ -274,11 +278,19 @@ directive @computed on FIELD_DEFINITION
     return transformed;
   }
 
-  function all<T extends string & keyof API>(typename: T) {
+  function all<T extends string & keyof API>(
+    typename: T,
+  ): Collection<Node & API[T]> {
     return {
       *[Symbol.iterator]() {
         for (let id in graph.roots[typename]) {
           yield toNode<API[typeof typename]>(graph.roots[typename][id]);
+        }
+      },
+      get(id) {
+        let vertex = graph.roots[typename][Number(id)];
+        if (vertex) {
+          return toNode(vertex);
         }
       },
     };
