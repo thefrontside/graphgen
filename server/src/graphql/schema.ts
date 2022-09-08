@@ -53,10 +53,10 @@ export const resolvers = {
       const rootKeys = Object.keys(context.factory.graph.roots);
       const result: { typename: string, size: number }[] = [];
 
-      for(const root of rootKeys) {
+      for (const root of rootKeys) {
         const nodes = [...context.factory.all(root)];
 
-        if(nodes.length === 0) {
+        if (nodes.length === 0) {
           continue;
         }
 
@@ -75,17 +75,25 @@ export const resolvers = {
         return [];
       }
 
-      const relationships = context.factory.graph.types.vertex[typename].relationships.map((r) => r.type.substring(r.type.indexOf('.') + 1, r.type.indexOf('->')));
+      const { references, fields } = context.factory.analysis.types[typename]  //.graph.types.vertex[typename].relationships.map((r) => r.type.substring(r.type.indexOf('.') + 1, r.type.indexOf('->')));
 
-      const shallow = nodes.map(n => Object.entries(n).reduce((acc, [k, v]) => {
-        if(relationships.includes(k)) {
-          acc[k] = { kind: 'relationship', loaded: false, data: [] }
-        } else {
-          acc[k] = v;
+      const shallow = nodes.map(node => {
+        const result: any = {};
+
+        for (const field of fields) {
+          result[field.name] = node[field.name];
         }
 
-        return acc;
-      }, {} as any));
+        // for(const compute of computed) {
+        //   result[compute.name] = node[compute.name];
+        // }
+
+        for (const reference of references) {
+          result[reference.name] = { id: node[reference.name].id, kind: 'relationship', loaded: false, data: [] }
+        }
+
+        return result;
+      })
 
       return shallow;
     }

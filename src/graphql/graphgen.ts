@@ -6,7 +6,7 @@ import { createGraph, createVertex, Graph, Vertex } from "../graph.ts";
 import { normal, weighted } from "../distribution.ts";
 import { CacheStorage, createCache, NullCache } from "./cache.ts";
 import { Alea, createAlea } from "../alea.ts";
-import { analyze } from "./analyze.ts";
+import { Analysis, analyze } from "./analyze.ts";
 import { expect } from "./expect.ts";
 
 export * from "./dispatch.ts";
@@ -37,6 +37,7 @@ export interface GraphGen<API = Record<string, any>> {
     typename: T,
     amount: number,
   ): Iterable<Node & API[T]>;
+  analysis: Analysis;
 }
 
 export interface Collection<T> extends Iterable<T> {
@@ -102,7 +103,9 @@ directive @computed on FIELD_DEFINITION
     parse(options.source, options.sourceName),
   );
 
-  let { types, edges, relationships } = analyze(schema);
+  let analysis = analyze(schema);
+
+  let { types, edges, relationships } = analysis;
 
   let fieldgen = createFieldGenerate(
     seed,
@@ -322,6 +325,7 @@ directive @computed on FIELD_DEFINITION
 
       return all(typename);
     },
+    analysis
   };
 }
 

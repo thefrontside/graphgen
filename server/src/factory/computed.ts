@@ -1,4 +1,4 @@
-import { weighted, Generate } from "@frontside/graphgen";
+import { weighted, Generate } from "../../../mod.ts";
 import { Computed } from "../server/types.ts";
 import { fakergen } from "./fakerGen.ts";
 
