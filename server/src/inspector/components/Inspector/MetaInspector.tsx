@@ -1,25 +1,99 @@
-/// <reference lib="DOM" />
-import type { ReactNode } from "react";
-import { useEffect, useState } from 'react';
-import { Views } from "../types.ts";
-import Tree, { TreeProps } from "react-animated-tree-v2";
-import { Meta } from "../types.ts";
-import { close, minus, plus } from "./icons.tsx";
-import TreeView from "@mui/lab/TreeView";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import TreeItem from "@mui/lab/TreeItem";
-import { SubMeta } from "./SubMeta.tsx";
-import { MetaView } from "./Meta.tsx";
-import { Reference, Type } from "../../../graphql/types.ts";
+import { useEffect, useReducer, useRef } from "react";
 import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
+import CytoscapeComponent from "react-cytoscapejs";
+import COSEBilkent from "cytoscape-cose-bilkent";
+import Cytoscape from "cytoscape";
+import DagreLayout from "cytoscape-dagre";
+import fcose from "cytoscape-fcose";
+import type { Type } from "../../../graphql/types.ts";
+
+Cytoscape.use(DagreLayout);
+
+interface Node {
+  id: string;
+  label: string;
+  size: number;
+}
+
+interface Edge {
+  source: string;
+  target: string;
+  label?: string;
+}
+
+interface GraphData {
+  nodes: {
+    data: Node;
+  }[];
+  edges: {
+    data: Edge;
+  }[];
+}
+
+interface State {
+  graphData: GraphData;
+}
+type Actions = {
+  type: "SET_META";
+  payload: Type[];
+};
+
+function metaReducer(state: State, action: Actions): State {
+  switch (action.type) {
+    case "SET_META": {
+      const nodes: {data: Node}[] = [];
+      const edges: { data: Edge }[] = [];
+
+      const nodeSize = 30;
+      const defaultNodeSize = 250;
+
+      for(const { typename, references = [], count } of action.payload) {
+        nodes.push({
+          data: {
+            id: typename,
+            label: `${typename} (${count})`,
+            size: Math.max(defaultNodeSize, count * nodeSize)
+          }
+        });
+
+        for(const { fieldname, count: referenceCount } of references) {
+          const id = `${typename}-${fieldname}`
+          nodes.push({data:{
+            id,
+            label: `${fieldname} (${count})`,
+            size: defaultNodeSize
+          }});
+
+          edges.push({
+            data: {
+              source: typename,
+              target: id
+            }
+          })
+        }
+      }
+      
+      const graphData: GraphData = {
+        nodes,
+        edges
+      }
+
+      return { ...state, graphData: { ...graphData } };
+    }
+    default:
+      return state;
+  }
+}
+
+const emptyGraph = { graphData: { nodes: [], edges: [] } };
 
 export function MetaInspector(): JSX.Element {
-  const [data, setData] = useState<Meta[]>([]);
+  const [{ graphData }, dispatch] = useReducer(metaReducer, emptyGraph);
+  const cyRef = useRef<cytoscape.Core>();
 
   useEffect(() => {
     async function loadMeta() {
-      const meta = await fetchGraphQL(`
+      const response: { data: { meta: Type[] } } = await fetchGraphQL(`
       query Meta {
         meta {
           typename
@@ -36,53 +110,99 @@ export function MetaInspector(): JSX.Element {
       }
       `);
 
-      const data = meta.data.meta.map((
-        { typename, references, count, ...rest }: Type,
-      ) => ({
-        id: typename,
-        name: `${typename} (${count})`,
-        attributes: {
-          count,
-          ...rest,
-        },
-        children: references?.map((
-          { fieldname, count, ...rest }: Reference,
-          i,
-        ) => ({
-          id: i,
-          name: `${fieldname} (${count})`,
-          attributes: {
-            ...rest,
-          },
-        })),
-      }));
+      return response;
+    }
+    
+    loadMeta().then((d) => {
+      console.log(d);
+      dispatch({ type: "SET_META", payload: d.data.meta })
+    }
+    ).catch(console.error);
+  }, []);
 
-      setData(data);
+  useEffect(() => {
+    if (!cyRef.current) {
+      return;
     }
 
-    loadMeta().catch(console.error);
-  }, [])
-  
+    console.log(graphData);
+    cyRef.current.layout({
+      name: "fcose",
+      // quality: "default",
+      // randomize: false,
+      // animate: true,
+      // animationEasing: "ease-out",
+      // uniformNodeDimensions: true,
+      // packComponents: true,
+      // tile: false,
+      // nodeRepulsion: 4500,
+      // idealEdgeLength: 50,
+      // edgeElasticity: 0.45,
+      // nestingFactor: 0.1,
+      // gravity: 0.25,
+      // gravityRange: 3.8,
+      // gravityCompound: 1,
+      // gravityRangeCompound: 1.5,
+      // numIter: 2500,
+      // tilingPaddingVertical: 10,
+      // tilingPaddingHorizontal: 10,
+      // initialEnergyOnIncremental: 0.3,
+      // step: "all",
+    } as any).run();
+    cyRef.current.fit();
+  }, [graphData]);
+
   return (
-    <TreeView
-      aria-label="file system navigator"
-      defaultCollapseIcon={<ExpandMoreIcon />}
-      defaultExpandIcon={<ChevronRightIcon />}
-      defaultExpanded={data.map(d => d.name)}
-      sx={{ height: '100%', flexGrow: 1, width: '100%', overflowY: "auto" }}
-    >
-      {(data ?? []).map((d) => (
-        <TreeItem
-          key={d.name}
-          nodeId={d.name}
-          label={<MetaView {...d} />}
-        >
-          {d.children.length > 0 &&
-            d.children.map((r) => (
-              <TreeItem key={r.id} nodeId={r.id} label={<SubMeta {...r}/>} />
-            ))}
-        </TreeItem>
-      ))}
-    </TreeView>
+    <CytoscapeComponent
+      cy={(cy) => cyRef.current = cy}
+      style={{ width: "100%", height: "100%" }}
+      stylesheet={[
+        {
+          selector: "node",
+          css: {
+            "text-valign": "center",
+            "text-halign": "center",
+            label: "data(label)",
+            "background-color": "#2B65EC",
+            color: "#fff",
+            'font-size': 60,
+            'height': 'data(size)',
+            'width': 'data(size)',
+          },
+        },
+        {
+          selector: ":parent",
+          css: {
+            label: "data(label)",
+            "background-opacity": 0.333,
+            "border-color": "#2B65EC",
+          },
+        },
+        {
+          selector: "edge",
+          style: {
+            "line-color": "#2B65EC",
+          },
+        },
+
+        {
+          selector: "node:selected",
+          style: {
+            label: "data(label)",
+            "background-color": "#F08080",
+            "border-color": "red",
+          },
+        },
+
+        {
+          selector: "edge:selected",
+          style: {
+            label: "data(label)",
+            "line-color": "#F08080",
+          },
+        },
+      ]}
+      elements={CytoscapeComponent.normalizeElements(graphData)}
+    />
   );
 }

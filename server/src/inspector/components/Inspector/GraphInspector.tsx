@@ -10,9 +10,9 @@ import CytoscapeComponent from "react-cytoscapejs";
 import COSEBilkent from "cytoscape-cose-bilkent";
 import Cytoscape from "cytoscape";
 import DagreLayout from "cytoscape-dagre";
-import { useState } from "https://esm.sh/v94/@types/react@18.0.18/index.d.ts";
+import fcose from "cytoscape-fcose";
 
-Cytoscape.use(DagreLayout);
+Cytoscape.use(fcose);
 
 interface Node {
   id: string;
@@ -20,14 +20,18 @@ interface Node {
   size: number;
 }
 
+interface Edge {
+  source: string;
+  target: string;
+  label?: string;
+}
+
 interface GraphData {
   nodes: {
     data: Node;
   }[];
   edges: {
-    source: string;
-    target: string;
-    label?: string;
+    data: Edge;
   }[];
 }
 
@@ -55,7 +59,7 @@ function graphReducer(state: State, action: Actions): State {
         nodes: action.payload.map(({ typename, size }) => ({
           data: {
             id: typename,
-            label: typename,
+            label: `${typename} (${size})`,
             size,
           },
         })),
@@ -64,14 +68,30 @@ function graphReducer(state: State, action: Actions): State {
       return { ...state, graphData: { ...graphData } };
     }
     case "ROOT_DATA": {
-      return { 
+      // deno-lint-ignore no-explicit-any
+      const ids = action.payload.data.map((n: any) => n.id) as string[];
+      return {
         ...state,
         graphData: {
           ...state.graphData,
-          nodes: [...state.graphData.nodes, ...action.payload.data.map((n: any) => ({ id: n.id, label: n.name }))],
-          edges: [...state.graphData.edges, ...action.payload.data.map((n: any) => ({ source: n.id, label: n.name }))]
-        }
-      }
+          nodes: [
+            ...state.graphData.nodes.filter((n) =>
+              ids.includes(n.data.id) === false
+            ),
+            // deno-lint-ignore no-explicit-any
+            ...action.payload.data.map((n: any) => ({
+              data: { id: n.id, label: n.name },
+            })),
+          ],
+          // deno-lint-ignore no-explicit-any
+          edges: [
+            ...state.graphData.edges,
+            ...action.payload.data.map((n: any) => ({
+              data: { source: action.payload.typename, target: n.id },
+            })),
+          ],
+        },
+      };
     }
     default:
       return state;
@@ -84,13 +104,6 @@ export function GraphInspector(): JSX.Element {
   const [{ graphData }, dispatch] = useReducer(graphReducer, emptyGraph);
   const cyRef = useRef<cytoscape.Core>();
 
-  const handleChange = useCallback((e: SyntheticEvent, nodeIds: string[]) => {
-    if (nodeIds.length === 0) {
-      return;
-    }
-    console.log({ e, nodeIds });
-  }, []);
-
   useEffect(() => {
     async function loadGraph() {
       const graph = await fetchGraphQL(`
@@ -102,11 +115,32 @@ export function GraphInspector(): JSX.Element {
       dispatch({ type: "SET_ROOTS", payload: graph.data.graph });
     }
 
+    console.log('loading...')
     loadGraph().catch(console.error);
   }, []);
 
   const layout = {
-    name: "dagre",
+    name: "fcose",
+    quality: "default",
+    randomize: false,
+    animate: true,
+    animationEasing: "ease-out",
+    uniformNodeDimensions: true,
+    packComponents: true,
+    tile: false,
+    nodeRepulsion: 4500,
+    idealEdgeLength: 50,
+    edgeElasticity: 0.45,
+    nestingFactor: 0.1,
+    gravity: 0.25,
+    gravityRange: 3.8,
+    gravityCompound: 1,
+    gravityRangeCompound: 1.5,
+    numIter: 2500,
+    tilingPaddingVertical: 10,
+    tilingPaddingHorizontal: 10,
+    initialEnergyOnIncremental: 0.3,
+    step: "all",
   };
 
   useEffect(() => {
@@ -126,69 +160,22 @@ export function GraphInspector(): JSX.Element {
     if (!cyRef.current) {
       return;
     }
-    cyRef.current.layout(layout).run();
+    cyRef.current.layout({ name: "fcose" }).run();
     cyRef.current.fit();
     cyRef.current.on("select", "node", (e) => {
       const node: Node = e.target["_private"]["data"];
 
       root(node.id).then((result) => {
-        dispatch({ type: 'ROOT_DATA', 
+        dispatch({
+          type: "ROOT_DATA",
           payload: {
             typename: node.id,
-            data: result.data
-          }
-        });  
-      }).catch(console.error)
+            data: result.data.root,
+          },
+        });
+      }).catch(console.error);
     });
-  }, [cyRef.current]);
-
-  // const [width, setWith] = useState("100%");
-  // const [height, setHeight] = useState("400px");
-  // const [graphData, setGraphData] = useState({
-  //   nodes: [
-  //     { data: { id: "1", label: "IP 1", type: "ip" } },
-  //     { data: { id: "2", label: "Device 1", type: "device" } },
-  //     { data: { id: "3", label: "IP 2", type: "ip" } },
-  //     { data: { id: "4", label: "Device 2", type: "device" } },
-  //     { data: { id: "5", label: "Device 3", type: "device" } },
-  //     { data: { id: "6", label: "IP 3", type: "ip" } },
-  //     { data: { id: "7", label: "Device 5", type: "device" } },
-  //     { data: { id: "8", label: "Device 6", type: "device" } },
-  //     { data: { id: "9", label: "Device 7", type: "device" } },
-  //     { data: { id: "10", label: "Device 8", type: "device" } },
-  //     { data: { id: "11", label: "Device 9", type: "device" } },
-  //     { data: { id: "12", label: "IP 3", type: "ip" } },
-  //     { data: { id: "13", label: "Device 10", type: "device" } }
-  //   ],
-  //   edges: [
-  //     {
-  //       data: { source: "1", target: "2", label: "Node2" }
-  //     },
-  //     {
-  //       data: { source: "3", target: "4", label: "Node4" }
-  //     },
-  //     {
-  //       data: { source: "3", target: "5", label: "Node5" }
-  //     },
-  //     {
-  //       data: { source: "6", target: "5", label: " 6 -> 5" }
-  //     },
-  //     {
-  //       data: { source: "6", target: "7", label: " 6 -> 7" }
-  //     },
-  //     {
-  //       data: { source: "6", target: "8", label: " 6 -> 8" }
-  //     },
-  //     {
-  //       data: { source: "6", target: "9", label: " 6 -> 9" }
-  //     },
-  //     {
-  //       data: { source: "3", target: "13", label: " 3 -> 13" }
-  //     }
-  //   ]
-  // });
-
-  console.dir(graphData);
+  }, [graphData]);
 
   return (
     <CytoscapeComponent
@@ -197,26 +184,44 @@ export function GraphInspector(): JSX.Element {
       stylesheet={[
         {
           selector: "node",
-          css: {
-            color: "#fff",
+          style: {
             "text-valign": "center",
             "text-halign": "center",
+            label: "data(label)",
+            "background-color": "#2B65EC",
+            color: '#fff',
+            "font-size": 3
           },
         },
         {
-          selector: "node",
+          selector: ":parent",
           style: {
             label: "data(label)",
-            width: 100,
-            height: 50,
-            shape: "circle",
+            "background-opacity": 0.333,
+            "border-color": "#2B65EC",
           },
         },
         {
           selector: "edge",
           style: {
+            "line-color": "#2B65EC",
+          },
+        },
+
+        {
+          selector: "node:selected",
+          style: {
             label: "data(label)",
-            width: 2,
+            "background-color": "#F08080",
+            "border-color": "red",
+          },
+        },
+
+        {
+          selector: "edge:selected",
+          style: {
+            label: "data(label)",
+            "line-color": "#F08080",
           },
         },
       ]}

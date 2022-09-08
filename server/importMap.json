@@ -11,6 +11,7 @@
     "react-animated-tree-v2": "https://esm.sh/react-animated-tree-v2@1.0.0",
     "cytoscape": "https://esm.sh/cytoscape",
     "cytoscape-dagre": "https://esm.sh/cytoscape-dagre",
+    "cytoscape-fcose": "https://esm.sh/cytoscape-fcose",
     "graphql": "https://esm.sh/graphql@16.5.0",
     "graphql_tag": "https://deno.land/x/graphql_tag@0.0.1/mod.ts",
     "graphql_modules": "https://esm.sh/graphql-modules@2.1.0",

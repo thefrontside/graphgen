@@ -13,7 +13,7 @@ const Inspectors = {
 } as const;
 
 export function Factory() {
-  const [view, setView] = useState<Views>("Graph");
+  const [view, setView] = useState<Views>("Meta");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

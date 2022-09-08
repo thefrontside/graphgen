@@ -123,3 +123,12 @@ br {
 .right ul {
   height: 100%;
 }
+
+#cy {
+  position: relative;
+  width: auto;
+  height: 90%;
+  z-index: 999;
+  margin-left: 290px;
+  right: 0px;
+}
