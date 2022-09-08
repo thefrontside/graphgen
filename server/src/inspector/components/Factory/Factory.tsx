@@ -15,6 +15,7 @@ const Inspectors = {
 export function Factory() {
   const [view, setView] = useState<Views>("Meta");
   const ref = useRef<HTMLDivElement>(null);
+  const [created, setCreated] = useState(false);
 
   useEffect(() => {
     async function createGraph() {
@@ -30,9 +31,13 @@ export function Factory() {
       }`);
     }
 
-    createGraph().catch(console.error);
+    createGraph().then(() => setCreated(true)).catch(console.error);
   }, [view]);
 
+  if(!created) {
+    return <div>loading......</div>
+  }
+  
   const Inspector = Inspectors[view];
 
   return (

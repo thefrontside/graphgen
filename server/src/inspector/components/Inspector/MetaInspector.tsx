@@ -13,6 +13,7 @@ interface Node {
   id: string;
   label: string;
   size: number;
+  child: boolean;
 }
 
 interface Edge {
@@ -44,15 +45,15 @@ function metaReducer(state: State, action: Actions): State {
       const nodes: {data: Node}[] = [];
       const edges: { data: Edge }[] = [];
 
-      const nodeSize = 30;
-      const defaultNodeSize = 250;
+      const defaultNodeSize = 100;
 
       for(const { typename, references = [], count } of action.payload) {
         nodes.push({
           data: {
             id: typename,
             label: `${typename} (${count})`,
-            size: Math.max(defaultNodeSize, count * nodeSize)
+            size: Math.max(defaultNodeSize, count * 10),
+            child: false
           }
         });
 
@@ -60,8 +61,9 @@ function metaReducer(state: State, action: Actions): State {
           const id = `${typename}-${fieldname}`
           nodes.push({data:{
             id,
-            label: `${fieldname} (${count})`,
-            size: defaultNodeSize
+            label: `${fieldname} (${referenceCount})`,
+            size: Math.max(defaultNodeSize, referenceCount * 5),
+            child: true
           }});
 
           edges.push({
@@ -128,15 +130,15 @@ export function MetaInspector(): JSX.Element {
     console.log(graphData);
     cyRef.current.layout({
       name: "fcose",
-      // quality: "default",
+      quality: "proof",
       // randomize: false,
       // animate: true,
       // animationEasing: "ease-out",
-      // uniformNodeDimensions: true,
-      // packComponents: true,
-      // tile: false,
-      // nodeRepulsion: 4500,
-      // idealEdgeLength: 50,
+      // uniformNodeDimensions: false,
+      packComponents: true,
+      tile: false,
+      nodeRepulsion: 4500,
+      idealEdgeLength: 100,
       // edgeElasticity: 0.45,
       // nestingFactor: 0.1,
       // gravity: 0.25,
@@ -144,8 +146,8 @@ export function MetaInspector(): JSX.Element {
       // gravityCompound: 1,
       // gravityRangeCompound: 1.5,
       // numIter: 2500,
-      // tilingPaddingVertical: 10,
-      // tilingPaddingHorizontal: 10,
+      tilingPaddingVertical: 10,
+      tilingPaddingHorizontal: 10,
       // initialEnergyOnIncremental: 0.3,
       // step: "all",
     } as any).run();
@@ -161,26 +163,24 @@ export function MetaInspector(): JSX.Element {
           selector: "node",
           css: {
             "text-valign": "center",
-            "text-halign": "center",
+            // "text-halign": "center",
             label: "data(label)",
-            "background-color": "#2B65EC",
-            color: "#fff",
-            'font-size': 60,
+            "background-color": function(node) {
+              console.log(node);
+              if (node.data("child"))
+                return  "#58D68D";
+              else
+                return "#2B65EC";
+            },
+            // color: "#fff",
+            'font-size': 20,
             'height': 'data(size)',
             'width': 'data(size)',
           },
         },
         {
-          selector: ":parent",
-          css: {
-            label: "data(label)",
-            "background-opacity": 0.333,
-            "border-color": "#2B65EC",
-          },
-        },
-        {
           selector: "edge",
-          style: {
+          css: {
             "line-color": "#2B65EC",
           },
         },
