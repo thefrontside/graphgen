@@ -7,10 +7,13 @@ import TreeItem from "@mui/lab/TreeItem";
 import { Loader } from "../Loader/Loader.tsx";
 import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
 import { GraphData } from "./types.ts";
+import { MetaView } from "./Meta.tsx";
+import { Item } from "./Item.tsx";
 
 interface State {
   graphData: GraphData;
 }
+
 type Actions =
   | {
     type: "SET_ROOTS";
@@ -21,7 +24,7 @@ type Actions =
     payload: {
       typename: string;
       // deno-lint-ignore no-explicit-any
-      data: Record<string, any>;
+      data: Record<string, { id: string; [key: string]: any }>;
     };
   };
 
@@ -42,28 +45,20 @@ function graphReducer(state: State, action: Actions): State {
       return { ...state, graphData: { ...graphData } };
     }
     case "ROOT_DATA": {
-      // deno-lint-ignore no-explicit-any
-      const ids = action.payload.data.map((n: any) => n.id) as string[];
       return {
         ...state,
         graphData: {
           ...state.graphData,
-          nodes: [
-            ...state.graphData.nodes.filter((n) =>
-              ids.includes(n.data.id) === false
-            ),
-            // deno-lint-ignore no-explicit-any
-            ...action.payload.data.map((n: any) => ({
-              data: { id: n.id, label: n.name },
-            })),
-          ],
-          edges: [
-            ...state.graphData.edges,
-            // deno-lint-ignore no-explicit-any
-            ...action.payload.data.map((n: any) => ({
-              data: { source: action.payload.typename, target: n.id },
-            })),
-          ],
+          nodes: state.graphData.nodes.flatMap((node) => {
+            return node.data.id == action.payload.typename
+              ? [{
+                ...node,
+                // deno-lint-ignore no-explicit-any
+                data: { ...node.data, children: action.payload.data as any },
+              }]
+              : [node];
+          }),
+          edges: [],
         },
       };
     }
@@ -124,7 +119,7 @@ export function GraphInspector(): JSX.Element {
 
   return (
     <TreeView
-      aria-label="file system navigator"
+      aria-label="graph inspector"
       defaultCollapseIcon={<ExpandMoreIcon />}
       defaultExpandIcon={<ChevronRightIcon />}
       sx={{ height: 240, flexGrow: 1, maxWidth: 400, overflowY: "auto" }}
@@ -132,7 +127,11 @@ export function GraphInspector(): JSX.Element {
     >
       {graphData.nodes.map(({ data: node }) => (
         <TreeItem key={node.id} nodeId={node.id} label={node.label}>
-          <Loader />
+          {node?.children
+            ? node.children.map(({ id, ...rest }) => (
+              <TreeItem key={id} nodeId={id} label={<Item item={rest}/>} />
+            ))
+            : <Loader />}
         </TreeItem>
       ))}
     </TreeView>

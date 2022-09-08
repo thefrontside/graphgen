@@ -2,11 +2,11 @@ import { useEffect, useReducer, useRef } from "react";
 import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
 import CytoscapeComponent from "react-cytoscapejs";
 import Cytoscape from "cytoscape";
-import DagreLayout from "cytoscape-dagre";
+import fcose from "cytoscape-fcose";
 import type { Type } from "../../../graphql/types.ts";
 import type { Edge, GraphData, Node } from './types.ts';
 
-Cytoscape.use(DagreLayout);
+Cytoscape.use(fcose);
 
 interface State {
   graphData: GraphData;

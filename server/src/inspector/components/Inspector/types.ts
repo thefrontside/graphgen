@@ -3,6 +3,7 @@ export interface Node {
   label: string;
   size: number;
   child: boolean; 
+  children?: Node[];
 }
 
 export interface Edge {

@@ -1,9 +1,9 @@
 import { Meta } from "../types.ts";
 
-export function MetaView({ name }: Meta): JSX.Element {
+export function MetaView({ label }: { label: string }): JSX.Element {
   return (
     <div className="meta">
-      <strong>{name}</strong>
+      <strong>{label}</strong>
     </div>
   );
 }
