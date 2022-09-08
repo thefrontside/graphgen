@@ -68,17 +68,11 @@ export const resolvers = {
 
       return result;
     },
-    root(_: any, { typename }: { typename: string }, context: GraphQLContext) {
-      const nodes = [...context.factory.all(typename)];
+    node(_: any, { typename, id }: { typename: string; id?: string; }, context: GraphQLContext) {
+      function makeSerializable<T extends Node & Record<string, any>>(node: T) {
+        const { references, fields } = context.factory.analysis.types[typename];
 
-      if (nodes.length === 0) {
-        return [];
-      }
-
-      const { references, fields } = context.factory.analysis.types[typename]  //.graph.types.vertex[typename].relationships.map((r) => r.type.substring(r.type.indexOf('.') + 1, r.type.indexOf('->')));
-
-      const shallow = nodes.map(node => {
-        const result: any = {};
+        const result: Record<string, unknown> = { id: node.id };
 
         for (const field of fields) {
           result[field.name] = node[field.name];
@@ -89,11 +83,27 @@ export const resolvers = {
         // }
 
         for (const reference of references) {
-          result[reference.name] = { id: node[reference.name].id, kind: 'relationship', loaded: false, data: [] }
+          result[reference.name] = { id: node[reference.name].id, kind: 'relationship', typenames: [reference.typenames], loaded: false, data: [] }
         }
 
         return result;
-      })
+      }
+
+      const types = context.factory.all(typename);
+
+
+      if (id) {
+        console.dir(makeSerializable(types.get("1")));
+        return makeSerializable(types.get(id));
+      }
+
+      const nodes = [...types];
+
+      if (nodes.length === 0) {
+        return [];
+      }
+
+      const shallow = nodes.map(makeSerializable);
 
       return shallow;
     }

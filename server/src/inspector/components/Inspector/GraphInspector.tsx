@@ -73,31 +73,37 @@ export function GraphInspector(): JSX.Element {
   const [{ graphData }, dispatch] = useReducer(graphReducer, emptyGraph);
 
   const handleChange = useCallback((e: SyntheticEvent, nodeIds: string[]) => {
-    if (nodeIds.length === 0) {
-      return;
-    }
-
-    async function root(typename: string) {
+    async function node({ typename, id }: { typename: string; id?: string }) {
       return await fetchGraphQL(
         `
-        query Root($root:String!) {
-          root(typename: $root)
+        query Node($typename: String!, $id: String) {
+          node(typename: $typename, id: $id)
         }
       `,
         {
-          "root": typename,
+          "typename": typename,
+          "id": id,
         },
       );
     }
 
-    const nodeId = nodeIds[0];
+    if (nodeIds.length === 0) {
+      return;
+    }
 
-    root(nodeId).then((result) => {
+    const args = nodeIds.length === 1
+      ? { typename: nodeIds[0] }
+      : { typename: nodeIds[0], id: nodeIds.slice(-1)[0] };
+
+    console.log(args);
+
+    node(args).then((result) => {
+      console.log(result);
       dispatch({
         type: "ROOT_DATA",
         payload: {
-          typename: nodeId,
-          data: result.data.root,
+          typename: nodeIds[0],
+          data: result.data.node,
         },
       });
     }).catch(console.error);
@@ -128,9 +134,15 @@ export function GraphInspector(): JSX.Element {
       {graphData.nodes.map(({ data: node }) => (
         <TreeItem key={node.id} nodeId={node.id} label={node.label}>
           {node?.children
-            ? node.children.map(({ id, ...rest }) => (
-              <TreeItem key={id} nodeId={id} label={<Item item={rest}/>} />
-            ))
+            ? node.children.map(({ id, ...rest }) => {
+              return (
+                <TreeItem
+                  key={id}
+                  nodeId={id}
+                  label={<Item typename={node.id} id={id} fields={rest} />}
+                />
+              );
+            })
             : <Loader />}
         </TreeItem>
       ))}
