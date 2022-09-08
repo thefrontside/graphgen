@@ -1,39 +1,17 @@
 import { useEffect, useReducer, useRef } from "react";
 import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
 import CytoscapeComponent from "react-cytoscapejs";
-import COSEBilkent from "cytoscape-cose-bilkent";
 import Cytoscape from "cytoscape";
 import DagreLayout from "cytoscape-dagre";
-import fcose from "cytoscape-fcose";
 import type { Type } from "../../../graphql/types.ts";
+import type { Edge, GraphData, Node } from './types.ts';
 
 Cytoscape.use(DagreLayout);
-
-interface Node {
-  id: string;
-  label: string;
-  size: number;
-  child: boolean;
-}
-
-interface Edge {
-  source: string;
-  target: string;
-  label?: string;
-}
-
-interface GraphData {
-  nodes: {
-    data: Node;
-  }[];
-  edges: {
-    data: Edge;
-  }[];
-}
 
 interface State {
   graphData: GraphData;
 }
+
 type Actions = {
   type: "SET_META";
   payload: Type[];
@@ -150,6 +128,7 @@ export function MetaInspector(): JSX.Element {
       tilingPaddingHorizontal: 10,
       // initialEnergyOnIncremental: 0.3,
       // step: "all",
+    // deno-lint-ignore no-explicit-any
     } as any).run();
     cyRef.current.fit();
   }, [graphData]);
