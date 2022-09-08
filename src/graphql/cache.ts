@@ -1,10 +1,10 @@
-import type { Alea } from "./alea.ts";
-import type { Graph, Vertex } from "./graph.ts";
+import type { Alea } from "../alea.ts";
+import type { Graph, Vertex } from "../graph.ts";
 
 // We have to use `hash.js` because it is synchronous
 // we can revisit when we make graph generation lazy / async.
-import { hash } from "./deps.ts";
-import { assert } from "./deps.ts";
+import { hash } from "../deps.ts";
+import { assert } from "../deps.ts";
 
 interface Cache {
   create(typename: string, preset: unknown, onMiss: () => Vertex): Vertex;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "./suite.ts";
-import { createDispatch } from "../src/dispatch.ts";
+import { createDispatch } from "../src/graphql/dispatch.ts";
 
 describe("dispatch", () => {
   it("can dispatch a method by name directly", () => {

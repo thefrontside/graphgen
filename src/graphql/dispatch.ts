@@ -1,4 +1,5 @@
-import { assert, globToRegExp } from "./deps.ts";
+import type { DispatchArg } from "./types.ts";
+import { assert, globToRegExp } from "../deps.ts";
 
 export interface Dispatch<T> {
   methods: string[];
@@ -16,8 +17,6 @@ export type DispatchResult = {
 export interface DispatchMethod<TContext> {
   (context: TContext, args: unknown[]): unknown;
 }
-
-export type DispatchArg = string | number | boolean | null | DispatchArg[];
 
 export interface DispatchOptions<T, TContext> {
   methods: Record<string, DispatchMethod<TContext>>;

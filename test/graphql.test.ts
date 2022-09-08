@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "./suite.ts";
 import { createGraphGen, Generate, GraphGen, Vertex } from "../mod.ts";
-import { cachekey } from "../src/cache.ts";
+import { cachekey } from "../src/graphql/cache.ts";
 import { Alea, createAlea } from "../src/alea.ts";
 
 describe("using graphql", () => {
