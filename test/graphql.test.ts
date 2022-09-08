@@ -47,6 +47,11 @@ describe("using graphql", () => {
       expect(all).toHaveLength(3);
     });
 
+    it("can lookup a single node by type and id", () => {
+      let person = graphgen.create("Person");
+      expect(graphgen.all("Person").get(person.id)).toBe(person);
+    });
+
     it("assigns an id and corresponding typename to each node", () => {
       let person = graphgen.create("Person");
       expect(person.id).toBe("1");
