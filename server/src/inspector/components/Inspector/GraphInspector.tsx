@@ -83,7 +83,6 @@ function graphReducer(state: State, action: Actions): State {
               data: { id: n.id, label: n.name },
             })),
           ],
-          // deno-lint-ignore no-explicit-any
           edges: [
             ...state.graphData.edges,
             ...action.payload.data.map((n: any) => ({
