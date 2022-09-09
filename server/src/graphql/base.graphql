@@ -58,6 +58,6 @@ input CreateInput {
 }
 
 type Mutation {
-  create(typename: String!, preset: JSON): JSON
-  createMany(inputs: [CreateInput!]!): JSON
+  create(typename: String!, preset: JSON): Vertex
+  createMany(inputs: [CreateInput!]!): [Vertex!]!
 }

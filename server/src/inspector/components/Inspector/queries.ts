@@ -1,40 +1,55 @@
 import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
 
-export async function relationship({ parentId, typename, fieldname }: { parentId: string; typename: string; fieldname: string }) {
+export async function node(id: string) {
   return await fetchGraphQL(
     `
-    query Relationship($parentId: String!, $typename: String!, $fieldname: String!) {
-      relationship(parentId:$parentId, typename:$typename, fieldname: $fieldname)
+    query Node($id: ID!) {
+      node(id:$id) {
+        id
+        ...on Vertex {
+          fields {
+            __typename
+            key
+            ... on JSONFieldEntry {
+              json
+            }
+            ... on VertexFieldEntry {
+              id
+            }
+            ... on VertexListFieldEntry {
+              ids
+            }
+          }
+        }
+      }
     }
   `,
     {
-      "parentId": parentId,
-      "typename": typename,
-      "fieldname": fieldname
-    },
-  );
-}
-
-
-export async function node({ typenames, id }: { typenames: string[]; id: string }) {
-  return await fetchGraphQL(
-    `
-    query Node($typenames: [String!]!, $id: String) {
-      node(typenames: $typenames, id: $id)
-    }
-  `,
-    {
-      "typenames": typenames,
       "id": id,
     },
   );
 }
 
-export async function root(typename: string) {
+export async function all(typename: string) {
   return await fetchGraphQL(
     `
-    query Root($typename: String!) {
-      root(typename: $typename)
+    query All($typename: String!) {
+      all(typename:$typename) {
+        id
+        fields {
+          key
+          __typename
+          ... on JSONFieldEntry {
+            json
+          }
+          ... on VertexFieldEntry {
+            id
+          }
+          ... on VertexListFieldEntry {
+            ids
+          }
+        }
+      }
     }
   `,
     {

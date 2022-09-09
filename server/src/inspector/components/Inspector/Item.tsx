@@ -1,21 +1,22 @@
 import TreeItem from "@mui/lab/TreeItem";
+import { VertexNode } from "../../../graphql/types.ts";
 import { Loader } from "../Loader/Loader.tsx";
 
+function isNode(node: unknown): node is VertexNode {
+  return typeof node === "object" && node !== null && "id" in node &&
+    "fields" in node;
+}
+
 export function Item(
-  { typename, id, fields }: {
-    typename: string;
-    id: string;
-    // deno-lint-ignore no-explicit-any
-    fields: Record<string, any>;
-  },
+  { node }: { node: VertexNode },
 ): JSX.Element {
-  console.log({fields});
-  const props = Object.entries(fields).filter(([k, v]) =>
-    v?.kind !== "relationship"
+  console.log(node);
+  const props = node.fields.flatMap((n) =>
+    n.__typename === "JSONFieldEntry" ? [n] : []
   );
 
-  const relationships = Object.entries(fields).filter(([k, v]) =>
-    v?.kind === "relationship"
+  const relationships = node.fields.flatMap((n) =>
+    n.__typename !== "JSONFieldEntry" ? [n] : []
   );
 
   return (
@@ -23,17 +24,32 @@ export function Item(
       <table>
         <tbody>
           {props
-            .map(([k, v]) => (
-              <tr key={id}>
-                <td>{k}</td>
-                <td>{v}</td>
-              </tr>
-            ))}
-          {relationships.map(([k, v]) => {
-            const relationshipId = `relationship.${v.parentId}.${typename}.${k}`;
+            .map((n) =>
+              isNode(n.json)
+                ? (
+                  <TreeItem key={n.json.id} nodeId={n.json.id} label={<Item node={n.json}/>}>
+                    <Loader />
+                  </TreeItem>
+                )
+                : (
+                  <tr key={n.key}>
+                    <td>{n.key}</td>
+                    <td>{n.json as string}</td>
+                  </tr>
+                )
+            )}
+          {relationships.map((r) => {
+            let id = `${r.__typename}|${r.key}|${node.id}|`;
 
+            if (r.__typename === "VertexFieldEntry") {
+              id += r.id;
+            } else if (r.__typename === "VertexListFieldEntry") {
+              id += r.ids.join(",");
+            } else {
+              throw new Error(`illegal FieldEntry`);
+            }
             return (
-              <TreeItem key={relationshipId} nodeId={relationshipId} label={k}>
+              <TreeItem key={id} nodeId={id} label={r.key}>
                 <Loader />
               </TreeItem>
             );

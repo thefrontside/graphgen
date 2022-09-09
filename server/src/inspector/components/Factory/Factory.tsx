@@ -34,7 +34,9 @@ export function Factory() {
           {typename:"Resource"},
           {typename:"User"},
           {typename:"Domain"}
-        ])
+        ]) {
+          id
+        }
       }`);
     }
 

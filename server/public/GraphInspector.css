@@ -98,6 +98,9 @@ br {
   width: 100%;
 }
 
+.sub-meta td:first-child {
+  vertical-align: top;
+}
 
 .meta {
   display: inline-block;

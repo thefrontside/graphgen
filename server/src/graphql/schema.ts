@@ -1,10 +1,10 @@
 // deno-lint-ignore-file no-explicit-any
 import { gql } from 'graphql_tag';
 import GraphQLJSON, { GraphQLJSONObject } from 'graphql-type-json';
-import { CreateInput, Type } from "./types.ts";
+import { CreateInput, Field, FieldEntry, Type, VertexNode } from "./types.ts";
 import type { GraphQLContext } from '../context/context.ts';
 import { assert } from 'assert-ts';
-import type { GraphGen, Node as GraphgenNode, Vertex } from '../../../mod.ts';
+import type { GraphGen, Node as GraphgenNode } from '../../../mod.ts';
 
 type Factory = GraphGen;
 
@@ -12,32 +12,6 @@ export const typeDefs = gql(Deno.readTextFileSync('./src/graphql/base.graphql'))
 
 export function idOf(node: GraphgenNode): string {
   return `${node.__typename}:${node.id}`;
-}
-
-interface Node {
-  id: string;
-}
-
-type Field = string | number | boolean | VertexNode | Field[];
-
-type FieldEntry =
-  {
-    __typename: 'VertexFieldEntry';
-    key: string;
-    id: string
-  } | {
-    __typename: 'VertexListFieldEntry';
-    key: string;
-    ids: string[];
-  } | {
-    __typename: 'JSONFieldEntry';
-    key: string;
-    json: unknown;
-  }
-
-interface VertexNode extends Node {
-  typename: string;
-  fields: FieldEntry[];
 }
 
 function isGraphgenNode(o: any): o is GraphgenNode {
@@ -117,33 +91,6 @@ function toVertexNode<T extends { id: string, typename: string, [key: string]: F
   } as VertexNode
 }
 
-function createMakeSerializable(context: GraphQLContext) {
-  return function makeSerializable<T extends Node & Record<string, any>>(node: T) {
-    const { references, fields } = context.factory.analysis.types[node.__typename];
-
-    const result: Record<string, unknown> = { id: `${node.__typename}:${node.id}` };
-
-    for (const field of fields) {
-      result[field.name] = node[field.name];
-    }
-
-    // for(const compute of computed) {
-    //   result[compute.name] = node[compute.name];
-    // }
-
-    for (const reference of references) {
-      result[reference.name] = { id: node[reference.name]?.id, parentId: node.id, kind: 'relationship', typenames: reference.typenames, parentTypeName: node.__typename }
-    }
-
-    return result;
-  }
-}
-
-interface NodeId {
-  id: string;
-  typename: string;
-}
-
 export const resolvers = {
   JSON: GraphQLJSON,
   JSONObject: GraphQLJSONObject,
@@ -195,14 +142,16 @@ export const resolvers = {
         return null;
       }
 
+      console.dir(toVertexNode(context.factory, typename, node));
+
       return toVertexNode(context.factory, typename, node);
     },
   },
   Mutation: {
-    create(_: any, { typename, preset }: CreateInput, context: GraphQLContext) {
+    create(_: any, { typename, preset }: CreateInput, context: GraphQLContext): VertexNode {
       return toVertexNode(context.factory, typename, context.factory.create(typename, preset));
     },
-    createMany(_: any, { inputs }: { inputs: CreateInput[] }, context: GraphQLContext) {
+    createMany(_: any, { inputs }: { inputs: CreateInput[] }, context: GraphQLContext): VertexNode[] {
       return inputs.map(({ typename, preset }) => toVertexNode(context.factory, typename, context.factory.create(typename, preset)));
     }
   }

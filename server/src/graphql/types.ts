@@ -59,3 +59,29 @@ export interface Type {
   references?: Array<Reference>;
   typename: Scalars['String'];
 }
+
+export interface Node {
+  id: string;
+}
+
+export type Field = string | number | boolean | VertexNode | Field[];
+
+export type FieldEntry =
+  {
+    __typename: 'VertexFieldEntry';
+    key: string;
+    id: string
+  } | {
+    __typename: 'VertexListFieldEntry';
+    key: string;
+    ids: string[];
+  } | {
+    __typename: 'JSONFieldEntry';
+    key: string;
+    json: unknown;
+  }
+
+export interface VertexNode extends Node {
+  typename: string;
+  fields: FieldEntry[];
+}
