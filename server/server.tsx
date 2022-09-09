@@ -4,7 +4,6 @@ import { makeContext } from "./src/context/context.ts";
 import { resolvers, typeDefs } from "./src/graphql/schema.ts";
 import App from "./src/app.tsx";
 import { createServer as createGraphqlServer } from '@graphql-yoga/common';
-import type { YogaLogger } from "@graphql-yoga/common";
 
 const server = await createServer({
   importMapPath: import.meta.resolve("./importMap.json"),

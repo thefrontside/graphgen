@@ -48,9 +48,8 @@ type Type {
 type Query {
   meta: [Type]
   graph: JSON
-  root(typename: String!): JSON
+  all(typename: String!): [Vertex!]
   node(id: ID!): Node
-  relationship(parentId: String!, typename: String!, fieldname: String!): JSON
 }
 
 input CreateInput {

@@ -4,7 +4,7 @@ import GraphQLJSON, { GraphQLJSONObject } from 'graphql-type-json';
 import { CreateInput, Type } from "./types.ts";
 import type { GraphQLContext } from '../context/context.ts';
 import { assert } from 'assert-ts';
-import type { GraphGen, Node as GraphgenNode } from '../../../mod.ts';
+import type { GraphGen, Node as GraphgenNode, Vertex } from '../../../mod.ts';
 
 type Factory = GraphGen;
 
@@ -179,37 +179,12 @@ export const resolvers = {
           }).sort((left, right) => right.count - left.count)
         })).sort((left, right) => right.count - left.count);
     },
-    graph(_: any, __: any, context: GraphQLContext) {
-      const rootKeys = Object.keys(context.factory.graph.roots);
-      const result: { typename: string, size: number }[] = [];
+    all(_: any, { typename }: { typename: string; }, context: GraphQLContext): VertexNode[] {
+      const collection = context.factory.all(typename);
 
-      for (const root of rootKeys) {
-        const nodes = [...context.factory.all(root)];
+      const nodes = [...collection];
 
-        if (nodes.length === 0) {
-          continue;
-        }
-
-        result.push({
-          typename: root,
-          size: nodes.length
-        });
-      }
-
-      return result;
-    },
-    root(_: any, { typename }: { typename: string; }, context: GraphQLContext) {
-      const makeSerializable = createMakeSerializable(context);
-
-      const types = context.factory.all(typename);
-
-      const nodes = [...types];
-
-      if (nodes.length === 0) {
-        return [];
-      }
-
-      return nodes.map(makeSerializable);
+      return nodes.map(node => toVertexNode(context.factory, typename, node));
     },
     node(_: any, { id }: { id: string; }, context: GraphQLContext) {
       const [typename, nodeId] = id.split(':')
@@ -222,26 +197,6 @@ export const resolvers = {
 
       return toVertexNode(context.factory, typename, node);
     },
-    relationship(_: any, { parentId, typename, fieldname }: { parentId: string; typename: string; fieldname: string }, context: GraphQLContext) {
-      const makeSerializable = createMakeSerializable(context);
-
-      const parent = context.factory.all(typename).get(parentId);
-
-      assert(!!parent, `no parent for type ${typename} ${parentId}`);
-
-      const data = parent[fieldname];
-
-      if (!data) {
-        console.log(`no data found for field ${fieldname} ${typename} ${parentId} `);
-        return;
-      }
-
-      if (Array.isArray(data)) {
-        return data.map(makeSerializable);
-      } else {
-        return makeSerializable(data);
-      }
-    }
   },
   Mutation: {
     create(_: any, { typename, preset }: CreateInput, context: GraphQLContext) {
