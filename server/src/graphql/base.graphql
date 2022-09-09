@@ -5,39 +5,23 @@ interface Node {
   id: ID!
 }
 
-type BooleanValue {
-  value: Boolean!
-}
-
-type StringValue {
-  value: String!
-}
-
-type IntValue {
-  value: String!
-}
-
-type FloatValue {
-  value: String!
-}
-
 interface FieldEntry {
   key: String!
 }
 
 type JSONFieldEntry implements FieldEntry {
   key: String!
-  value: JSON
+  json: JSON
 }
 
 type VertexFieldEntry implements FieldEntry {
   key: String!
-  value: ID!
+  id: ID!
 }
 
 type VertexListFieldEntry implements FieldEntry {
   key: String!
-  value: [ID!]!
+  ids: [ID!]!
 }
 
 type Vertex implements Node {

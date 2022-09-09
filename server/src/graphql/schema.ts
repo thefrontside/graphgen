@@ -4,11 +4,15 @@ import GraphQLJSON, { GraphQLJSONObject } from 'graphql-type-json';
 import { CreateInput, Type } from "./types.ts";
 import type { GraphQLContext } from '../context/context.ts';
 import { assert } from 'assert-ts';
-import type { GraphGen } from '../../../mod.ts';
+import type { GraphGen, Node as GraphgenNode } from '../../../mod.ts';
 
 type Factory = GraphGen;
 
 export const typeDefs = gql(Deno.readTextFileSync('./src/graphql/base.graphql'));
+
+export function idOf(node: GraphgenNode): string {
+  return `${node.__typename}:${node.id}`;
+}
 
 interface Node {
   id: string;
@@ -20,15 +24,15 @@ type FieldEntry =
   {
     __typename: 'VertexFieldEntry';
     key: string;
-    value: string
+    id: string
   } | {
     __typename: 'VertexListFieldEntry';
     key: string;
-    value: string[];
+    ids: string[];
   } | {
     __typename: 'JSONFieldEntry';
     key: string;
-    value: unknown;
+    json: unknown;
   }
 
 interface VertexNode extends Node {
@@ -37,7 +41,7 @@ interface VertexNode extends Node {
 }
 
 function toVertexNode<T extends { id: string, typename: string, [key: string]: Field | Field[] }>(factory: Factory, typename: string, value: T): VertexNode {
-  const { fields } = factory.analysis.types[typename];
+  const { fields, references } = factory.analysis.types[typename];
 
   const fieldEntries: FieldEntry[] = [];
 
@@ -45,8 +49,24 @@ function toVertexNode<T extends { id: string, typename: string, [key: string]: F
     fieldEntries.push({
       __typename: 'JSONFieldEntry',
       key: field.name,
-      value: value[field.name]
+      json: value[field.name]
     })
+  }
+
+  for(const reference of references) {
+    if(reference.arity.has === 'one') {
+      fieldEntries.push({
+        __typename: 'VertexFieldEntry',
+        key: reference.name,
+        id: idOf(value[reference.name] as unknown as GraphgenNode)
+      })
+    } else {
+      fieldEntries.push({
+        __typename: 'VertexListFieldEntry',
+        key: reference.name,
+        ids: (value[reference.name] as unknown as GraphgenNode[]).map(idOf)
+      })
+    }
   }
 
   return {
