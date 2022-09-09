@@ -3,15 +3,85 @@ import { gql } from 'graphql_tag';
 import GraphQLJSON, { GraphQLJSONObject } from 'graphql-type-json';
 import { CreateInput, Type } from "./types.ts";
 import type { GraphQLContext } from '../context/context.ts';
-import { Node } from '@frontside/graphgen';
+import { assert } from 'assert-ts';
+import type { GraphGen } from '../../../mod.ts';
+
+type Factory = GraphGen;
 
 export const typeDefs = gql(Deno.readTextFileSync('./src/graphql/base.graphql'));
 
-function toNode<T extends { id: string, typename: string }>(typename: string, value: T): Node {
-  return {
-    id: value.id,
-    __typename: typename
+interface Node {
+  id: string;
+}
+
+type Field = string | number | boolean | VertexNode | Field[];
+
+type FieldEntry =
+  {
+    __typename: 'VertexFieldEntry';
+    key: string;
+    value: string
+  } | {
+    __typename: 'VertexListFieldEntry';
+    key: string;
+    value: string[];
+  } | {
+    __typename: 'JSONFieldEntry';
+    key: string;
+    value: unknown;
   }
+
+interface VertexNode extends Node {
+  typename: string;
+  fields: FieldEntry[];
+}
+
+function toVertexNode<T extends { id: string, typename: string, [key: string]: Field | Field[] }>(factory: Factory, typename: string, value: T): VertexNode {
+  const { fields } = factory.analysis.types[typename];
+
+  const fieldEntries: FieldEntry[] = [];
+
+  for (const field of fields) {
+    fieldEntries.push({
+      __typename: 'JSONFieldEntry',
+      key: field.name,
+      value: value[field.name]
+    })
+  }
+
+  return {
+    id: `${typename}:${value.id}`,
+    __typename: 'Vertex',
+    typename,
+    fields: fieldEntries
+  } as VertexNode
+}
+
+function createMakeSerializable(context: GraphQLContext) {
+  return function makeSerializable<T extends Node & Record<string, any>>(node: T) {
+    const { references, fields } = context.factory.analysis.types[node.__typename];
+
+    const result: Record<string, unknown> = { id: `${node.__typename}:${node.id}` };
+
+    for (const field of fields) {
+      result[field.name] = node[field.name];
+    }
+
+    // for(const compute of computed) {
+    //   result[compute.name] = node[compute.name];
+    // }
+
+    for (const reference of references) {
+      result[reference.name] = { id: node[reference.name]?.id, parentId: node.id, kind: 'relationship', typenames: reference.typenames, parentTypeName: node.__typename }
+    }
+
+    return result;
+  }
+}
+
+interface NodeId {
+  id: string;
+  typename: string;
 }
 
 export const resolvers = {
@@ -68,34 +138,10 @@ export const resolvers = {
 
       return result;
     },
-    node(_: any, { typename, id }: { typename: string; id?: string; }, context: GraphQLContext) {
-      function makeSerializable<T extends Node & Record<string, any>>(node: T) {
-        const { references, fields } = context.factory.analysis.types[typename];
-
-        const result: Record<string, unknown> = { id: node.id };
-
-        for (const field of fields) {
-          result[field.name] = node[field.name];
-        }
-
-        // for(const compute of computed) {
-        //   result[compute.name] = node[compute.name];
-        // }
-
-        for (const reference of references) {
-          result[reference.name] = { id: node[reference.name].id, kind: 'relationship', typenames: [reference.typenames], loaded: false, data: [] }
-        }
-
-        return result;
-      }
+    root(_: any, { typename }: { typename: string; }, context: GraphQLContext) {
+      const makeSerializable = createMakeSerializable(context);
 
       const types = context.factory.all(typename);
-
-
-      if (id) {
-        console.dir(makeSerializable(types.get("1")));
-        return makeSerializable(types.get(id));
-      }
 
       const nodes = [...types];
 
@@ -103,17 +149,46 @@ export const resolvers = {
         return [];
       }
 
-      const shallow = nodes.map(makeSerializable);
+      return nodes.map(makeSerializable);
+    },
+    node(_: any, { id }: { id: string; }, context: GraphQLContext) {
+      const [typename, nodeId] = id.split(':')
 
-      return shallow;
+      const node = context.factory.all(typename)?.get(nodeId);
+
+      if (!node) {
+        return null;
+      }
+
+      return toVertexNode(context.factory, typename, node);
+    },
+    relationship(_: any, { parentId, typename, fieldname }: { parentId: string; typename: string; fieldname: string }, context: GraphQLContext) {
+      const makeSerializable = createMakeSerializable(context);
+
+      const parent = context.factory.all(typename).get(parentId);
+
+      assert(!!parent, `no parent for type ${typename} ${parentId}`);
+
+      const data = parent[fieldname];
+
+      if (!data) {
+        console.log(`no data found for field ${fieldname} ${typename} ${parentId} `);
+        return;
+      }
+
+      if (Array.isArray(data)) {
+        return data.map(makeSerializable);
+      } else {
+        return makeSerializable(data);
+      }
     }
   },
   Mutation: {
     create(_: any, { typename, preset }: CreateInput, context: GraphQLContext) {
-      return toNode(typename, context.factory.create(typename, preset));
+      return toVertexNode(context.factory, typename, context.factory.create(typename, preset));
     },
     createMany(_: any, { inputs }: { inputs: CreateInput[] }, context: GraphQLContext) {
-      return inputs.map(({ typename, preset }) => toNode(typename, context.factory.create(typename, preset)));
+      return inputs.map(({ typename, preset }) => toVertexNode(context.factory, typename, context.factory.create(typename, preset)));
     }
   }
 };

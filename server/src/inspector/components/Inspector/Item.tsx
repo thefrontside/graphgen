@@ -9,6 +9,7 @@ export function Item(
     fields: Record<string, any>;
   },
 ): JSX.Element {
+  console.log({fields});
   const props = Object.entries(fields).filter(([k, v]) =>
     v?.kind !== "relationship"
   );
@@ -29,8 +30,8 @@ export function Item(
               </tr>
             ))}
           {relationships.map(([k, v]) => {
-            const relationshipId = `${v.id}.${v.typenames[0]}`;
-            console.log({ relationshipId });
+            const relationshipId = `relationship.${v.parentId}.${typename}.${k}`;
+
             return (
               <TreeItem key={relationshipId} nodeId={relationshipId} label={k}>
                 <Loader />

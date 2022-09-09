@@ -4,6 +4,8 @@ export interface Node {
   size: number;
   child: boolean; 
   children?: Node[];
+  // deno-lint-ignore no-explicit-any
+  [key: string]: any;
 }
 
 export interface Edge {

@@ -6,9 +6,10 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import TreeItem from "@mui/lab/TreeItem";
 import { Loader } from "../Loader/Loader.tsx";
 import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
-import { GraphData } from "./types.ts";
+import { GraphData, Node } from "./types.ts";
 import { MetaView } from "./Meta.tsx";
 import { Item } from "./Item.tsx";
+import { node, relationship, root } from "./queries.ts";
 
 interface State {
   graphData: GraphData;
@@ -16,21 +17,33 @@ interface State {
 
 type Actions =
   | {
-    type: "SET_ROOTS";
+    type: "SET_ROOT";
     payload: { typename: string; size: number }[];
   }
   | {
-    type: "ROOT_DATA";
+    type: "NODE";
     payload: {
       typename: string;
-      // deno-lint-ignore no-explicit-any
-      data: Record<string, { id: string; [key: string]: any }>;
+      data: Node[];
+    };
+  }
+  | {
+    type: "RELATIONSHIP";
+    payload: {
+      id: string;
+      typename: string;
+      fieldname: string;
+      data:
+        | Node
+        | Node[];
     };
   };
 
+const idMap: Record<string, Record<string, Node>> = {};
+
 function graphReducer(state: State, action: Actions): State {
   switch (action.type) {
-    case "SET_ROOTS": {
+    case "SET_ROOT": {
       const graphData: GraphData = {
         nodes: action.payload.map(({ typename, size }) => ({
           data: {
@@ -44,23 +57,42 @@ function graphReducer(state: State, action: Actions): State {
       };
       return { ...state, graphData: { ...graphData } };
     }
-    case "ROOT_DATA": {
+    case "NODE": {
       return {
         ...state,
         graphData: {
           ...state.graphData,
           nodes: state.graphData.nodes.flatMap((node) => {
-            return node.data.id == action.payload.typename
-              ? [{
+            if(node.data.id == action.payload.typename) {              
+              for(const o of action.payload.data) {
+                if (!idMap[o.typename]) {
+                  idMap[o.typename] = {};
+                }
+                idMap[action.payload.typename][o.id] = o
+              }
+
+              return [{
                 ...node,
                 // deno-lint-ignore no-explicit-any
                 data: { ...node.data, children: action.payload.data as any },
               }]
-              : [node];
+            } else {
+              return [node];
+            }
           }),
           edges: [],
         },
       };
+    }
+    case "RELATIONSHIP": {
+      const parent = idMap[action.payload.typename][action.payload.id];
+
+      parent[action.payload.fieldname] = action.payload.data;
+
+      // TODO: use immer or something for nested package updates
+      const copy = JSON.parse(JSON.stringify(state.graphData));
+      
+      return { ...state, graphData: { ...copy } };
     }
     default:
       return state;
@@ -72,38 +104,36 @@ const emptyGraph = { graphData: { nodes: [], edges: [] } };
 export function GraphInspector(): JSX.Element {
   const [{ graphData }, dispatch] = useReducer(graphReducer, emptyGraph);
 
-  const handleChange = useCallback((e: SyntheticEvent, nodeIds: string[]) => {
-    async function node({ typename, id }: { typename: string; id?: string }) {
-      return await fetchGraphQL(
-        `
-        query Node($typename: String!, $id: String) {
-          node(typename: $typename, id: $id)
-        }
-      `,
-        {
-          "typename": typename,
-          "id": id,
-        },
-      );
-    }
-
+  const handleChange = useCallback((_: SyntheticEvent, nodeIds: string[]) => {
     if (nodeIds.length === 0) {
       return;
     }
 
-    const args = nodeIds.length === 1
-      ? { typename: nodeIds[0] }
-      : { typename: nodeIds[0], id: nodeIds.slice(-1)[0] };
+    const nodeId = nodeIds[0];
 
-    console.log(args);
+    if (nodeId.startsWith("relationship.")) {
+      const [, parentId, typename, fieldname] = nodeId.split(".");
+      relationship({ parentId, typename, fieldname })
+        .then((response) =>
+          dispatch({
+            type: "RELATIONSHIP",
+            payload: {
+              id: parentId,
+              typename,
+              fieldname,
+              data: response.data.relationship,
+            },
+          })
+        )
+        .catch(console.error);
+    }
 
-    node(args).then((result) => {
-      console.log(result);
+    root(nodeId).then((result) => {
       dispatch({
-        type: "ROOT_DATA",
+        type: "NODE",
         payload: {
           typename: nodeIds[0],
-          data: result.data.node,
+          data: result.data.root,
         },
       });
     }).catch(console.error);
@@ -117,7 +147,7 @@ export function GraphInspector(): JSX.Element {
       }
       `);
 
-      dispatch({ type: "SET_ROOTS", payload: graph.data.graph });
+      dispatch({ type: "SET_ROOT", payload: graph.data.graph });
     }
 
     loadGraph().catch(console.error);
@@ -128,7 +158,6 @@ export function GraphInspector(): JSX.Element {
       aria-label="graph inspector"
       defaultCollapseIcon={<ExpandMoreIcon />}
       defaultExpandIcon={<ChevronRightIcon />}
-      sx={{ height: 240, flexGrow: 1, maxWidth: 400, overflowY: "auto" }}
       onNodeToggle={handleChange}
     >
       {graphData.nodes.map(({ data: node }) => (
