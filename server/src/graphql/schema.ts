@@ -40,8 +40,12 @@ interface VertexNode extends Node {
   fields: FieldEntry[];
 }
 
+function isGraphgenNode(o: any): o is GraphgenNode {
+  return typeof o === 'object' && '__typename' in o && 'id' in o;
+}
+
 function toVertexNode<T extends { id: string, typename: string, [key: string]: Field | Field[] }>(factory: Factory, typename: string, value: T): VertexNode {
-  const { fields, references } = factory.analysis.types[typename];
+  const { fields, references, computed } = factory.analysis.types[typename];
 
   const fieldEntries: FieldEntry[] = [];
 
@@ -53,8 +57,8 @@ function toVertexNode<T extends { id: string, typename: string, [key: string]: F
     })
   }
 
-  for(const reference of references) {
-    if(reference.arity.has === 'one') {
+  for (const reference of references) {
+    if (reference.arity.has === 'one') {
       fieldEntries.push({
         __typename: 'VertexFieldEntry',
         key: reference.name,
@@ -65,6 +69,42 @@ function toVertexNode<T extends { id: string, typename: string, [key: string]: F
         __typename: 'VertexListFieldEntry',
         key: reference.name,
         ids: (value[reference.name] as unknown as GraphgenNode[]).map(idOf)
+      })
+    }
+  }
+
+  for (const compute of computed) {
+    const materialized = value[compute.name];
+
+    if (isGraphgenNode(materialized)) {
+      fieldEntries.push({
+        __typename: 'VertexFieldEntry',
+        key: compute.name,
+        id: idOf(materialized)
+      })
+    } else if (Array.isArray(materialized)) {
+      const some = materialized.some(isGraphgenNode);
+
+      if (some) {
+        assert(materialized.every(isGraphgenNode), `Not all nodes for ${compute.name} are GraphGen nodes`);
+
+        fieldEntries.push({
+          __typename: 'VertexListFieldEntry',
+          key: compute.name,
+          ids: (value[compute.name] as unknown as GraphgenNode[]).map(idOf),
+        })
+      } else {
+        fieldEntries.push({
+          __typename: 'JSONFieldEntry',
+          key: compute.name,
+          json: value[compute.name]
+        })
+      }
+    } else {
+      fieldEntries.push({
+        __typename: 'JSONFieldEntry',
+        key: compute.name,
+        json: value[compute.name]
       })
     }
   }
