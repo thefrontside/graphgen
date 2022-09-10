@@ -1,18 +1,25 @@
-import { VertexNode } from "../../../graphql/types.ts";
-import { GraphData } from "./types.ts";
+import type { FieldEntry, VertexNode } from "../../../graphql/types.ts";
+import produce from "immer";
 import { assert } from "assert-ts";
 
+interface Type {
+  typename: string;
+  size: number;
+  label: string;
+  nodes: VertexNode[];
+}
+
 interface State {
-  graphData: GraphData;
+  graph: Record<string, Type>;
 }
 
 type Actions =
   | {
-    type: "SET_ROOT";
+    type: "ROOTS";
     payload: { typename: string; count: number }[];
   }
   | {
-    type: "NODE";
+    type: "ALL";
     payload: {
       nodes: VertexNode[];
       typename: string;
@@ -21,83 +28,67 @@ type Actions =
   | {
     type: "EXPAND";
     payload: {
-      fieldType: "VertexListFieldEntry" | "VertexFieldEntry";
-      fieldname: string;
-      parentId: string;
-      id: string;
+      path: string[];
       data: VertexNode;
     };
   };
 
-const idMap: Record<string, VertexNode> = {};
-
-export function graphReducer(state: State, action: Actions): State {
+export const graphReducer = produce((state: State, action: Actions) => {
   switch (action.type) {
-    case "SET_ROOT": {
-      const graphData: GraphData = {
-        nodes: action.payload.map(({ typename, count }) => ({
-          data: {
-            id: typename,
-            label: `${typename} (${count})`,
-            size: count,
-          },
-        })),
-        edges: [],
-      };
-      return { ...state, graphData: { ...graphData } };
-    }
-    case "NODE": {
-      return {
-        ...state,
-        graphData: {
-          ...state.graphData,
-          nodes: state.graphData.nodes.flatMap((node) => {
-            if (node.data.id == action.payload.typename) {
-              for (const vertexNode of action.payload.nodes) {
-                idMap[vertexNode.id] = vertexNode;
-              }
+    case "ROOTS": {
+      const graph: Record<string, Type> = {};
 
-              return [{
-                ...node,
-                // deno-lint-ignore no-explicit-any
-                data: { ...node.data, children: action.payload.nodes as any },
-              }];
-            } else {
-              return [node];
-            }
-          }),
-          edges: [],
-        },
-      };
+      for (const { typename, count } of action.payload) {
+        graph[typename] = {
+          typename,
+          size: count,
+          label: `${typename} (${count})`,
+          nodes: []
+        }
+      }
+
+      return { graph };
+    }
+    case "ALL": {
+      const { typename, nodes } = action.payload;
+
+      state.graph[typename].nodes = nodes;
+
+      break;
     }
     case "EXPAND": {
-      const { fieldType, parentId, fieldname, data } = action.payload;
+      const { path, data } = action.payload;
 
-      const parent = idMap[parentId];
+      const [root, parentId, fieldname, ...props] = path;
 
-      assert(!!parent, `no parent for ${parentId}`);
+      const parent = state.graph[root];
 
-      if (fieldType === "VertexFieldEntry") {
-        parent.fields = parent.fields.flatMap((field) =>
-          field.key === fieldname
-            ? [{
-              ...field,
-              __typename: 'JSONFieldEntry',
-              json: data
-            }]
-            : [field]
-        );
+      assert(!!parent, `no parent for ${path[0]}`);
 
-        idMap[data.id] = data;
+      const nodeIndex = parent.nodes.findIndex(c => c.id === parentId);
 
-        const copy = JSON.parse(JSON.stringify(state.graphData));
+      const fieldIndex = parent.nodes[nodeIndex].fields.findIndex(f => f.key === fieldname);
 
-        return { ...state, graphData: { ...copy } };
+      if (props.length > 0) {
+        // deno-lint-ignore no-explicit-any
+        let draft: any = parent.nodes[nodeIndex].fields[fieldIndex];
+        
+        for(const prop of props) {
+          if (prop !== 'data' && typeof draft.fields !== 'undefined') {
+            const index = draft.fields.findIndex((f: FieldEntry) => f.key === prop);
+            
+            draft = draft.fields[index];
+          } else {
+            draft = draft[prop];
+          }
+        }
+        
+        draft['data'] = data;
+      } else {
+        parent.nodes[nodeIndex].fields[fieldIndex]['data'] = data;
       }
 
       return state;
     }
-    default:
-      return state;
   }
-}
+});

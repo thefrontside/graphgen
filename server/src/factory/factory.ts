@@ -1,5 +1,5 @@
-import { createGraphGen } from '../../../mod.ts'
-import type { GraphGen } from '../../../mod.ts';
+import { createGraphGen } from '@frontside/graphgen'
+import type { GraphGen } from '@frontside/graphgen';
 import { Computed } from '../server/types.ts';
 
 export type Factory = GraphGen;

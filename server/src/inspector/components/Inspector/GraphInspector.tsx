@@ -6,23 +6,14 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import TreeItem from "@mui/lab/TreeItem";
 import { Loader } from "../Loader/Loader.tsx";
 import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
-import { GraphData } from "./types.ts";
-import { Item } from "./Item.tsx";
+import { Node } from "./Node.tsx";
 import { all, node } from "./queries.ts";
-import { VertexNode } from "../../../graphql/types.ts";
 import { graphReducer } from "./graphReducer.ts";
 
-type ExpandedProperty = [
-  "VertexListFieldEntry" | "VertexFieldEntry",
-  string,
-  string,
-  string,
-];
-
-const emptyGraph = { graphData: { nodes: [], edges: [] } };
+const emptyGraph = { graph: {} };
 
 export function GraphInspector(): JSX.Element {
-  const [{ graphData }, dispatch] = useReducer(graphReducer, emptyGraph);
+  const [{ graph }, dispatch] = useReducer(graphReducer, emptyGraph);
 
   const handleChange = useCallback((_: SyntheticEvent, nodeIds: string[]) => {
     if (nodeIds.length === 0) {
@@ -32,18 +23,18 @@ export function GraphInspector(): JSX.Element {
     const nodeId = nodeIds[0];
 
     if (nodeId.indexOf("|") > -1) {
-      const [fieldType, fieldname, parentId, id]: ExpandedProperty = nodeId
-        .split("|") as ExpandedProperty;
+      const full = nodeId.split("|");
 
-      if (fieldType === "VertexFieldEntry") {
+      const id = full.slice(-1)[0]
+
+      if (id.includes(',')) {
+        throw new Error('not implemented yet')
+      } else {
         node(id).then((response) =>
           dispatch({
             type: "EXPAND",
             payload: {
-              fieldType,
-              fieldname,
-              parentId,
-              id,
+              path: full.slice(0, -1),
               data: response.data.node,
             },
           })
@@ -55,7 +46,7 @@ export function GraphInspector(): JSX.Element {
 
     all(nodeId).then((result) => {
       dispatch({
-        type: "NODE",
+        type: "ALL",
         payload: {
           typename: nodeIds[0],
           nodes: result.data.all,
@@ -75,7 +66,7 @@ export function GraphInspector(): JSX.Element {
       }
       `);
 
-      dispatch({ type: "SET_ROOT", payload: graph.data.meta });
+      dispatch({ type: "ROOTS", payload: graph.data.meta });
     }
 
     loadGraph().catch(console.error);
@@ -87,17 +78,17 @@ export function GraphInspector(): JSX.Element {
       defaultCollapseIcon={<ExpandMoreIcon />}
       defaultExpandIcon={<ChevronRightIcon />}
       onNodeToggle={handleChange}
+      multiSelect={false}
     >
-      {graphData.nodes.map(({ data: node }) => (
-        <TreeItem key={node.id} nodeId={node.id} label={node.label}>
-          {node?.children
-            ? node.children.map((vertexNode) => {
-              const [id, typename] = vertexNode.id;
+      {Object.values(graph).map(({ typename, label, nodes }) => (
+        <TreeItem key={typename} nodeId={typename} label={label}>
+          {nodes.length > 0
+            ? nodes.map((vertexNode) => {
               return (
                 <TreeItem
-                  key={id}
-                  nodeId={id}
-                  label={<Item node={vertexNode} />}
+                  key={vertexNode.id}
+                  nodeId={vertexNode.id}
+                  label={<Node parentId={typename} node={vertexNode} />}
                 />
               );
             })

@@ -4,7 +4,7 @@ import GraphQLJSON, { GraphQLJSONObject } from 'graphql-type-json';
 import { CreateInput, Field, FieldEntry, Type, VertexNode } from "./types.ts";
 import type { GraphQLContext } from '../context/context.ts';
 import { assert } from 'assert-ts';
-import type { GraphGen, Node as GraphgenNode } from '../../../mod.ts';
+import type { GraphGen, Node as GraphgenNode } from '@frontside/graphgen';
 
 type Factory = GraphGen;
 
@@ -141,8 +141,6 @@ export const resolvers = {
       if (!node) {
         return null;
       }
-
-      console.dir(toVertexNode(context.factory, typename, node));
 
       return toVertexNode(context.factory, typename, node);
     },

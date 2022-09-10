@@ -4,11 +4,11 @@ export interface Node {
   id: string;
   label: string;
   size: number;
-  child?: boolean; 
+  child?: boolean;
   children?: VertexNode[];
   // deno-lint-ignore no-explicit-any
   [key: string]: any;
-  
+
 }
 
 export interface Edge {
@@ -25,3 +25,11 @@ export interface GraphData {
     data: Edge;
   }[];
 }
+
+
+export type ExpandedProperty = [
+  "VertexListFieldEntry" | "VertexFieldEntry",
+  string,
+  string,
+  string,
+];
