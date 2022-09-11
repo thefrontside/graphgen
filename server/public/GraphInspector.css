@@ -93,13 +93,26 @@ br {
   fill: #77eb67;
 }
 
-.sub-meta  {
+.node  {
   border: 1px solid #e2e2e2;
   width: 100%;
 }
 
-.sub-meta td:first-child {
-  vertical-align: top;
+.field {
+  display: grid;
+  grid-template-columns: [th] 1fr [td] 3fr;
+}
+
+.th {
+  grid-column: th;
+  border: 1px solid #e2e2e2;
+  padding: 0.25rem;
+}
+
+.td {
+  grid-column: td;
+  border: 1px solid #e2e2e2;
+  padding: 0.25rem;
 }
 
 .meta {
