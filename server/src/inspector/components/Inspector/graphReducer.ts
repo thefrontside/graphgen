@@ -1,4 +1,4 @@
-import type { FieldEntry, VertexNode } from "../../../graphql/types.ts";
+import type { VertexNode } from "../../../graphql/types.ts";
 import produce from "immer";
 import { assert } from "assert-ts";
 
@@ -27,7 +27,7 @@ type Actions =
   }
   | {
     type: "EXPAND";
-    payload: 
+    payload:
     | {
       kind: 'VertexFieldEntry'
       path: string[];
@@ -39,6 +39,10 @@ type Actions =
       nodes: VertexNode[];
     }
   };
+
+function isNumber(s: unknown): s is number {
+  return !isNaN(Number(s));
+}
 
 export const graphReducer = produce((state: State, action: Actions) => {
   switch (action.type) {
@@ -66,43 +70,36 @@ export const graphReducer = produce((state: State, action: Actions) => {
     case "EXPAND": {
       const { path, kind } = action.payload;
 
-      const [root, parentId, fieldname, ...props] = path;
+      /*
+        path should look something like this which is a path to any object
+        
+        'Component.nodes.0.fields.5.data.0.fields.3'
+        
+        and splits into the prop array
+        
+        ['Component', 'nodes', '0', 'fields', 'data', '0', 'fields', '3']
+      */
+      const [root, ...props] = path;
 
-      const parent = state.graph[root];
+      // deno-lint-ignore no-explicit-any
+      let draft: any = state.graph[root];
 
-      assert(!!parent, `no parent for ${path[0]}`);
+      assert(!!draft, `no parent for ${path[0]}`);
 
-      const nodeIndex = parent.nodes.findIndex(c => c.id === parentId);
-
-      const fieldIndex = parent.nodes[nodeIndex].fields.findIndex(f => f.key === fieldname);
-
-      if (props.length > 0) {
-        // deno-lint-ignore no-explicit-any
-        let draft: any = parent.nodes[nodeIndex].fields[fieldIndex];
-
-        for (const prop of props) {
-          if (prop !== 'data' && typeof draft.fields !== 'undefined') {
-            const index = draft.fields.findIndex((f: FieldEntry) => f.key === prop);
-
-            assert(index > -1, `no field index found in path ${path.join('>')}`);
-
-            draft = draft.fields[index];
-          } else {
-            draft = draft[prop];
-          }
-        }
-
-        if(kind === 'VertexFieldEntry') {
-          draft['data'] = action.payload.node;
+      for (const prop of props) {
+        if (isNumber(prop)) {
+          draft = draft[Number(prop)];
         } else {
-          draft['data'] = action.payload.nodes;
+          draft = draft[prop];
         }
+      }
+
+      assert(!!draft, `no draft found at ${path.join('.')}`)
+
+      if (kind === 'VertexFieldEntry') {
+        draft['data'] = action.payload.node;
       } else {
-        if(kind === 'VertexFieldEntry') {
-          parent.nodes[nodeIndex].fields[fieldIndex]['data'] = action.payload.node;
-        } else {
-          parent.nodes[nodeIndex].fields[fieldIndex]['data'] = action.payload.nodes;
-        }
+        draft['data'] = action.payload.nodes;
       }
 
       return state;

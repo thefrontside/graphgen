@@ -34,9 +34,10 @@ export function Node(
               </tr>
             ))}
           {relationships.map((r) => {
+            const index = node.fields.findIndex(field => r.key === field.key);
             const path = /\|data$/.test(parentId)
               ? `${parentId}.${r.key}`
-              : `${parentId}.${node.id}.${r.key}`;
+              : `${parentId}.fields.${index}`;
             let id = path;
 
             if (r.__typename === "VertexFieldEntry") {
@@ -58,11 +59,11 @@ export function Node(
                     />
                   )
                   : r.__typename === "VertexListFieldEntry" && !!r.data
-                  ? r.data.map((n) => (
+                  ? r.data.map((n, i) => (
                     <TreeItem
                       key={n.id}
                       nodeId={n.id}
-                      label={<Node parentId={`${path}.data`} node={n} />}
+                      label={<Node parentId={`${path}.data.${i}`} node={n} />}
                     />
                   ))
                   : <Loader />}

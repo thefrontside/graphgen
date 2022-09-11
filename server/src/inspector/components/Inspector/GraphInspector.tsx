@@ -112,12 +112,12 @@ export function GraphInspector(): JSX.Element {
       {Object.values(graph).map(({ typename, label, nodes }) => (
         <TreeItem key={typename} nodeId={typename} label={label}>
           {nodes.length > 0
-            ? nodes.map((vertexNode) => {
+            ? nodes.map((vertexNode, i) => {
               return (
                 <TreeItem
                   key={vertexNode.id}
                   nodeId={vertexNode.id}
-                  label={<Node parentId={typename} node={vertexNode} />}
+                  label={<Node parentId={`${typename}.nodes.${i}`} node={vertexNode} />}
                 />
               );
             })

@@ -94,7 +94,6 @@ export function MetaInspector(): JSX.Element {
     }
     
     loadMeta().then((d) => {
-      console.log(d);
       dispatch({ type: "SET_META", payload: d.data.meta })
     }
     ).catch(console.error);
@@ -105,7 +104,6 @@ export function MetaInspector(): JSX.Element {
       return;
     }
 
-    console.log(graphData);
     cyRef.current.layout({
       name: "fcose",
       quality: "proof",
