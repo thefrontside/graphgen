@@ -71,17 +71,17 @@ export type FieldEntry =
     __typename: 'VertexFieldEntry';
     key: string;
     id: string
-    data: VertexNode;
+    data?: VertexNode;
   } | {
     __typename: 'VertexListFieldEntry';
     key: string;
     ids: string[];
-    data: VertexNode[]
+    data?: VertexNode[]
   } | {
     __typename: 'JSONFieldEntry';
     key: string;
     json: unknown;
-    data: never;
+    data?: never;
   }
 
 export interface VertexNode extends Node {

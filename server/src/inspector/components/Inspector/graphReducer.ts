@@ -27,10 +27,17 @@ type Actions =
   }
   | {
     type: "EXPAND";
-    payload: {
+    payload: 
+    | {
+      kind: 'VertexFieldEntry'
       path: string[];
-      data: VertexNode;
-    };
+      node: VertexNode;
+    }
+    | {
+      kind: 'VertexListFieldEntry';
+      path: string[];
+      nodes: VertexNode[];
+    }
   };
 
 export const graphReducer = produce((state: State, action: Actions) => {
@@ -57,7 +64,7 @@ export const graphReducer = produce((state: State, action: Actions) => {
       break;
     }
     case "EXPAND": {
-      const { path, data } = action.payload;
+      const { path, kind } = action.payload;
 
       const [root, parentId, fieldname, ...props] = path;
 
@@ -72,20 +79,30 @@ export const graphReducer = produce((state: State, action: Actions) => {
       if (props.length > 0) {
         // deno-lint-ignore no-explicit-any
         let draft: any = parent.nodes[nodeIndex].fields[fieldIndex];
-        
-        for(const prop of props) {
+
+        for (const prop of props) {
           if (prop !== 'data' && typeof draft.fields !== 'undefined') {
             const index = draft.fields.findIndex((f: FieldEntry) => f.key === prop);
-            
+
+            assert(index > -1, `no field index found in path ${path.join('>')}`);
+
             draft = draft.fields[index];
           } else {
             draft = draft[prop];
           }
         }
-        
-        draft['data'] = data;
+
+        if(kind === 'VertexFieldEntry') {
+          draft['data'] = action.payload.node;
+        } else {
+          draft['data'] = action.payload.nodes;
+        }
       } else {
-        parent.nodes[nodeIndex].fields[fieldIndex]['data'] = data;
+        if(kind === 'VertexFieldEntry') {
+          parent.nodes[nodeIndex].fields[fieldIndex]['data'] = action.payload.node;
+        } else {
+          parent.nodes[nodeIndex].fields[fieldIndex]['data'] = action.payload.nodes;
+        }
       }
 
       return state;

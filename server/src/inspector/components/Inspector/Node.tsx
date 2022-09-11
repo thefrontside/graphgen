@@ -34,7 +34,9 @@ export function Node(
               </tr>
             ))}
           {relationships.map((r) => {
-            const path = /\|data$/.test(parentId) ? `${parentId}|${r.key}` : `${parentId}|${node.id}|${r.key}`;
+            const path = /\|data$/.test(parentId)
+              ? `${parentId}|${r.key}`
+              : `${parentId}|${node.id}|${r.key}`;
             let id = path;
 
             if (r.__typename === "VertexFieldEntry") {
@@ -45,14 +47,14 @@ export function Node(
               throw new Error(`illegal FieldEntry`);
             }
 
-            if(r.key === 'owner') {
-              console.log('--------------------');
-              console.log(`parentId = ${parentId}`)
-              console.log(`id = ${id}`);
-              console.log(r);
-              console.log(`${path}|data`)
-              console.log('--------------------');
-            }
+            // if (r.key === "owner") {
+            //   console.log("--------------------");
+            //   console.log(`parentId = ${parentId}`);
+            //   console.log(`id = ${id}`);
+            //   console.log(r);
+            //   console.log(`${path}|data`);
+            //   console.log("--------------------");
+            // }
 
             return (
               <TreeItem key={id} nodeId={id} label={r.key}>
@@ -64,8 +66,14 @@ export function Node(
                       label={<Node parentId={`${path}|data`} node={r.data} />}
                     />
                   )
-                  : r.data && r.__typename === "VertexListFieldEntry"
-                  ? <h1>TODO: VertexListFieldEntry</h1> 
+                  : r.__typename === "VertexListFieldEntry" && !!r.data
+                  ? r.data.map((n) => (
+                    <TreeItem
+                      key={n.id}
+                      nodeId={n.id}
+                      label={<Node parentId={`${path}|data`} node={n} />}
+                    />
+                  ))
                   : <Loader />}
               </TreeItem>
             );

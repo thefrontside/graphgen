@@ -9,51 +9,80 @@ import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
 import { Node } from "./Node.tsx";
 import { all, node } from "./queries.ts";
 import { graphReducer } from "./graphReducer.ts";
+import { VertexNode } from "../../../graphql/types.ts";
 
 const emptyGraph = { graph: {} };
 
 export function GraphInspector(): JSX.Element {
   const [{ graph }, dispatch] = useReducer(graphReducer, emptyGraph);
 
-  const handleChange = useCallback((_: SyntheticEvent, nodeIds: string[]) => {
-    if (nodeIds.length === 0) {
-      return;
-    }
-
-    const nodeId = nodeIds[0];
-
-    if (nodeId.indexOf("|") > -1) {
-      const full = nodeId.split("|");
-
-      const id = full.slice(-1)[0]
-
-      if (id.includes(',')) {
-        throw new Error('not implemented yet')
-      } else {
-        node(id).then((response) =>
-          dispatch({
-            type: "EXPAND",
-            payload: {
-              path: full.slice(0, -1),
-              data: response.data.node,
-            },
-          })
-        ).catch(console.error);
+  const handleChange = useCallback(
+    async (_: SyntheticEvent, nodeIds: string[]) => {
+      if (nodeIds.length === 0) {
+        return;
       }
 
-      return;
-    }
+      const nodeId = nodeIds[0];
 
-    all(nodeId).then((result) => {
-      dispatch({
-        type: "ALL",
-        payload: {
-          typename: nodeIds[0],
-          nodes: result.data.all,
-        },
-      });
-    }).catch(console.error);
-  }, []);
+      if (nodeId.indexOf("|") > -1) {
+        const path = nodeId.split("|");
+
+        const ids = path.slice(-1)[0];
+
+        const pathToField = path.slice(0, -1);
+
+        if (ids.includes(",")) {
+          try {
+            const nodes = await Promise.all<{ data: { node: VertexNode } }>(
+              ids.split(",")
+                .map((id) => node(id)),
+            );
+
+            dispatch({
+              type: "EXPAND",
+              payload: {
+                kind: "VertexListFieldEntry",
+                path: pathToField,
+                nodes: nodes.map((node) => node.data.node),
+              },
+            });
+          } catch (e) {
+            console.error(e);
+            throw e;
+          }
+        } else {
+          try {
+            const response = await node(ids);
+
+            dispatch({
+              type: "EXPAND",
+              payload: {
+                kind: "VertexFieldEntry",
+                path: pathToField,
+                node: response.data.node,
+              },
+            });
+          } catch (e) {
+            console.error(e);
+            throw e;
+          }
+        }
+
+        return;
+      }
+
+      all(nodeId).then((result) => {
+        dispatch({
+          type: "ALL",
+          payload: {
+            typename: nodeIds[0],
+            nodes: result.data.all,
+          },
+        });
+      }).catch(console.error);
+    },
+    [],
+  );
 
   useEffect(() => {
     async function loadGraph() {
