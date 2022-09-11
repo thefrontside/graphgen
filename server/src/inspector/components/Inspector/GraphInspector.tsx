@@ -24,14 +24,14 @@ export function GraphInspector(): JSX.Element {
 
       const nodeId = nodeIds[0];
 
-      if (nodeId.indexOf("|") > -1) {
-        const path = nodeId.split("|");
+      if (nodeId.indexOf(".") > -1) {
+        const path = nodeId.split(".");
 
-        const ids = path.slice(-1)[0];
+        const [fieldEntryType, ids] = path.slice(-2);
 
-        const pathToField = path.slice(0, -1);
+        const pathToField = path.slice(0, -2);
 
-        if (ids.includes(",")) {
+        if (fieldEntryType === 'VertexListFieldEntry') {
           try {
             const nodes = await Promise.all<{ data: { node: VertexNode } }>(
               ids.split(",")
