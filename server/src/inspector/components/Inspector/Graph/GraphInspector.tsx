@@ -1,5 +1,5 @@
 import type { SyntheticEvent } from "react";
-import { useCallback, useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import TreeView from "@mui/lab/TreeView";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -15,6 +15,7 @@ const emptyGraph = { graph: {} };
 
 export function GraphInspector(): JSX.Element {
   const [{ graph }, dispatch] = useReducer(graphReducer, emptyGraph);
+  const expandedNodes = useRef(new Set<string>());
 
   const handleChange = useCallback(
     async (_: SyntheticEvent, nodeIds: string[]) => {
@@ -23,6 +24,13 @@ export function GraphInspector(): JSX.Element {
       }
 
       const nodeId = nodeIds[0];
+      
+      if(expandedNodes.current.has(nodeId)) {
+        console.log(`${nodeId} has previously been opened`)
+        return;
+      }
+
+      expandedNodes.current.add(nodeId);
 
       if (nodeId.indexOf(".") > -1) {
         const path = nodeId.split(".");

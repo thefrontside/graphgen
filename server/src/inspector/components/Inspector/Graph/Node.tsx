@@ -25,8 +25,8 @@ export function Node(
   return (
     <div className="node" style={{ display: "inline-block" }}>
       {props
-        .map((n) => (
-          <div className="field">
+        .map((n, i) => (
+          <div className="field" key={`${parentId}${n.key}${i}`}>
             <div className="th">{n.key}</div>
             <div className="td">{n.json as string}</div>
           </div>
