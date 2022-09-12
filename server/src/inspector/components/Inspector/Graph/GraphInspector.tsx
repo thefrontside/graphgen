@@ -4,12 +4,12 @@ import TreeView from "@mui/lab/TreeView";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import TreeItem from "@mui/lab/TreeItem";
-import { Loader } from "../Loader/Loader.tsx";
-import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
+import { Loader } from "../../Loader/Loader.tsx";
+import { fetchGraphQL } from "../../../graphql/fetchGraphql.ts";
 import { Node } from "./Node.tsx";
 import { all, node } from "./queries.ts";
 import { graphReducer } from "./graphReducer.ts";
-import { VertexNode } from "../../../graphql/types.ts";
+import { VertexNode } from "../../../../graphql/types.ts";
 
 const emptyGraph = { graph: {} };
 
@@ -31,7 +31,7 @@ export function GraphInspector(): JSX.Element {
 
         const pathToField = path.slice(0, -2);
 
-        if (fieldEntryType === 'VertexListFieldEntry') {
+        if (fieldEntryType === "VertexListFieldEntry") {
           try {
             const nodes = await Promise.all<{ data: { node: VertexNode } }>(
               ids.split(",")
@@ -71,15 +71,20 @@ export function GraphInspector(): JSX.Element {
         return;
       }
 
-      all(nodeId).then((result) => {
+      try {
+        const response = await all(nodeId);
+
         dispatch({
           type: "ALL",
           payload: {
             typename: nodeIds[0],
-            nodes: result.data.all,
+            nodes: response.data.all,
           },
         });
-      }).catch(console.error);
+      } catch (e) {
+        console.error(e);
+        throw e;
+      }
     },
     [],
   );
@@ -117,7 +122,12 @@ export function GraphInspector(): JSX.Element {
                 <TreeItem
                   key={vertexNode.id}
                   nodeId={vertexNode.id}
-                  label={<Node parentId={`${typename}.nodes.${i}`} node={vertexNode} />}
+                  label={
+                    <Node
+                      parentId={`${typename}.nodes.${i}`}
+                      node={vertexNode}
+                    />
+                  }
                 />
               );
             })

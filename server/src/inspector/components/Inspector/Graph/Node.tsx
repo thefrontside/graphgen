@@ -1,5 +1,5 @@
 import TreeItem from "@mui/lab/TreeItem";
-import { VertexNode } from "../../../graphql/types.ts";
+import { VertexNode } from "../../../../graphql/types.ts";
 // import { Loader } from "../Loader/Loader.tsx";
 
 const Loader = function (): JSX.Element {

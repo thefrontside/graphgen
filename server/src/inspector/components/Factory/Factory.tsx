@@ -1,6 +1,6 @@
 import { TopBar } from "../TopBar/TopBar.tsx";
-import { MetaInspector } from "../Inspector/MetaInspector.tsx";
-import { GraphInspector } from "../Inspector/GraphInspector.tsx";
+import { MetaInspector } from "../Inspector/Meta/MetaInspector.tsx";
+import { GraphInspector } from "../Inspector/Graph/GraphInspector.tsx";
 import {
   ChangeEvent,
   StrictMode,
@@ -10,9 +10,9 @@ import {
   useState,
 } from "react";
 import { defaultTheme, RadioGroup } from "@cutting/component-library";
-import { Views, views } from "../types.ts";
 import { StyledEngineProvider } from "@mui/material/styles";
-import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
+import { views, Views } from "../Inspector/Meta/types.ts";
+import { createGraph } from "./queries.ts";
 
 const Inspectors = {
   Graph: GraphInspector,
@@ -25,21 +25,6 @@ export function Factory() {
   const [created, setCreated] = useState(false);
 
   useEffect(() => {
-    async function createGraph() {
-      await fetchGraphQL(`mutation CreateMany {
-        createMany(inputs: [
-          {typename:"Component"},
-          {typename:"Group"},
-          {typename:"API"},
-          {typename:"Resource"},
-          {typename:"User"},
-          {typename:"Domain"}
-        ]) {
-          id
-        }
-      }`);
-    }
-
     createGraph().then(() => setCreated(true)).catch(console.error);
   }, [view]);
 

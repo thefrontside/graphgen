@@ -1,4 +1,4 @@
-import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
+import { fetchGraphQL } from "../../../graphql/fetchGraphql.ts";
 
 export async function node(id: string) {
   return await fetchGraphQL(

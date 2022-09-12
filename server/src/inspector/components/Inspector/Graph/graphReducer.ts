@@ -1,4 +1,4 @@
-import type { VertexNode } from "../../../graphql/types.ts";
+import type { VertexNode } from "../../../../graphql/types.ts";
 import produce from "immer";
 import { assert } from "assert-ts";
 
@@ -67,18 +67,18 @@ export const graphReducer = produce((state: State, action: Actions) => {
 
       break;
     }
+    /*
+      path has the following format which is a path to any field
+      
+      'Component.nodes.0.fields.5.data.0.fields.3'
+      
+      and splits into the prop array
+      
+      ['Component', 'nodes', '0', 'fields', 'data', '0', 'fields', '3']
+    */
     case "EXPAND": {
       const { path, kind } = action.payload;
 
-      /*
-        path should look something like this which is a path to any object
-        
-        'Component.nodes.0.fields.5.data.0.fields.3'
-        
-        and splits into the prop array
-        
-        ['Component', 'nodes', '0', 'fields', 'data', '0', 'fields', '3']
-      */
       const [root, ...props] = path;
 
       // deno-lint-ignore no-explicit-any
