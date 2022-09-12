@@ -10,6 +10,8 @@ import { Node } from "./Node.tsx";
 import { all, node } from "./queries.ts";
 import { graphReducer } from "./graphReducer.ts";
 import { VertexNode } from "../../../../graphql/types.ts";
+import { CloseSquare, MinusSquare, PlusSquare } from "./icons.tsx";
+import { StyledTreeItem } from "./StyledTreeItem.tsx";
 
 const emptyGraph = { graph: {} };
 
@@ -24,9 +26,9 @@ export function GraphInspector(): JSX.Element {
       }
 
       const nodeId = nodeIds[0];
-      
-      if(expandedNodes.current.has(nodeId)) {
-        console.log(`${nodeId} has previously been opened`)
+
+      if (expandedNodes.current.has(nodeId)) {
+        console.log(`${nodeId} has previously been opened`);
         return;
       }
 
@@ -117,17 +119,21 @@ export function GraphInspector(): JSX.Element {
   return (
     <TreeView
       aria-label="graph inspector"
-      defaultCollapseIcon={<ExpandMoreIcon />}
-      defaultExpandIcon={<ChevronRightIcon />}
+      defaultCollapseIcon={<MinusSquare />}
+      defaultExpandIcon={<PlusSquare />}
       onNodeToggle={handleChange}
       multiSelect={false}
     >
       {Object.values(graph).map(({ typename, label, nodes }) => (
-        <TreeItem key={typename} nodeId={typename} label={label}>
+        <StyledTreeItem
+          key={typename}
+          nodeId={typename}
+          label={<div className="root">{label}</div>}
+        >
           {nodes.length > 0
             ? nodes.map((vertexNode, i) => {
               return (
-                <TreeItem
+                <StyledTreeItem
                   key={vertexNode.id}
                   nodeId={vertexNode.id}
                   label={
@@ -140,7 +146,7 @@ export function GraphInspector(): JSX.Element {
               );
             })
             : <Loader />}
-        </TreeItem>
+        </StyledTreeItem>
       ))}
     </TreeView>
   );

@@ -1,8 +1,12 @@
 main {
-  font-family: "Monospaced Number", "Chinese Quote", -apple-system,
-  BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB",
-  "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: Menlo, monospace;
 }
+
+ul {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 .main {
   display: grid;
   grid-row: main;
@@ -93,27 +97,43 @@ br {
   fill: #77eb67;
 }
 
-.node  {
-  border: 1px solid #e2e2e2;
-  width: 100%;
-  margin-bottom: 1rem;
-}
-
 .field {
-  display: grid;
-  grid-template-columns: [fieldname] 1fr [value] 3fr;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
 }
 
-.fieldname {
-  grid-column: fieldname;
+.root {
+  font-weight: 400;
+  color: #36454F;
+}
+
+.fieldname, .colon {
+  color: rgb(136, 19, 145);
 }
 
 .value {
-  grid-column: value;
+  color: rgb(196, 26, 22);
 }
 
-.fieldname, .type, .value {
-  border: 1px solid #e2e2e2;
+.angle {
+  margin-left: -1rem;
+}
+
+.type {
+  color: #222;
+  position: relative;
+  top: 4px;
+  font-size: 1rem;
+  font-size: 10px;
+  text-transform: lowercase;
+}
+
+.type, .colon {
+  padding: 0.25rem 0;
+}
+
+.fieldname, .value {
   padding: 0.25rem;
 }
 

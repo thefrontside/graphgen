@@ -25,7 +25,7 @@ export interface Field {
     method: string;
     args: DispatchArg[];
   };
-}
+}``
 
 export interface Computed {
   name: string;
