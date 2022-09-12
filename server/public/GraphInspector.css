@@ -96,21 +96,23 @@ br {
 .node  {
   border: 1px solid #e2e2e2;
   width: 100%;
+  margin-bottom: 1rem;
 }
 
 .field {
   display: grid;
-  grid-template-columns: [th] 1fr [td] 3fr;
+  grid-template-columns: [fieldname] 1fr [value] 3fr;
 }
 
-.th {
-  grid-column: th;
-  border: 1px solid #e2e2e2;
-  padding: 0.25rem;
+.fieldname {
+  grid-column: fieldname;
 }
 
-.td {
-  grid-column: td;
+.value {
+  grid-column: value;
+}
+
+.fieldname, .type, .value {
   border: 1px solid #e2e2e2;
   padding: 0.25rem;
 }

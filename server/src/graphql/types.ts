@@ -71,16 +71,19 @@ export type FieldEntry =
     __typename: 'VertexFieldEntry';
     key: string;
     id: string
+    typenames: string[];
     data?: VertexNode;
   } | {
     __typename: 'VertexListFieldEntry';
     key: string;
     ids: string[];
-    data?: VertexNode[]
+    typenames: string[];
+    data?: VertexNode[];
   } | {
     __typename: 'JSONFieldEntry';
     key: string;
     json: unknown;
+    typename: string;
     data?: never;
   }
 

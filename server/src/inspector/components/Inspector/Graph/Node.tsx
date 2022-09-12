@@ -1,19 +1,16 @@
 import TreeItem from "@mui/lab/TreeItem";
 import { VertexNode } from "../../../../graphql/types.ts";
-// import { Loader } from "../Loader/Loader.tsx";
 
 const Loader = function (): JSX.Element {
   return <div>loading............</div>;
 };
 
-function isNode(node: unknown): node is VertexNode {
-  return typeof node === "object" && node !== null && "id" in node &&
-    "fields" in node;
+interface NodeProps {
+  parentId: string; 
+  node: VertexNode
 }
 
-export function Node(
-  { parentId, node }: { parentId: string; node: VertexNode },
-): JSX.Element {
+export function Node({ parentId, node }: NodeProps): JSX.Element {
   const props = node.fields.flatMap((n) =>
     n.__typename === "JSONFieldEntry" ? [n] : []
   );
@@ -23,41 +20,54 @@ export function Node(
   );
 
   return (
-    <div className="node" style={{ display: "inline-block" }}>
+    <div className="node">
+      <div className="field">
+        <div className="fieldname">id</div>
+        <div className="value">{node.id.split(':')[1]}</div>
+      </div>
       {props
         .map((n, i) => (
           <div className="field" key={`${parentId}${n.key}${i}`}>
-            <div className="th">{n.key}</div>
-            <div className="td">{n.json as string}</div>
+            <div className="fieldname">{`${n.key} (${n.typename})`}</div>
+            <div className="value">{n.json as string}</div>
           </div>
         ))}
-      {relationships.map((r) => {
-        const index = node.fields.findIndex((field) => r.key === field.key);
+      {relationships.map((relationship) => {
+        const index = node.fields.findIndex((field) =>
+          relationship.key === field.key
+        );
         const path = /\|data$/.test(parentId)
-          ? `${parentId}.${r.key}`
+          ? `${parentId}.${relationship.key}`
           : `${parentId}.fields.${index}`;
         let id = path;
 
-        if (r.__typename === "VertexFieldEntry") {
-          id += `.${r.__typename}.${r.id}`;
-        } else if (r.__typename === "VertexListFieldEntry") {
-          id += `.${r.__typename}.${r.ids.join(",")}`;
+        if (relationship.__typename === "VertexFieldEntry") {
+          id += `.${relationship.__typename}.${relationship.id}`;
+        } else if (relationship.__typename === "VertexListFieldEntry") {
+          id += `.${relationship.__typename}.${relationship.ids.join(",")}`;
         } else {
           throw new Error(`illegal FieldEntry`);
         }
 
         return (
-          <TreeItem key={id} nodeId={id} label={r.key}>
-            {r.data && r.__typename === "VertexFieldEntry"
+          <TreeItem
+            key={id}
+            nodeId={id}
+            label={`${relationship.key} (${relationship.typenames.join(", ")})`}
+          >
+            {relationship.data && relationship.__typename === "VertexFieldEntry"
               ? (
                 <TreeItem
-                  key={r.data.id}
-                  nodeId={r.data.id}
-                  label={<Node parentId={`${path}.data`} node={r.data} />}
+                  key={relationship.data.id}
+                  nodeId={relationship.data.id}
+                  label={
+                    <Node parentId={`${path}.data`} node={relationship.data} />
+                  }
                 />
               )
-              : r.__typename === "VertexListFieldEntry" && !!r.data
-              ? r.data.map((n, i) => (
+              : relationship.__typename === "VertexListFieldEntry" &&
+                  !!relationship.data
+              ? relationship.data.map((n, i) => (
                 <TreeItem
                   key={n.id}
                   nodeId={n.id}

@@ -27,7 +27,8 @@ function toVertexNode<T extends { id: string, typename: string, [key: string]: F
     fieldEntries.push({
       __typename: 'JSONFieldEntry',
       key: field.name,
-      json: value[field.name]
+      json: value[field.name],
+      typename: field.typename
     })
   }
 
@@ -36,13 +37,15 @@ function toVertexNode<T extends { id: string, typename: string, [key: string]: F
       fieldEntries.push({
         __typename: 'VertexFieldEntry',
         key: reference.name,
-        id: idOf(value[reference.name] as unknown as GraphgenNode)
+        id: idOf(value[reference.name] as unknown as GraphgenNode),
+        typenames: reference.typenames
       })
     } else {
       fieldEntries.push({
         __typename: 'VertexListFieldEntry',
         key: reference.name,
-        ids: (value[reference.name] as unknown as GraphgenNode[]).map(idOf)
+        ids: (value[reference.name] as unknown as GraphgenNode[]).map(idOf),
+        typenames: reference.typenames
       })
     }
   }
@@ -54,7 +57,8 @@ function toVertexNode<T extends { id: string, typename: string, [key: string]: F
       fieldEntries.push({
         __typename: 'VertexFieldEntry',
         key: compute.name,
-        id: idOf(materialized)
+        id: idOf(materialized),
+        typenames: [compute.typename]
       })
     } else if (Array.isArray(materialized)) {
       const some = materialized.some(isGraphgenNode);
@@ -66,19 +70,22 @@ function toVertexNode<T extends { id: string, typename: string, [key: string]: F
           __typename: 'VertexListFieldEntry',
           key: compute.name,
           ids: (value[compute.name] as unknown as GraphgenNode[]).map(idOf),
+          typenames: [compute.typename]
         })
       } else {
         fieldEntries.push({
           __typename: 'JSONFieldEntry',
           key: compute.name,
-          json: value[compute.name]
+          json: value[compute.name],
+          typename: compute.typename
         })
       }
     } else {
       fieldEntries.push({
         __typename: 'JSONFieldEntry',
         key: compute.name,
-        json: value[compute.name]
+        json: value[compute.name],
+        typename: compute.typename
       })
     }
   }
@@ -131,7 +138,9 @@ export const resolvers = {
 
       const nodes = [...collection];
 
-      return nodes.map(node => toVertexNode(context.factory, typename, node));
+      const result = nodes.map(node => toVertexNode(context.factory, typename, node));
+
+      return result;
     },
     node(_: any, { id }: { id: string; }, context: GraphQLContext) {
       const [typename, nodeId] = id.split(':')

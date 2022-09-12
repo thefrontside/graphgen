@@ -12,12 +12,15 @@ export async function node(id: string) {
             key
             ... on JSONFieldEntry {
               json
+              typename
             }
             ... on VertexFieldEntry {
               id
+              typenames
             }
             ... on VertexListFieldEntry {
               ids
+              typenames
             }
           }
         }
@@ -41,12 +44,15 @@ export async function all(typename: string) {
           __typename
           ... on JSONFieldEntry {
             json
+            typename
           }
           ... on VertexFieldEntry {
             id
+            typenames
           }
           ... on VertexListFieldEntry {
             ids
+            typenames
           }
         }
       }

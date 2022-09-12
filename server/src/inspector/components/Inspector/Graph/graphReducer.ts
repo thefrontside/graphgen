@@ -94,11 +94,14 @@ export const graphReducer = produce((state: State, action: Actions) => {
         }
       }
 
+      
       assert(!!draft, `no draft found at ${path.join('.')}`)
-
+      
       if (kind === 'VertexFieldEntry') {
+        console.log(action.payload.node);
         draft['data'] = action.payload.node;
       } else {
+        console.log(action.payload.nodes);
         draft['data'] = action.payload.nodes;
       }
 

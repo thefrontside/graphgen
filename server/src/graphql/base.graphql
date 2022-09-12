@@ -12,16 +12,19 @@ interface FieldEntry {
 type JSONFieldEntry implements FieldEntry {
   key: String!
   json: JSON
+  typename: String!
 }
 
 type VertexFieldEntry implements FieldEntry {
   key: String!
   id: ID!
+  typenames: [String!]!
 }
 
 type VertexListFieldEntry implements FieldEntry {
   key: String!
   ids: [ID!]!
+  typenames: [String!]!
 }
 
 type Vertex implements Node {
