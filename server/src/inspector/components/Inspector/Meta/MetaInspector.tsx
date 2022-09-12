@@ -25,6 +25,7 @@ export function MetaInspector(): JSX.Element {
     }
 
     cyRef.current.layout({
+      animate: false,
       name: "fcose",
       quality: "proof",
       packComponents: true,
