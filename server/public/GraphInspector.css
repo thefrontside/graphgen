@@ -106,14 +106,18 @@ br {
 .root {
   font-weight: 400;
   color: #36454F;
+  font-family: "Lucida Console", Monaco, monospace;
 }
 
 .fieldname, .colon {
   color: rgb(136, 19, 145);
+  padding: 0.0625rem;
+
 }
 
 .value {
   color: rgb(196, 26, 22);
+  padding: 0.0625rem;
 }
 
 .angle {
@@ -123,24 +127,28 @@ br {
 .type {
   color: #222;
   position: relative;
-  top: 4px;
+  top: 6px;
   font-size: 1rem;
   font-size: 10px;
   text-transform: lowercase;
 }
 
-.type, .colon {
-  padding: 0.25rem 0;
+.colon {
+  margin-right: 2px;
 }
 
-.fieldname, .value {
-  padding: 0.25rem;
+.type-label {
+  display: flex;
+  color: #000;
+  font-family: "Lucida Console", Monaco, monospace
+}
+
+.type-label :first-child {
+  margin-right: .25rem;
 }
 
 .meta {
   display: inline-block;
-  /* background: #27ae60; */
-  /* background: linear-gradient(#f7f7f7, #e2e2e2); */
   padding: 0 .5rem;
   width: 80%;
 }

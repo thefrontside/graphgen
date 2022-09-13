@@ -1,6 +1,7 @@
 import { VertexNode } from "../../../../graphql/types.ts";
 import { Loader } from "../../Loader/Loader.tsx";
 import { StyledTreeItem } from "./StyledTreeItem.tsx";
+import { TypeLabel } from "./TypeLabel.tsx";
 
 interface NodeProps {
   parentId: string;
@@ -32,7 +33,11 @@ export function Node({ parentId, node }: NodeProps): JSX.Element {
               <div className="fieldname">{n.key}</div>
               <div className="type">{`(${n.typename})`}</div>
               <div className="colon">:</div>
-              <div className="value">{n.json as string}</div>
+              <div className="value">
+                {n.typename === "String" && <span>&quot;</span>}
+                {n.json as string}
+                {n.typename === "String" && <span>&quot;</span>}
+              </div>
             </div>
           ))}
         {relationships.map((relationship) => {
@@ -52,13 +57,18 @@ export function Node({ parentId, node }: NodeProps): JSX.Element {
             throw new Error(`illegal FieldEntry`);
           }
 
+          console.log({ ke1y: relationship.key });
+
           return (
             <StyledTreeItem
               key={id}
               nodeId={id}
-              label={`${relationship.key} (${
-                relationship.typenames.join(" | ")
-              })`}
+              label={
+                <TypeLabel
+                  fieldname={relationship.key}
+                  typenames={relationship.typenames}
+                />
+              }
             >
               {relationship.data &&
                   relationship.__typename === "VertexFieldEntry"
