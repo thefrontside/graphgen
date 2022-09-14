@@ -1,11 +1,11 @@
+import type { GraphGen } from '../../mod.ts';
 
 export interface GraphQLContext {
-  // placeholder for later
-  factory: undefined;
+  factory: GraphGen;
 }
 
-export function makeContext() {
+export function makeContext(factory: GraphGen) {
   return {
-    factory: undefined
-  }
+    factory,
+  };
 }
