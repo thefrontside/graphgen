@@ -1,5 +1,5 @@
 import type { MainOptions } from "../types.ts";
-import { createServer, Hono, serve, serveStatic } from "../deps.ts";
+import { createServer, Hono, serve } from "../deps.ts";
 import { resolvers, typeDefs } from "./schema.ts";
 import { makeContext } from "./context.ts";
 
@@ -19,7 +19,7 @@ export async function main(options: MainOptions) {
     return graphQLServer.handleRequest(ctx.req, ctx.res);
   });
 
-  app.use("*", serveStatic({ root: "./", path: "public" }));
+  app.use("*", options.app);
 
   await serve(app.fetch, {
     port: options.port,

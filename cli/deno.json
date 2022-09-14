@@ -1,9 +1,10 @@
 {
   "tasks": {
     "packup": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts",
-    "serve": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts serve ui/index.html",
-    "build": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts build ui/index.html",
+    "serve": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts serve app/index.html",
+    "build": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts build app/index.html",
     "dev": "deno run --watch -A ./main.ts -f ./example/factory.ts",
+    "bundle": "deno run -A tasks/bundle.ts",
     "compile": "deno compile -A --no-check --allow-net -o graphgen ./main.ts"
   },
   "lint": {

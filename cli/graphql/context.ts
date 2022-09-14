@@ -1,4 +1,4 @@
-import type { GraphGen } from '../../mod.ts';
+import type { GraphGen } from "../../mod.ts";
 
 export interface GraphQLContext {
   factory: GraphGen;
