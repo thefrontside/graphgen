@@ -6,7 +6,6 @@ export interface TypeLabelProps {
 export function TypeLabel(
   { fieldname, typenames }: TypeLabelProps,
 ) {
-  console.log({fieldname})
   return (
     <div className="type-label">
       <div>{fieldname}</div>

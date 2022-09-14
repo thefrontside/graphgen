@@ -44,7 +44,7 @@ export function Node({ parentId, node }: NodeProps): JSX.Element {
           const index = node.fields.findIndex((field) =>
             relationship.key === field.key
           );
-          const path = /\|data$/.test(parentId)
+          const path = /\|materialized$/.test(parentId)
             ? `${parentId}.${relationship.key}`
             : `${parentId}.fields.${index}`;
           let id = path;
@@ -57,7 +57,6 @@ export function Node({ parentId, node }: NodeProps): JSX.Element {
             throw new Error(`illegal FieldEntry`);
           }
 
-          console.log({ ke1y: relationship.key });
 
           return (
             <StyledTreeItem
@@ -70,34 +69,34 @@ export function Node({ parentId, node }: NodeProps): JSX.Element {
                 />
               }
             >
-              {relationship.data &&
+              {relationship.materialized &&
                   relationship.__typename === "VertexFieldEntry"
                 ? (
                   <StyledTreeItem
-                    key={relationship.data.id}
-                    nodeId={relationship.data.id}
+                    key={relationship.materialized.id}
+                    nodeId={relationship.materialized.id}
                     label={
                       <Node
-                        parentId={`${path}.data`}
-                        node={relationship.data}
+                        parentId={`${path}.materialized`}
+                        node={relationship.materialized}
                       />
                     }
                   />
                 )
                 : relationship.__typename === "VertexListFieldEntry" &&
-                    !!relationship.data
-                ? relationship.data.map((n, i) => (
+                    !!relationship.materialized
+                ? relationship.materialized.map((n, i) => (
                   <StyledTreeItem
                     key={n.id}
                     nodeId={n.id}
-                    label={<Node parentId={`${path}.data.${i}`} node={n} />}
+                    label={<Node parentId={`${path}.materialized.${i}`} node={n} />}
                   />
                 ))
                 : <Loader />}
             </StyledTreeItem>
           );
         })}
-        <div className="angle">{`}`}</div>
+        <div className="angle">{`},`}</div>
       </div>
     </>
   );

@@ -20,13 +20,13 @@ export function MetaInspector(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (!cyRef.current) {
+    if (!cyRef.current || graphData.nodes.length === 0) {
       return;
     }
 
     cyRef.current.layout({
-      animate: false,
       name: "fcose",
+      animate: false,
       quality: "proof",
       packComponents: true,
       tile: false,
@@ -50,7 +50,6 @@ export function MetaInspector(): JSX.Element {
             "text-valign": "center",
             label: "data(label)",
             "background-color": function (node) {
-              console.log(node);
               if (node.data("child")) {
                 return "#58D68D";
               } else {

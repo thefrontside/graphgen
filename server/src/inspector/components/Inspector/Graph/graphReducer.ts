@@ -1,6 +1,7 @@
 import type { VertexNode } from "../../../../graphql/types.ts";
 import produce from "immer";
 import { assert } from "assert-ts";
+import { match } from "ts-pattern";
 
 interface Type {
   typename: string;
@@ -45,11 +46,11 @@ function isNumber(s: unknown): s is number {
 }
 
 export const graphReducer = produce((state: State, action: Actions) => {
-  switch (action.type) {
-    case "ROOTS": {
+  return match(action)
+    .with({ type: 'ROOTS' }, ({ payload }) => {
       const graph: Record<string, Type> = {};
 
-      for (const { typename, count } of action.payload) {
+      for (const { typename, count } of payload) {
         graph[typename] = {
           typename,
           size: count,
@@ -59,25 +60,14 @@ export const graphReducer = produce((state: State, action: Actions) => {
       }
 
       return { graph };
-    }
-    case "ALL": {
-      const { typename, nodes } = action.payload;
+    })
+    .with({ type: "ALL" }, ({ payload }) => {
+      const { typename, nodes } = payload;
 
       state.graph[typename].nodes = nodes;
-
-      break;
-    }
-    /*
-      path has the following format which is a path to any field
-      
-      'Component.nodes.0.fields.5.data.0.fields.3'
-      
-      and splits into the prop array
-      
-      ['Component', 'nodes', '0', 'fields', 'data', '0', 'fields', '3']
-    */
-    case "EXPAND": {
-      const { path, kind } = action.payload;
+    })
+    .with({ type: 'EXPAND' }, ({ payload }) => {
+      const { path, kind } = payload;
 
       const [root, ...props] = path;
 
@@ -94,18 +84,14 @@ export const graphReducer = produce((state: State, action: Actions) => {
         }
       }
 
-      
-      assert(!!draft, `no draft found at ${path.join('.')}`)
-      
-      if (kind === 'VertexFieldEntry') {
-        console.log(action.payload.node);
-        draft['data'] = action.payload.node;
-      } else {
-        console.log(action.payload.nodes);
-        draft['data'] = action.payload.nodes;
-      }
 
-      return state;
-    }
-  }
+      assert(!!draft, `no draft found at ${path.join('.')}`)
+
+      if (kind === 'VertexFieldEntry') {
+        draft['materialized'] = payload.node;
+      } else {
+        console.log(payload.nodes);
+        draft['materialized'] = payload.nodes;
+      }
+    }).otherwise(() => state);
 });

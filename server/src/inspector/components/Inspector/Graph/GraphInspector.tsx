@@ -1,16 +1,13 @@
 import type { SyntheticEvent } from "react";
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import TreeView from "@mui/lab/TreeView";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import TreeItem from "@mui/lab/TreeItem";
 import { Loader } from "../../Loader/Loader.tsx";
 import { fetchGraphQL } from "../../../graphql/fetchGraphql.ts";
 import { Node } from "./Node.tsx";
 import { all, node } from "./queries.ts";
 import { graphReducer } from "./graphReducer.ts";
 import { VertexNode } from "../../../../graphql/types.ts";
-import { CloseSquare, MinusSquare, PlusSquare } from "./icons.tsx";
+import { MinusSquare, PlusSquare } from "./icons.tsx";
 import { StyledTreeItem } from "./StyledTreeItem.tsx";
 
 const emptyGraph = { graph: {} };

@@ -72,19 +72,19 @@ export type FieldEntry =
     key: string;
     id: string
     typenames: string[];
-    data?: VertexNode;
+    materialized?: VertexNode;
   } | {
     __typename: 'VertexListFieldEntry';
     key: string;
     ids: string[];
     typenames: string[];
-    data?: VertexNode[];
+    materialized?: VertexNode[];
   } | {
     __typename: 'JSONFieldEntry';
     key: string;
     json: unknown;
     typename: string;
-    data?: never;
+    materialized?: never;
   }
 
 export interface VertexNode extends Node {
