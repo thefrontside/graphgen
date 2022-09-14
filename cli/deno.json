@@ -3,8 +3,8 @@
     "packup": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts",
     "serve": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts serve ui/index.html",
     "build": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts build ui/index.html",
-    "dev": "deno run --watch -A ./run.ts",
-    "compile": "deno compile -A --no-check --allow-net ./run.ts"
+    "dev": "deno run --watch -A ./main.ts -f ./example/factory.ts",
+    "compile": "deno compile -A --no-check --allow-net -o graphgen ./main.ts"
   },
   "lint": {
     "rules": {

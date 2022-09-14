@@ -1,30 +1,31 @@
-import { serve, serveStatic, Hono, createServer } from '../deps.ts';
+import type { MainOptions } from "../types.ts";
+import { createServer, Hono, serve, serveStatic } from "../deps.ts";
 import { resolvers, typeDefs } from "./schema.ts";
-import { makeContext } from './context.ts';
+import { makeContext } from "./context.ts";
 
-const PORT = Number(Deno.env.get('PORT') ?? 8000);
+export async function main(options: MainOptions) {
+  const app = new Hono();
+  const PORT = Number(Deno.env.get("PORT") ?? 8000);
 
-export const graphQLServer = createServer({
-  schema: {
-    typeDefs,
-    resolvers
-  },
-  maskedErrors: false,
-  context: makeContext()
-})
+  const graphQLServer = createServer({
+    schema: {
+      typeDefs,
+      resolvers,
+    },
+    maskedErrors: false,
+    context: makeContext(options.factory),
+  });
 
-const app = new Hono();
-
-export async function main() {
-  app.use('/graphql', (ctx) => {
+  app.use("/graphql", (ctx) => {
     return graphQLServer.handleRequest(ctx.req, ctx.res);
-  })
+  });
 
-  app.use('*', serveStatic({ root: './', path: 'public' }));
+  app.use("*", serveStatic({ root: "./", path: "public" }));
 
   await serve(app.fetch, {
-    port: PORT, onListen({ port }) {
+    port: PORT,
+    onListen({ port }) {
       console.log(`Server started at http://localhost:${port}`);
-    }
+    },
   });
 }
