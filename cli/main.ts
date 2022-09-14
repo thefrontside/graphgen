@@ -6,9 +6,11 @@ import type { MainOptions } from "./types.ts";
 let args = parse(Deno.args, {
   default: {
     "factory": "factory.ts",
+    "port": 8000,
   },
   alias: {
     "f": "factory",
+    "p": "port",
   },
 });
 
@@ -22,6 +24,7 @@ async function parseOptions(
   //TODO: validate that the factory is a Graphgen object and is define, etc...
   return {
     factory,
+    port: Number(args.port),
   };
 }
 
