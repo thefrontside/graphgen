@@ -23,12 +23,8 @@ export async function main() {
   app.use('*', serveStatic({ root: './', path: 'public' }));
 
   await serve(app.fetch, {
-    port: PORT, onListen({ port, hostname }) {
-      console.log(`Server started at http://${hostname}:${port}`);
-    },
-    onError(err) {
-      console.error(err);
-      return new Response("Internal Server Error", { status: 500 });
+    port: PORT, onListen({ port }) {
+      console.log(`Server started at http://localhost:${port}`);
     }
   });
 }
