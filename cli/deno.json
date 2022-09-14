@@ -3,8 +3,8 @@
     "packup": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts",
     "serve": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts serve ui/index.html",
     "build": "deno run -A https://deno.land/x/packup@v0.1.13/cli.ts build ui/index.html",
-    "dev": "deno run --watch -A graphql/server.ts",
-    "compile": "RUST_BACKTRACE=1 deno compile -A --no-check ./mod.ts"
+    "dev": "deno run --watch -A ./run.ts",
+    "compile": "deno compile -A --no-check --allow-net ./run.ts"
   },
   "lint": {
     "rules": {
