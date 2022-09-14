@@ -9,4 +9,6 @@ export {
 export { gql } from "https://deno.land/x/graphql_tag@0.0.1/mod.ts";
 export { parse } from "https://deno.land/std@0.155.0/flags/mod.ts";
 export * as path from "https://deno.land/std@0.155.0/path/mod.ts";
+export { getMimeType } from "https://deno.land/x/hono@v2.1.4/utils/mime.ts";
+export { getFilePath } from "https://deno.land/x/hono@v2.1.4/utils/filepath.ts";
 export type { TypeSource } from "https://cdn.skypack.dev/@graphql-tools/utils@v8.10.1?dts";

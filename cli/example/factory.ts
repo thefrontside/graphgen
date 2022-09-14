@@ -1,6 +1,6 @@
-import { createGraphGen } from "../../mod.ts";
+const { createGraphGen } = require("@frontside/graphgen");
 
-export default createGraphGen({
+module.exports = createGraphGen({
   source: "type Component { name: String! }",
   sourceName: "world.graphql",
 });
