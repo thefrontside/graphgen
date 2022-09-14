@@ -5,7 +5,6 @@ import { makeContext } from "./context.ts";
 
 export async function main(options: MainOptions) {
   const app = new Hono();
-  const PORT = Number(Deno.env.get("PORT") ?? 8000);
 
   const graphQLServer = createServer({
     schema: {
@@ -23,7 +22,7 @@ export async function main(options: MainOptions) {
   app.use("*", serveStatic({ root: "./", path: "public" }));
 
   await serve(app.fetch, {
-    port: PORT,
+    port: options.port,
     onListen({ port }) {
       console.log(`Server started at http://localhost:${port}`);
     },
