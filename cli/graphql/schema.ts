@@ -1,9 +1,9 @@
 
-import { gql } from '../deps.ts';
+import { gql, TypeSource } from '../deps.ts';
 import { GraphQLJSON, GraphQLJSONObject } from '../deps.ts';
 import type { GraphQLContext } from './context.ts';
 
-export const typeDefs = gql(Deno.readTextFileSync('./graphql/world.graphql'))
+export const typeDefs = gql(Deno.readTextFileSync('./graphql/world.graphql')) as TypeSource;
 
 export const resolvers = {
   JSON: GraphQLJSON,

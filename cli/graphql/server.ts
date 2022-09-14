@@ -20,7 +20,7 @@ export async function main() {
     return graphQLServer.handleRequest(ctx.req, ctx.res);
   })
 
-  app.use('*', serveStatic({ root: './', path: 'dist' }));
+  app.use('*', serveStatic({ root: './', path: 'public' }));
 
   await serve(app.fetch, {
     port: PORT, onListen({ port, hostname }) {
