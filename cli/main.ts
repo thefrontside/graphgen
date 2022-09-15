@@ -18,6 +18,7 @@ let args = parse(Deno.args, {
 
 const getModuleName = (str: string) => path.parse(str).dir ? str : `./${str}`;
 
+// deno-lint-ignore require-await
 async function parseOptions(
   args: ReturnType<typeof parse>,
 ): Promise<MainOptions> {

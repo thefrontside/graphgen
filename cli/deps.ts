@@ -12,3 +12,5 @@ export * as path from "https://deno.land/std@0.155.0/path/mod.ts";
 export { getMimeType } from "https://deno.land/x/hono@v2.1.4/utils/mime.ts";
 export { getFilePath } from "https://deno.land/x/hono@v2.1.4/utils/filepath.ts";
 export type { TypeSource } from "https://cdn.skypack.dev/@graphql-tools/utils@v8.10.1?dts";
+export { default as React, createElement } from 'https://esm.sh/react@18.2.0';
+export { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
