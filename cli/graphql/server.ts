@@ -6,12 +6,28 @@ import { makeContext } from "./context.ts";
 export async function main(options: MainOptions) {
   const app = new Hono();
 
+  console.log(options.factory);
+
   const graphQLServer = createServer({
     schema: {
       typeDefs,
       resolvers,
     },
     maskedErrors: false,
+  logging: {
+    debug(...args) {
+      console.debug(...args)
+    },
+    warn(...args) {
+      console.warn(...args)
+    },
+    info(...args) {
+      console.info(...args)
+    },
+    error(...args) {
+      console.error(...args)
+    }
+  },
     context: makeContext(options.factory),
   });
 

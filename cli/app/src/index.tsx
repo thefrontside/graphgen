@@ -1,12 +1,11 @@
-import { createRoot } from "react-dom/client";
 import React from 'react';
+import { createRoot } from "react-dom/client";
+import { Factory } from './components/Factory/Factory.tsx';
 
 
 function App() {
   return (
-    <div style={{ fontSize: "36px", fontWeight: "bold" }}>
-      Hello from React/JSX
-    </div>
+    <Factory />
   );
 }
 

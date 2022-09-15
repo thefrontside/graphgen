@@ -25,7 +25,7 @@ async function parseOptions(
   let modulePath = path.resolve(getModuleName(args.factory));
   let require = createRequire(path.dirname(modulePath));
   console.dir({ modulePath });
-  let { default: factory } = require(modulePath);
+  let factory = require(modulePath);
 
   //TODO: validate that the factory is a Graphgen object and is define, etc...
 
