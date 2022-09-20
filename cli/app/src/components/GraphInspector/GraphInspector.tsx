@@ -1,6 +1,6 @@
-import React from 'react';
+import React from "react";
 import type { SyntheticEvent } from "react";
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import TreeView from "@mui/lab/TreeView";
 import { Loader } from "../Loader/Loader.tsx";
 import { Node } from "./Node.tsx";
@@ -9,11 +9,12 @@ import { graphReducer } from "./graphReducer.ts";
 import type { VertexNode } from "@frontside-graphgen/types";
 import { MinusSquare, PlusSquare } from "./icons.tsx";
 import { StyledTreeItem } from "./StyledTreeItem.tsx";
-import { fetchGraphQL } from '../../graphql/fetchGraphql.ts';
+import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
 
 const emptyGraph = { graph: {} };
 
 export function GraphInspector(): JSX.Element {
+  const [graphLoaded, setGraphLoaded] = useState(false);
   const [{ graph }, dispatch] = useReducer(graphReducer, emptyGraph);
   const expandedNodes = useRef(new Set<string>());
 
@@ -99,6 +100,9 @@ export function GraphInspector(): JSX.Element {
 
   useEffect(() => {
     async function loadGraph() {
+      if(graphLoaded) {
+        return;
+      }
       const graph = await fetchGraphQL(`
       query Meta {
         meta {
@@ -111,8 +115,16 @@ export function GraphInspector(): JSX.Element {
       dispatch({ type: "ROOTS", payload: graph.data.meta });
     }
 
-    loadGraph().catch(console.error);
+    loadGraph()
+      .then(() => setGraphLoaded(true))
+      .catch(console.error);
   }, []);
+
+  if (!graphLoaded) {
+    return <Loader />;
+  }
+
+  console.dir(Object.values(graph))
 
   return (
     <TreeView
@@ -122,11 +134,11 @@ export function GraphInspector(): JSX.Element {
       onNodeToggle={handleChange}
       multiSelect={false}
     >
-      {Object.values(graph).map(({ typename, label, nodes }) => (
+      {Object.values(graph).map(({ typename, label, nodes }) => ((
         <StyledTreeItem
           key={typename}
           nodeId={typename}
-          label={<div className="root">{label}</div>}
+          label={label}
         >
           {nodes.length > 0
             ? nodes.map((vertexNode, i) => {
@@ -145,7 +157,7 @@ export function GraphInspector(): JSX.Element {
             })
             : <Loader />}
         </StyledTreeItem>
-      ))}
+      )))}
     </TreeView>
   );
 }

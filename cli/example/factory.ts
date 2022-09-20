@@ -1,5 +1,5 @@
 const { createGraphGen, weighted } = require("@frontside/graphgen");
-const { fakergen } =  require("./fakerGen.ts");
+const { fakergen } = require("./fakerGen.ts");
 
 const world = `
 type User {
@@ -64,8 +64,10 @@ type Domain {
 }
 `;
 
-
-const lifecycles = weighted([['deprecated', .15], ['experimental', .5], ['production', .35]]);
+const lifecycles = weighted([["deprecated", .15], ["experimental", .5], [
+  "production",
+  .35,
+]]);
 
 const gen = (info) => {
   if (info.method === "@backstage/component.lifecycle") {
@@ -73,15 +75,16 @@ const gen = (info) => {
   } else {
     return info.next();
   }
-}
+};
 
 module.exports = createGraphGen({
-  seed: 'factory',
+  seed: "factory",
   source: world,
   sourceName: "world.graphql",
   generate: [gen, fakergen],
   compute: {
-    "User.name": ({ displayName }) => `${displayName.toLowerCase().replace(/\s+/g, '.')}`,
+    "User.name": ({ displayName }) =>
+      `${displayName.toLowerCase().replace(/\s+/g, ".")}`,
     "User.email": ({ name }) => `${name}@example.com`,
     "Group.name": ({ department }) => `${department.toLowerCase()}-department`,
     "Group.description": ({ department }) => `${department} Department`,
@@ -90,7 +93,9 @@ module.exports = createGraphGen({
 
     "Component.type": () => "website",
 
-    "System.name": ({ displayName }) => displayName.toLowerCase().replace(/\s+/g, '-'),
-    "System.description": ({ displayName }) => `Everything related to ${displayName}`,
-  }
+    "System.name": ({ displayName }) =>
+      displayName.toLowerCase().replace(/\s+/g, "-"),
+    "System.description": ({ displayName }) =>
+      `Everything related to ${displayName}`,
+  },
 });

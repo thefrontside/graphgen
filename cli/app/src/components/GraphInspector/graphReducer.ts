@@ -29,16 +29,16 @@ type Actions =
   | {
     type: "EXPAND";
     payload:
-    | {
-      kind: 'VertexFieldEntry'
-      path: string[];
-      node: VertexNode;
-    }
-    | {
-      kind: 'VertexListFieldEntry';
-      path: string[];
-      nodes: VertexNode[];
-    }
+      | {
+        kind: "VertexFieldEntry";
+        path: string[];
+        node: VertexNode;
+      }
+      | {
+        kind: "VertexListFieldEntry";
+        path: string[];
+        nodes: VertexNode[];
+      };
   };
 
 function isNumber(s: unknown): s is number {
@@ -47,18 +47,16 @@ function isNumber(s: unknown): s is number {
 
 export const graphReducer = produce((state: State, action: Actions) => {
   return match(action)
-    .with({ type: 'ROOTS' }, ({ payload }) => {
+    .with({ type: "ROOTS" }, ({ payload }) => {
       const graph: Record<string, Type> = {};
-
-      console.log(payload)
 
       for (const { typename, count } of payload) {
         graph[typename] = {
           typename,
           size: count,
           label: `${typename} (${count})`,
-          nodes: []
-        }
+          nodes: [],
+        };
       }
 
       return { graph };
@@ -68,7 +66,7 @@ export const graphReducer = produce((state: State, action: Actions) => {
 
       state.graph[typename].nodes = nodes;
     })
-    .with({ type: 'EXPAND' }, ({ payload }) => {
+    .with({ type: "EXPAND" }, ({ payload }) => {
       const { path, kind } = payload;
 
       const [root, ...props] = path;
@@ -86,14 +84,12 @@ export const graphReducer = produce((state: State, action: Actions) => {
         }
       }
 
+      assert(!!draft, `no draft found at ${path.join(".")}`);
 
-      assert(!!draft, `no draft found at ${path.join('.')}`)
-
-      if (kind === 'VertexFieldEntry') {
-        draft['materialized'] = payload.node;
+      if (kind === "VertexFieldEntry") {
+        draft["materialized"] = payload.node;
       } else {
-        console.log(payload.nodes);
-        draft['materialized'] = payload.nodes;
+        draft["materialized"] = payload.nodes;
       }
     }).otherwise(() => state);
 });

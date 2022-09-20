@@ -24,10 +24,11 @@ async function parseOptions(
 ): Promise<MainOptions> {
   let modulePath = path.resolve(getModuleName(args.factory));
   let require = createRequire(path.dirname(modulePath));
-  console.dir({ modulePath });
   let factory = require(modulePath);
 
   //TODO: validate that the factory is a Graphgen object and is define, etc...
+
+  console.dir({ a: args["app-path"] });
 
   let app = args["app-path"]
     ? serveStatic({ root: args["app-path"] })

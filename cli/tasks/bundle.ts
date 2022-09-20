@@ -30,7 +30,6 @@ await f.write(new TextEncoder().encode(`var m = {};\n`));
 const l = Object.keys(m);
 for (let i = 0; i < l.length; i++) {
   const k = l[i].replace(Deno.args[0], basename(Deno.args[0]));
-  console.log(k);
   await f.write(new TextEncoder().encode(`m["${k}"] = new Uint8Array([`));
   const b = await Deno.readFile(m[l[i]]);
   for (let j = 0; j < b.length; j++) {

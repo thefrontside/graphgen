@@ -2,8 +2,8 @@
   "tasks": {
     "packup": "deno run -A https://deno.land/x/packup@v0.1.14/cli.ts",
     "serve": "deno run -A https://deno.land/x/packup@v0.1.14/cli.ts serve app/index.html",
-    "build": "deno run -A https://deno.land/x/packup@v0.1.14/cli.ts build app/index.html -i=app/import_map.json --log-level=trace",
-    "dev": "deno run --watch -A ./main.ts -f ./example/factory.ts",
+    "build": "rm -rf ./dist && deno run -A https://deno.land/x/packup@v0.1.14/cli.ts build app/index.html -i=app/import_map.json --log-level=trace",
+    "dev": "deno run -A ./main.ts --watch ./src -f ./example/factory.ts --app-path=./dist",
     "bundle": "deno run -A tasks/bundle.ts",
     "compile": "deno compile -A --no-check --allow-net -o graphgen ./main.ts"
   },
@@ -21,5 +21,10 @@
     "files": {
       "exclude": ["build"]
     }
-  }
+  },
+  "compilerOptions": {
+    "jsx": "react-jsxdev",
+    "jsxImportSource": "react"
+  },
+  "importMap": "./app/import_map.json"
 }

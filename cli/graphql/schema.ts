@@ -80,8 +80,7 @@ export const resolvers = {
         }).filter(t => t.count > 0)
         .sort((left, right) => right.count - left.count)
     },
-    // deno-lint-ignore no-explicit-any
-    all(_: any, { typename }: { typename: string; }, context: GraphQLContext): VertexNode[] {
+    all(_: unknown, { typename }: { typename: string; }, context: GraphQLContext): VertexNode[] {
       const collection = context.factory.all(typename);
   
       const nodes = [...collection];
@@ -90,8 +89,7 @@ export const resolvers = {
   
       return result;
     },
-    // deno-lint-ignore no-explicit-any
-    node(_: any, { id }: { id: string; }, context: GraphQLContext) {
+    node(_: unknown, { id }: { id: string; }, context: GraphQLContext) {
       const [typename, nodeId] = id.split(':')
   
       const node = context.factory.all(typename)?.get(nodeId);
@@ -104,11 +102,10 @@ export const resolvers = {
     },
   },
   Mutation: {
-    create(_: any, { typename, preset }: CreateInput, context: GraphQLContext): VertexNode {
-      console.log({typename, toVertexNode})
+    create(_: unknown, { typename, preset }: CreateInput, context: GraphQLContext): VertexNode {
       return toVertexNode(context.factory, typename, context.factory.create(typename, preset));
     },
-    createMany(_: any, { inputs }: { inputs: CreateInput[] }, context: GraphQLContext): VertexNode[] {
+    createMany(_: unknown, { inputs }: { inputs: CreateInput[] }, context: GraphQLContext): VertexNode[] {
       return inputs.map(({ typename, preset }) => toVertexNode(context.factory, typename, context.factory.create(typename, preset)));
     }
   }

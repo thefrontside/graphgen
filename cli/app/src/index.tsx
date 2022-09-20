@@ -1,12 +1,9 @@
-import React from 'react';
+import React from "react";
 import { createRoot } from "react-dom/client";
-import { Factory } from './components/Factory/Factory.tsx';
-
+import { Factory } from "./components/Factory/Factory.tsx";
 
 function App() {
-  return (
-    <Factory />
-  );
+  return <Factory />;
 }
 
 function main() {

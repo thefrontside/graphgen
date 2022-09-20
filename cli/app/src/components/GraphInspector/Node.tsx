@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import { VertexNode } from "../../../../graphql/types.ts";
 import { Loader } from "../Loader/Loader.tsx";
 import { StyledTreeItem } from "./StyledTreeItem.tsx";
 import { TypeLabel } from "./TypeLabel.tsx";
@@ -57,7 +58,6 @@ export function Node({ parentId, node }: NodeProps): JSX.Element {
             throw new Error(`illegal FieldEntry`);
           }
 
-
           return (
             <StyledTreeItem
               key={id}
@@ -89,7 +89,9 @@ export function Node({ parentId, node }: NodeProps): JSX.Element {
                   <StyledTreeItem
                     key={n.id}
                     nodeId={n.id}
-                    label={<Node parentId={`${path}.materialized.${i}`} node={n} />}
+                    label={
+                      <Node parentId={`${path}.materialized.${i}`} node={n} />
+                    }
                   />
                 ))
                 : <Loader />}
