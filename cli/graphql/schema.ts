@@ -47,7 +47,7 @@ type Type {
 type Query {
   meta: [Type]
   graph: JSON
-  all(typename: String!): JSON
+  all(typename: String!): [Vertex!]
   node(id: ID!): Node
 }
 
