@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import { createRoot } from "react-dom/client";
 import { Factory } from "./components/Factory/Factory.tsx";
 
@@ -11,7 +11,7 @@ function main() {
 
   const root = createRoot(container);
 
-  root.render(React.createElement(App));
+root.render(React.createElement(App));
 }
 
 addEventListener("DOMContentLoaded", () => {

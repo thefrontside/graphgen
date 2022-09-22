@@ -1,9 +1,9 @@
 {
   "imports": {
     "@frontside-graphgen/types": "../graphql/types.ts",
-    "@mui/material/": "https://esm.sh/@mui/material@5.10.6/",
-    "@mui/lab/": "https://esm.sh/@mui/lab@5.0.0-alpha.100/",
-    "@mui/icons-material/": "https://esm.sh/@mui/icons-material@5.10.6/",
+    "@mui/material/": "https://esm.sh/@mui/material@5.10.3/",
+    "@mui/lab/": "https://esm.sh/@mui/lab@5.0.0-alpha.99/",
+    "@mui/icons-material/": "https://esm.sh/@mui/icons-material@5.10.3/",
     "immer": "https://esm.sh/immer@9.0.15",
     "react": "https://esm.sh/react@18.2.0",
     "react/": "https://esm.sh/react@18.2.0/",

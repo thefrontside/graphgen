@@ -1,5 +1,6 @@
 {
   "tasks": {
+    "vite": "deno run -A --unstable npm:vite build",
     "packup": "deno run -A https://deno.land/x/packup@v0.1.14/cli.ts",
     "serve": "deno run -A https://deno.land/x/packup@v0.1.14/cli.ts serve app/index.html",
     "build": "rm -rf ./dist && deno run -A https://deno.land/x/packup@v0.1.14/cli.ts build app/index.html -i=app/import_map.json --log-level=trace",

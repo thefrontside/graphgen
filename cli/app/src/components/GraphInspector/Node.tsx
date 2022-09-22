@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import { VertexNode } from "../../../../graphql/types.ts";
 import { Loader } from "../Loader/Loader.tsx";
 import { StyledTreeItem } from "./StyledTreeItem.tsx";
