@@ -3,6 +3,7 @@ import { StrictMode, Suspense, useEffect, useRef, useState } from "react";
 import { StyledEngineProvider } from "@mui/material/styles";
 import { createGraph } from "./queries.ts";
 import { GraphInspector } from "../GraphInspector/GraphInspector.tsx";
+import { Loader } from "../Loader/Loader.tsx";
 
 export function Factory() {
   const ref = useRef<HTMLDivElement>(null);
@@ -13,7 +14,7 @@ export function Factory() {
   }, []);
 
   if (!created) {
-    return <div>loading......</div>;
+    return <Loader />;
   }
 
   return (

@@ -23,7 +23,7 @@
     }
   },
   "compilerOptions": {
-    "jsx": "react-jsxdev",
+    "jsx": "react-jsx",
     "jsxImportSource": "react"
   }
 }
