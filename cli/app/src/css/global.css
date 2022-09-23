@@ -1,0 +1,29 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  position: relative;
+}
+
+body {
+  margin: 1rem;
+}
+
+html, body, #root, main {
+  height: 100%;
+}
+
+
+main {
+  display: grid;
+  border-style: solid;
+  grid-template-rows: 1fr;
+  grid-template-columns: 1fr;
+}
+
+ul {
+  list-style: none;
+}

@@ -1,0 +1,8 @@
+{
+  "name": "factory-example",
+  "private": true,
+  "dependencies": {
+    "@faker-js/faker": "7.5.0",
+    "@frontside/graphgen": "1.6.0"
+  }
+}

@@ -1,28 +1,25 @@
 {
   "tasks": {
+    "test": "deno test && cd cli && deno task test",
     "build:npm": "deno run -A tasks/build-npm.ts",
-    "build:cli:windows": "deno compile -o build/cli/graphgen-x86_64-pc-windows-msvc.exe --target x86_64-pc-windows-msvc --allow-read --allow-net cli/main.ts",
-    "build:cli:linux": "deno compile -o build/cli/graphgen-x86_64-unknown-linux-gnu --target x86_64-unknown-linux-gnu --allow-read --allow-net cli/main.ts",
-    "build:cli:macos-m1": "deno compile -o build/cli/graphgen-aarch64-apple-darwin --target aarch64-apple-darwin --allow-read --allow-net cli/main.ts",
-    "build:cli:macos-intel": "deno compile -o build/cli/graphgen-x86_64-apple-darwin --target x86_64-apple-darwin --allow-read --allow-net cli/main.ts",
-    "build:cli": "deno task build:cli:windows && deno task build:cli:linux && deno task build:cli:macos-m1 && deno task build:cli:macos-intel"
+    "build:cli": "cd cli && deno task build:cli"
   },
   "lint": {
     "rules": {
       "exclude": ["prefer-const", "require-yield", "no-inner-declarations"]
     },
     "files": {
-      "exclude": ["build"]
+      "exclude": ["build", "cli"]
     }
   },
   "fmt": {
     "files": {
-      "exclude": ["README.md", "build/"]
+      "exclude": ["README.md", "build/", "cli"]
     }
   },
   "test": {
     "files": {
-      "exclude": ["build"]
+      "exclude": ["build", "cli"]
     }
   }
 }
