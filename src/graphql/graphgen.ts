@@ -325,7 +325,7 @@ directive @computed on FIELD_DEFINITION
 
       return all(typename);
     },
-    analysis
+    analysis,
   };
 }
 

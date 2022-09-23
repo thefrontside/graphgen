@@ -1,7 +1,7 @@
-import React from 'react';
-import './GraphInspector.css';
-import type { SyntheticEvent } from 'react';
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import React from "react";
+import "./GraphInspector.css";
+import type { SyntheticEvent } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import TreeView from "@mui/lab/TreeView";
 import { Node } from "./Node.tsx";
 import { all, node } from "./queries.ts";
