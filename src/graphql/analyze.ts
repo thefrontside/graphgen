@@ -309,11 +309,11 @@ function sizeOf(field: GQLField): Size {
   if (directive) {
     assert(directive.arguments, "@size must have arguments");
     let meanArg = directive.arguments?.find((arg) => arg.name.value === "mean");
-    let mean = parseInt((meanArg?.value as graphql.IntValueNode).value ?? 5);
+    let mean = parseInt((meanArg?.value as graphql.IntValueNode)?.value ?? 5);
     let minArg = directive.arguments?.find(({ name }) => name.value === "min");
-    let min = parseInt((minArg?.value as graphql.IntValueNode).value ?? 0);
+    let min = parseInt((minArg?.value as graphql.IntValueNode)?.value ?? 0);
     let maxArg = directive.arguments?.find(({ name }) => name.value === "max");
-    let max = parseInt((maxArg?.value as graphql.IntValueNode).value ?? 10);
+    let max = parseInt((maxArg?.value as graphql.IntValueNode)?.value ?? 10);
     let standardDeviationArg = directive.arguments?.find(({ name }) =>
       name.value === "standardDeviation"
     );
