@@ -10,10 +10,10 @@ export function Factory() {
       <StrictMode>
         <StyledEngineProvider injectFirst>
           <section className="app">
-            <GraphInspector />
             <section>
               <a target="_blank" href="/graphql">GraphiQL</a>
             </section>
+            <GraphInspector />
           </section>
         </StyledEngineProvider>
       </StrictMode>
