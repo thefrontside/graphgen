@@ -25,7 +25,9 @@ const readdir = async (k: string, v: string) => {
 
 await readdir(Deno.args[0], Deno.args[0]);
 
-const f = await Deno.create(Deno.args.length > 1 ? Deno.args[1] : "bundled-assets.js");
+const f = await Deno.create(
+  Deno.args.length > 1 ? Deno.args[1] : "bundled-assets.js",
+);
 await f.write(new TextEncoder().encode(`var m = {};\n`));
 const l = Object.keys(m);
 for (let i = 0; i < l.length; i++) {

@@ -1,7 +1,7 @@
 const { createGraphGen, weighted } = require("@frontside/graphgen");
 const { fakergen } = require("./fakerGen.ts");
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 const lifecycles = weighted([["deprecated", .15], ["experimental", .5], [
   "production",
@@ -16,7 +16,7 @@ const gen = (info) => {
   }
 };
 
-const source = String(fs.readFileSync(path.join(__dirname, 'world.graphql')));
+const source = String(fs.readFileSync(path.join(__dirname, "world.graphql")));
 
 module.exports = createGraphGen({
   seed: "factory",

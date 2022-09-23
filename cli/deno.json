@@ -1,23 +1,34 @@
 {
   "tasks": {
-    "build": "deno run -A --unstable npm:vite build",
+    "test": "deno task build && deno task compile && deno task npm:install:example && deno test --unstable -A",
+    "npm:install": "npm install && cd example && npm install",
+    "npm:install:example": "npm install && cd example && npm install",
+    "build": "npm install && deno run -A --unstable npm:vite build && deno task bundle-assets",
     "dev": "deno run -A ./main.ts --watch ./src -f ./example/factory.ts --app-path=./dist",
     "bundle-assets": "deno run -A tasks/bundle-assets.ts dist",
+    "build:cli": "deno task build && deno task build:cli:windows && deno task build:cli:linux && deno task build:cli:macos-m1 && deno task build:cli:macos-intel",
+    "build:cli:windows": "deno compile --no-check -o build/graphgen-x86_64-pc-windows-msvc.exe --target x86_64-pc-windows-msvc --allow-read --allow-net --allow-env main.ts",
+    "build:cli:linux": "deno compile --no-check -o build/graphgen-x86_64-unknown-linux-gnu --target x86_64-unknown-linux-gnu --allow-read --allow-net --allow-env main.ts",
+    "build:cli:macos-m1": "deno compile --no-check -o build/graphgen-aarch64-apple-darwin --target aarch64-apple-darwin --allow-read --allow-net --allow-env main.ts",
+    "build:cli:macos-intel": "deno compile --no-check -o build/graphgen-x86_64-apple-darwin --target x86_64-apple-darwin --allow-read --allow-net --allow-env main.ts",
     "compile": "deno compile --no-check --allow-read --allow-net --allow-env -o graphgen ./main.ts"
   },
   "lint": {
     "rules": {
       "exclude": ["prefer-const", "require-yield", "no-inner-declarations"]
+    },
+    "files": {
+      "exclude": ["dist", "example", "bundled-assets.js", "node_modules"]
     }
   },
   "fmt": {
     "files": {
-      "exclude": ["README.md", "build/"]
+      "exclude": ["README.md", "build/", "node_modules", "example", "bundled-assets.js", "dist"]
     }
   },
   "test": {
     "files": {
-      "exclude": ["build", "node_modules"]
+      "exclude": ["build", "node_modules", "example"]
     }
   },
   "compilerOptions": {

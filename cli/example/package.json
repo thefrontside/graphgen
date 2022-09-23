@@ -3,6 +3,6 @@
   "private": true,
   "dependencies": {
     "@faker-js/faker": "7.5.0",
-    "@frontside/graphgen": "../../build/npm"
+    "@frontside/graphgen": "1.6.0"
   }
 }

@@ -47,7 +47,7 @@ jobs:
           # note you'll typically need to create a personal access token
           # with permissions to create releases in the other repo
           token: ${{ secrets.FRONTSIDEJACK_GITHUB_TOKEN }}
-          files: build/cli/*
+          files: cli/build/*
           fail_on_unmatched_files: true
         env:
           GITHUB_REPOSITORY: thefrontside/graphgen
