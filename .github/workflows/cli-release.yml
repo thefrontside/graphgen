@@ -1,0 +1,53 @@
+# This workflow will install Deno then run Deno lint and test.
+# For more information see: https://github.com/denoland/setup-deno
+
+name: Release CLI
+
+on:
+  push:
+    tags:
+      - "graphgen-cli-v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: setup deno
+        # uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@004814556e37c54a2f6e31384c9e18e983317366
+        with:
+          deno-version: v1.25.x
+
+      - name: Get Version
+        id: vars
+        run: echo ::set-output name=version::$(echo ${{github.ref_name}} | sed 's/^v//')
+
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+          registry-url: https://registry.npmjs.com
+
+      - name: Build
+        run: deno task build:cli
+        env:
+          VERSION: ${{steps.vars.outputs.version}}
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          # note you'll typically need to create a personal access token
+          # with permissions to create releases in the other repo
+          token: ${{ secrets.FRONTSIDEJACK_GITHUB_TOKEN }}
+          files: build/cli/*
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_REPOSITORY: thefrontside/graphgen
