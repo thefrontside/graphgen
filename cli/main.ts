@@ -24,7 +24,8 @@ async function parseOptions(
 ): Promise<MainOptions> {
   let modulePath = path.resolve(getModuleName(args.factory));
   let require = createRequire(path.dirname(modulePath));
-  let factory = require(modulePath);
+  let mod = require( modulePath);
+  let factory = mod.default ?? mod;
 
   //TODO: validate that the factory is a Graphgen object and is define, etc...
 
