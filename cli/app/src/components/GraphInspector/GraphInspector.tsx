@@ -115,6 +115,12 @@ export function GraphInspector(): JSX.Element {
     loadGraph().catch(console.error);
   }, []);
 
+  const nodes = Object.values(graph);
+
+  if (nodes.length === 0) {
+    return <h2>No graph nodes</h2>;
+  }
+
   return (
     <TreeView
       aria-label="graph inspector"

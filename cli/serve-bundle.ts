@@ -1,6 +1,6 @@
 import type { MainOptions } from "./types.ts";
 import { getFilePath, getMimeType } from "./deps.ts";
-import { default as getBytes } from "./bundle.js";
+import { default as getBytes } from "./bundled-assets.js";
 
 export const serveBundledApp: MainOptions["app"] = async (c, next) => {
   let url = new URL(c.req.url);
