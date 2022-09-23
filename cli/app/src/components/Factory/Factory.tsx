@@ -1,3 +1,4 @@
+import './Factory.css';
 import React from "react";
 import { StrictMode, Suspense } from "react";
 import { StyledEngineProvider } from "@mui/material/styles";

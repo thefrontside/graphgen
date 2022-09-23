@@ -1,0 +1,5 @@
+.app section:first-of-type {
+  display: flex;
+  justify-content: flex-end;
+  width: 50%;
+}
