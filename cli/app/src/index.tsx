@@ -1,19 +1,10 @@
+import './css/global.css';
 import React from 'react';
 import { createRoot } from "react-dom/client";
 import { Factory } from "./components/Factory/Factory.tsx";
 
-function App() {
-  return <Factory />;
-}
+export const container = document.getElementById('main');
 
-function main() {
-  const container = document.querySelector("#main");
+const root = createRoot(container);
 
-  const root = createRoot(container);
-
-root.render(React.createElement(App));
-}
-
-addEventListener("DOMContentLoaded", () => {
-  main();
-});
+root.render(<Factory />);

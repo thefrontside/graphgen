@@ -9,8 +9,7 @@ html {
 }
 
 body {
-  margin: 0;
-  border: 10px solid red;
+  margin: 1rem;
 }
 
 html, body, #root, main {
@@ -21,7 +20,7 @@ html, body, #root, main {
 main {
   display: grid;
   border-style: solid;
-  grid-template-rows: [top-bar] 3rem [main] 1fr;
+  grid-template-rows: 1fr;
   grid-template-columns: 1fr;
 }
 

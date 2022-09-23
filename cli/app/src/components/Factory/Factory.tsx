@@ -20,9 +20,7 @@ export function Factory() {
     <Suspense>
       <StrictMode>
         <StyledEngineProvider injectFirst>
-          <section ref={ref} className="main">
-            <GraphInspector />
-          </section>
+          <GraphInspector />
         </StyledEngineProvider>
       </StrictMode>
     </Suspense>

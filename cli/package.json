@@ -1,7 +1,6 @@
 {
   "name": "@frontside/graphgen-cli",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "dependencies": {
     "@emotion/styled": "11.10.4",

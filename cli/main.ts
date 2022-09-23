@@ -28,8 +28,6 @@ async function parseOptions(
 
   //TODO: validate that the factory is a Graphgen object and is define, etc...
 
-  console.dir({ a: args["app-path"] });
-
   let app = args["app-path"]
     ? serveStatic({ root: args["app-path"] })
     : serveBundledApp;
