@@ -1,11 +1,9 @@
 {
   "tasks": {
-    "packup": "deno run -A https://deno.land/x/packup@v0.1.14/cli.ts",
-    "serve": "deno run -A https://deno.land/x/packup@v0.1.14/cli.ts serve app/index.html",
     "build": "deno run -A --unstable npm:vite build",
     "dev": "deno run -A ./main.ts --watch ./src -f ./example/factory.ts --app-path=./dist",
-    "bundle-assets": "deno run -A tasks/bundle-assets.ts",
-    "compile": "deno compile -A --no-check --allow-net -o graphgen ./main.ts"
+    "bundle-assets": "deno run -A tasks/bundle-assets.ts dist",
+    "compile": "deno compile --no-check --allow-read --allow-net --allow-env -o graphgen ./main.ts"
   },
   "lint": {
     "rules": {
@@ -19,7 +17,7 @@
   },
   "test": {
     "files": {
-      "exclude": ["build"]
+      "exclude": ["build", "node_modules"]
     }
   },
   "compilerOptions": {

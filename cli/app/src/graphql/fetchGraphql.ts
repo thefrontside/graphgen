@@ -1,4 +1,4 @@
-export const graphqlServer = "http://localhost:8000/graphql";
+export const graphqlServer = "/graphql";
 
 export async function fetchGraphQL(
   text: string,
