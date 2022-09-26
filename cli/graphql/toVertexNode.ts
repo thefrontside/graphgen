@@ -1,4 +1,4 @@
-import type { GraphGen, Node as GraphgenNode } from "@frontside/graphgen";
+import type { GraphGen, Node as GraphgenNode } from "../../mod.ts";
 import { Field, FieldEntry, VertexNode } from "./types.ts";
 import { assert } from "../../src/deps.ts";
 
@@ -8,6 +8,7 @@ export function idOf(node: GraphgenNode): string {
   return `${node.__typename}:${node.id}`;
 }
 
+// deno-lint-ignore no-explicit-any
 function isGraphgenNode(o: any): o is GraphgenNode {
   return typeof o === "object" && "__typename" in o && "id" in o;
 }
