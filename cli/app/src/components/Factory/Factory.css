@@ -1,0 +1,14 @@
+#main {
+  display: grid;
+  grid-template-rows: [top] 2.125rem [main] 1fr;
+}
+
+.app {
+  grid-row: main;
+  margin-top: .5rem;
+}
+
+.app section:first-of-type {
+  display: flex;
+  justify-content: flex-start;
+}

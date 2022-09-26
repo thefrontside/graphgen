@@ -1,7 +1,7 @@
-import type { VertexNode } from "@frontside-graphgen/types";
 import produce from "immer";
 import { assert } from "../../assert/assert.ts";
 import { match } from "ts-pattern";
+import type { VertexNode } from "../../../../graphql/types.ts";
 
 interface Type {
   typename: string;

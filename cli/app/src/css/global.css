@@ -16,8 +16,14 @@ html, body, #root, main {
   height: 100%;
 }
 
+ul {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 
 main {
+  font-family: Menlo, monospace;
   display: grid;
   border-style: solid;
   grid-template-rows: 1fr;
