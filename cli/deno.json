@@ -5,7 +5,7 @@
     "npm:install:example": "npm install && cd example && npm install",
     "build:web": "deno run -A --unstable npm:vite build",
     "build": "npm install && deno task build:web && deno task bundle-assets",
-    "build:web:watch": "deno task build:web -- --watch",
+    "build:web:watch": "NODE_ENV=development deno task build:web -- --watch",
     "dev": "deno run -A ./main.ts --watch -f ./example/factory.ts --app-path=./dist",
     "bundle-assets": "deno run -A tasks/bundle-assets.ts dist",
     "build:cli": "deno task build && deno task build:cli:windows && deno task build:cli:linux && deno task build:cli:macos-m1 && deno task build:cli:macos-intel",
