@@ -1,4 +1,4 @@
-import './topbar.css';
+import './top-bar.css';
 
 export function Topbar(): JSX.Element {
   return (
