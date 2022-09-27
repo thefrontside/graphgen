@@ -1,8 +1,8 @@
-import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
+import { fetchGraphQL } from '../../graphql/fetchGraphql.ts';
+
 
 export async function node(id: string) {
-  return await fetchGraphQL(
-    `
+  return await fetchGraphQL(`
     query Node($id: ID!) {
       node(id:$id) {
         id
@@ -34,8 +34,7 @@ export async function node(id: string) {
 }
 
 export async function all(typename: string) {
-  return await fetchGraphQL(
-    `
+  return await fetchGraphQL(`
     query All($typename: String!) {
       all(typename:$typename) {
         id

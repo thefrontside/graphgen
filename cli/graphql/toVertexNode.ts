@@ -16,6 +16,7 @@ function isGraphgenNode(o: any): o is GraphgenNode {
 export function toVertexNode<
   T extends { id: string; typename: string; [key: string]: Field | Field[] },
 >(factory: Factory, typename: string, value: T): VertexNode {
+  console.log({a: factory.analysis})
   const { fields, references, computed } = factory.analysis.types[typename];
 
   const fieldEntries: FieldEntry[] = [];

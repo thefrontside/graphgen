@@ -10,6 +10,15 @@
   </head>
   <body>
     <div id="main"></div>
+    <script>
+      /**
+       * this is a hack for
+       * error: global is not defined
+       */
+      var global = global || window;
+
+      global.process = { env: { NODE_ENV: 'development' }}
+    </script>
     <script type="module" src="src/index.tsx"></script>
   </body>
 </html>

@@ -3,20 +3,28 @@ import React from "react";
 import { StrictMode, Suspense } from "react";
 import { StyledEngineProvider } from "@mui/material/styles";
 import { GraphInspector } from "../GraphInspector/GraphInspector.tsx";
-import { Loader } from "../Loader/Loader.tsx";
+import {
+  RelayEnvironmentProvider,
+} from 'react-relay/hooks';
 import { Topbar } from '../Topbar/Topbar.tsx';
+import { createRelayEnvironment } from '../../graphql/createRelayEnvironment.ts';
+import { ErrorBoundary } from '../ErrorBoundary/ErrorBoundary.tsx';
+
+const relayEnvironment = createRelayEnvironment();
 
 export function Factory() {
   return (
     <Suspense>
       <StrictMode>
-        <StyledEngineProvider injectFirst>
-          <Topbar/>
-          <section className="app">
-            <GraphInspector />
-          </section>
-        </StyledEngineProvider>
+        <RelayEnvironmentProvider environment={relayEnvironment}>
+          <StyledEngineProvider injectFirst>
+            <Topbar />
+            <section className="app">
+              <GraphInspector />
+            </section>
+          </StyledEngineProvider>
+        </RelayEnvironmentProvider>
       </StrictMode>
-    </Suspense>
+    </Suspense >
   );
 }

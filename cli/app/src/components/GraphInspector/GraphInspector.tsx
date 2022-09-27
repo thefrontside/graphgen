@@ -11,10 +11,23 @@ import { MinusSquare, PlusSquare } from "./icons.tsx";
 import { StyledTreeItem } from "./StyledTreeItem.tsx";
 import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
 import { Loader } from "../Loader/Loader.tsx";
+import { useLazyLoadQuery } from 'react-relay';
+import { graphql } from 'react-relay';
 
 const emptyGraph = { graph: {} };
 
 export function GraphInspector(): JSX.Element {
+  const metaQuery = useLazyLoadQuery(
+    graphql`
+      query GraphInspectorMetaQuery {
+        meta {
+          typename
+          count
+        }
+      }
+  `);
+
+  console.log(metaQuery);
   const [{ graph }, dispatch] = useReducer(graphReducer, emptyGraph);
   const expandedNodes = useRef(new Set<string>());
 
@@ -98,22 +111,22 @@ export function GraphInspector(): JSX.Element {
     [],
   );
 
-  useEffect(() => {
-    async function loadGraph() {
-      const graph = await fetchGraphQL(`
-      query Meta {
-        meta {
-          typename
-          count
-        }
-      }
-      `);
+  // useEffect(() => {
+  //   async function loadGraph() {
+  //     const graph = await fetchGraphQL(`
+  //     query Meta {
+  //       meta {
+  //         typename
+  //         count
+  //       }
+  //     }
+  //     `);
 
-      dispatch({ type: "ROOTS", payload: graph.data.meta });
-    }
+  //     dispatch({ type: "ROOTS", payload: graph.data.meta });
+  //   }
 
-    loadGraph().catch(console.error);
-  }, []);
+  //   loadGraph().catch(console.error);
+  // }, []);
 
   const nodes = Object.values(graph);
 

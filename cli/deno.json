@@ -1,12 +1,13 @@
 {
   "tasks": {
+    "relay:generate": "deno run -A --unstable npm:relay-compiler",
     "test": "deno task build && deno task compile && deno task npm:install:example && deno test --unstable -A",
     "npm:install": "npm install && cd example && npm install",
     "npm:install:example": "npm install && cd example && npm install",
     "build:web": "deno run -A --unstable npm:vite build",
     "build": "npm install && deno task build:web && deno task bundle-assets",
     "build:web:watch": "NODE_ENV=development deno task build:web -- --watch",
-    "dev": "deno run -A ./main.ts --watch -f ./example/factory.ts --app-path=./dist",
+    "dev": "NODE_ENV=development deno run -A ./main.ts --watch -f ./example/factory.ts --app-path=./dist",
     "bundle-assets": "deno run -A tasks/bundle-assets.ts dist",
     "build:cli": "deno task build && deno task build:cli:windows && deno task build:cli:linux && deno task build:cli:macos-m1 && deno task build:cli:macos-intel",
     "build:cli:windows": "deno compile --no-check -o build/graphgen-x86_64-pc-windows-msvc.exe --target x86_64-pc-windows-msvc --allow-read --allow-net --allow-env main.ts",
@@ -34,7 +35,14 @@
     }
   },
   "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable",
+      "dom.extras",
+      "deno.ns"
+    ],
     "jsx": "react-jsx",
-    "jsxImportSource": "react"
+    "jsxImportSource": "https://esm.sh/react@18.2.0"
   }
 }

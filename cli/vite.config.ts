@@ -9,10 +9,15 @@ const isDevelopment = Deno.env.get('NODE_ENV') === 'development';
 export default defineConfig({
   root: "app",
   plugins: [react(), tsconfigPaths()],
+  define: {
+    'process.env.NODE_ENV': '"development"'
+  },
   build: {
     watch: isDevelopment ? {} : undefined,
     emptyOutDir: true,
+    mode: Deno.env.get('NODE_ENV') ?? "development",
     outDir: "../dist",
     sourcemap: "inline",
+    minify: false,
   },
 });
