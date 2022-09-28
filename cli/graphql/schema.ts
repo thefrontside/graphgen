@@ -1,38 +1,28 @@
 import { GraphQLJSON, GraphQLJSONObject } from "../deps.ts";
 import type { GraphQLContext } from "./context.ts";
-import { applyRelayPagination, Page } from "./relay.ts";
-import type { RelayPagingOptions } from './relay.ts';
 import { toVertexNode } from "./toVertexNode.ts";
 import { CreateInput, Type } from "./types.ts";
 import { VertexNode } from "./types.ts";
 
-export const typeDefs = Deno.readTextFileSync('./graphql/inspector.graphql')
+export const typeDefs = Deno.readTextFileSync('./graphql/inspector.graphql');
 
 export const resolvers = {
   JSON: GraphQLJSON,
   JSONObject: GraphQLJSONObject,
   Query: {
-    meta(_: unknown, args: RelayPagingOptions, context: GraphQLContext): Page<Type> {
+    meta(_: unknown, __: unknown, context: GraphQLContext): Type[] {
       const graph = context.factory.graph;
 
-      const nodes = Object.keys(graph.roots)
+      return Object.keys(graph.roots)
         .flatMap((typename) => {
           const values = Object.values(graph.roots[typename]);
 
           return {
-            id: typename,
             typename,
             count: values.length,
           };
         }).filter((t) => t.count > 0)
         .sort((left, right) => right.count - left.count);
-
-        return applyRelayPagination(nodes, {
-          first: args.first ?? undefined,
-          last: args.last ?? undefined,
-          before: args.before ?? undefined,
-          after: args.after ?? undefined,
-        })
     },
     all(
       _: unknown,

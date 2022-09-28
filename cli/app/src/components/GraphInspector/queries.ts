@@ -1,24 +1,4 @@
 import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
-import { gql } from 'urql';
-
-export const metaQuery = gql`
-  query Meta($first: Int!, $after: String) {
-    meta(first: $first, after: $after) {
-      edges {
-        node {
-          id
-          typename
-          count
-        } 
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }
-`;
-
 
 export async function node(id: string) {
   return await fetchGraphQL(
