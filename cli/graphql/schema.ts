@@ -1,5 +1,7 @@
 import { GraphQLJSON, GraphQLJSONObject } from "../deps.ts";
 import type { GraphQLContext } from "./context.ts";
+import { applyRelayPagination, Page } from "./relay.ts";
+import type { RelayPagingOptions } from './relay.ts';
 import { toVertexNode } from "./toVertexNode.ts";
 import { CreateInput, Type } from "./types.ts";
 import { VertexNode } from "./types.ts";
@@ -39,13 +41,33 @@ type Vertex implements Node {
   fields: [FieldEntry!]!
 }
 
-type Type {
+type Type implements Node {
+  id: ID!
   typename: String!
   count: Int!
 }
 
+type TypeEdge {
+  node: Type!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type MetaConnection {
+  count: Int!
+  total: Int!
+  pageInfo: PageInfo!
+  edges: [TypeEdge]!
+}
+
 type Query {
-  meta: [Type]
+  meta(first: Int, after: String, last: Int, before: String): MetaConnection!
   graph: JSON
   all(typename: String!): [Vertex!]
   node(id: ID!): Node
@@ -66,19 +88,27 @@ export const resolvers = {
   JSON: GraphQLJSON,
   JSONObject: GraphQLJSONObject,
   Query: {
-    meta(_: unknown, __: unknown, context: GraphQLContext): Type[] {
+    meta(_: unknown, args: RelayPagingOptions, context: GraphQLContext): Page<Type> {
       const graph = context.factory.graph;
 
-      return Object.keys(graph.roots)
+      const nodes = Object.keys(graph.roots)
         .flatMap((typename) => {
           const values = Object.values(graph.roots[typename]);
 
           return {
+            id: typename,
             typename,
             count: values.length,
           };
         }).filter((t) => t.count > 0)
         .sort((left, right) => right.count - left.count);
+
+        return applyRelayPagination(nodes, {
+          first: args.first ?? undefined,
+          last: args.last ?? undefined,
+          before: args.before ?? undefined,
+          after: args.after ?? undefined,
+        })
     },
     all(
       _: unknown,

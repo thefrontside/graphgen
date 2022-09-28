@@ -1,7 +1,7 @@
 import React from "react";
 import "./GraphInspector.css";
 import type { SyntheticEvent } from "react";
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useState, useReducer, useRef } from "react";
 import TreeView from "@mui/lab/TreeView";
 import { Node } from "./Node.tsx";
 import { all, node } from "./queries.ts";
@@ -9,12 +9,40 @@ import { graphReducer } from "./graphReducer.ts";
 import { VertexNode } from "../../../../graphql/types.ts";
 import { MinusSquare, PlusSquare } from "./icons.tsx";
 import { StyledTreeItem } from "./StyledTreeItem.tsx";
-import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
 import { Loader } from "../Loader/Loader.tsx";
+import { gql, useQuery } from 'urql';
 
 const emptyGraph = { graph: {} };
 
+const limit = 5;
+
+const metaQuery = gql`
+  query Meta($first: Int!, $after: String) {
+    meta(first: $first, after: $after) {
+      edges {
+        node {
+          id
+          typename
+          count
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+`;
+
 export function GraphInspector(): JSX.Element {
+  const [after, setAfter] = useState('');
+  const [result] = useQuery({
+    query: metaQuery,
+    variables: { first: limit, after },
+  });
+
+  console.log({ result });
+  
   const [{ graph }, dispatch] = useReducer(graphReducer, emptyGraph);
   const expandedNodes = useRef(new Set<string>());
 
@@ -98,22 +126,22 @@ export function GraphInspector(): JSX.Element {
     [],
   );
 
-  useEffect(() => {
-    async function loadGraph() {
-      const graph = await fetchGraphQL(`
-      query Meta {
-        meta {
-          typename
-          count
-        }
-      }
-      `);
+  // useEffect(() => {
+  //   async function loadGraph() {
+  //     const graph = await fetchGraphQL(`
+  //     query Meta {
+  //       meta {
+  //         typename
+  //         count
+  //       }
+  //     }
+  //     `);
 
-      dispatch({ type: "ROOTS", payload: graph.data.meta });
-    }
+  //     dispatch({ type: "ROOTS", payload: graph.data.meta });
+  //   }
 
-    loadGraph().catch(console.error);
-  }, []);
+  //   loadGraph().catch(console.error);
+  // }, []);
 
   const nodes = Object.values(graph);
 
