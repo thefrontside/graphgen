@@ -4,39 +4,22 @@ import type { SyntheticEvent } from "react";
 import { useCallback, useEffect, useState, useReducer, useRef } from "react";
 import TreeView from "@mui/lab/TreeView";
 import { Node } from "./Node.tsx";
-import { all, node } from "./queries.ts";
+import { all, metaQuery, node } from "./queries.ts";
 import { graphReducer } from "./graphReducer.ts";
 import type { Type, VertexNode } from "../../../../graphql/types.ts";
 import { MinusSquare, PlusSquare } from "./icons.tsx";
 import { StyledTreeItem } from "./StyledTreeItem.tsx";
 import { Loader } from "../Loader/Loader.tsx";
-import { gql, useQuery } from 'urql';
+import { useQuery } from 'urql';
+import { MetaConnection } from "../../../../graphql/inspector.ts";
 
 const emptyGraph = { graph: {} };
 
 const limit = 5;
 
-const metaQuery = gql`
-  query Meta($first: Int!, $after: String) {
-    meta(first: $first, after: $after) {
-      edges {
-        node {
-          id
-          typename
-          count
-        } 
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }
-`;
-
 export function GraphInspector(): JSX.Element {
   const [after, setAfter] = useState('');
-  const [result] = useQuery<{meta: Type}>({
+  const [result] = useQuery<{meta: MetaConnection}>({
     query: metaQuery,
     variables: { first: limit, after },
   });

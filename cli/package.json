@@ -2,6 +2,9 @@
   "name": "@frontside/graphgen-cli",
   "version": "0.1.0",
   "type": "module",
+  "scripts": {
+    "codegen": "graphql-codegen"
+  },
   "dependencies": {
     "@urql/exchange-graphcache": "5.0.1",
     "@emotion/styled": "11.10.4",
@@ -17,7 +20,11 @@
     "urql": "2.0.2"
   },
   "devDependencies": {
+    "@graphql-codegen/add": "3.2.1",
     "@graphql-codegen/cli": "2.13.1",
+    "@graphql-codegen/typescript-graphql-request": "4.5.5",
+    "@graphql-codegen/typescript-operations": "2.5.3",
+    "@graphql-codegen/typescript-resolvers": "2.7.3",
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
     "@vitejs/plugin-react": "2.1.0",
