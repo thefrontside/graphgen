@@ -6,7 +6,6 @@ import { GraphInspector } from "../GraphInspector/GraphInspector.tsx";
 import { Topbar } from '../Topbar/Topbar.tsx';
 import { createClient, Provider, dedupExchange, fetchExchange } from 'urql';
 import { cacheExchange } from '@urql/exchange-graphcache';
-import { relayPagination } from '@urql/exchange-graphcache/extras';
 
 const client = createClient({
   url: '/graphql',
@@ -15,7 +14,6 @@ const client = createClient({
     cacheExchange({
       resolvers: {
         Query: {
-          meta: relayPagination(),
         },
       },
     }),
