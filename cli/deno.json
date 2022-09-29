@@ -25,7 +25,14 @@
   },
   "fmt": {
     "files": {
-      "exclude": ["README.md", "build/", "node_modules", "example", "bundled-assets.js", "dist"]
+      "exclude": [
+        "README.md",
+        "build/",
+        "node_modules",
+        "example",
+        "bundled-assets.js",
+        "dist"
+      ]
     }
   },
   "test": {

@@ -4,7 +4,7 @@ import { toVertexNode } from "./toVertexNode.ts";
 import { CreateInput, Type } from "./types.ts";
 import { VertexNode } from "./types.ts";
 
-export const typeDefs = Deno.readTextFileSync('./graphql/inspector.graphql');
+export const typeDefs = Deno.readTextFileSync("./graphql/inspector.graphql");
 
 export const resolvers = {
   JSON: GraphQLJSON,

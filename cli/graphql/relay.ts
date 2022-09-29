@@ -38,7 +38,10 @@ export function applyRelayPagination<T, R>(
 ): Page<R> {
   const range = applyCursorsToEdges(nodes, args.before, args.after);
 
-  const edges = edgesToReturn(range, args.first, args.last).map(edge => ({ ...edge, node: mapper(edge.node) }));
+  const edges = edgesToReturn(range, args.first, args.last).map((edge) => ({
+    ...edge,
+    node: mapper(edge.node),
+  }));
 
   const [first] = edges;
   const last = edges.slice().pop();
@@ -46,7 +49,7 @@ export function applyRelayPagination<T, R>(
   return {
     totalCount: nodes.length,
     edges,
-    nodes: edges.map(e => e.node),
+    nodes: edges.map((e) => e.node),
     pageInfo: {
       get hasNextPage() {
         const { first, before } = args;
