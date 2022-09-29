@@ -1,8 +1,7 @@
-import React from "react";
-import { VertexNode } from "../../../../graphql/types.ts";
-import { Loader } from "../Loader/Loader.tsx";
-import { StyledTreeItem } from "./StyledTreeItem.tsx";
-import { TypeLabel } from "./TypeLabel.tsx";
+import { VertexNode } from "../../../../graphql/types";
+import { Loader } from "../Loader/Loader";
+import { StyledTreeItem } from "./StyledTreeItem";
+import { TypeLabel } from "./TypeLabel";
 
 interface NodeProps {
   parentId: string;

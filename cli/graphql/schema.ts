@@ -4,63 +4,7 @@ import { toVertexNode } from "./toVertexNode.ts";
 import { CreateInput, Type } from "./types.ts";
 import { VertexNode } from "./types.ts";
 
-export const typeDefs = /* GraphQL */ `
-scalar JSON
-scalar JSONObject
-interface Node {
-  id: ID!
-}
-
-interface FieldEntry {
-  key: String!
-}
-
-type JSONFieldEntry implements FieldEntry {
-  key: String!
-  json: JSON
-  typename: String!
-}
-
-type VertexFieldEntry implements FieldEntry {
-  key: String!
-  id: ID!
-  typenames: [String!]!
-}
-
-type VertexListFieldEntry implements FieldEntry {
-  key: String!
-  ids: [ID!]!
-  typenames: [String!]!
-}
-
-type Vertex implements Node {
-  id: ID!
-  typename: String!
-  fields: [FieldEntry!]!
-}
-
-type Type {
-  typename: String!
-  count: Int!
-}
-
-type Query {
-  meta: [Type]
-  graph: JSON
-  all(typename: String!): [Vertex!]
-  node(id: ID!): Node
-}
-
-input CreateInput {
-  typename: String!
-  preset: JSON
-}
-
-type Mutation {
-  create(typename: String!, preset: JSON): Vertex
-  createMany(inputs: [CreateInput!]!): [Vertex!]!
-}
-`;
+export const typeDefs = Deno.readTextFileSync("./graphql/inspector.graphql");
 
 export const resolvers = {
   JSON: GraphQLJSON,

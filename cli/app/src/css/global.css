@@ -9,6 +9,7 @@ html {
 }
 
 body {
+  font-family: "Lucida Console", Monaco, monospace;
   margin: 1rem;
 }
 
@@ -23,7 +24,6 @@ ul {
 
 
 main {
-  font-family: Menlo, monospace;
   display: grid;
   border-style: solid;
   grid-template-rows: 1fr;

@@ -1,0 +1,11 @@
+schema: ./graphql/**/*.graphql
+generates:
+  ./graphql/inspector.ts:
+    plugins:
+      - add:
+          content: '/* eslint-disable */'
+      - typescript
+
+    config:
+      avoidOptionals: true
+      declarationKind: 'interface'
