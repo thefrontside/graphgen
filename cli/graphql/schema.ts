@@ -1,5 +1,6 @@
 import { GraphQLJSON, GraphQLJSONObject } from "../deps.ts";
 import type { GraphQLContext } from "./context.ts";
+import { applyRelayPagination, Page, PageArgs } from './relay.ts';
 import { toVertexNode } from "./toVertexNode.ts";
 import { CreateInput, Type } from "./types.ts";
 import { VertexNode } from "./types.ts";
@@ -26,9 +27,9 @@ export const resolvers = {
     },
     all(
       _: unknown,
-      { typename }: { typename: string },
+      { typename, ...pageInfo }: PageArgs & { typename: string; },
       context: GraphQLContext,
-    ): VertexNode[] {
+    ): Page<VertexNode> {
       const collection = context.factory.all(typename);
 
       const nodes = [...collection];
@@ -37,7 +38,7 @@ export const resolvers = {
         toVertexNode(context.factory, typename, node)
       );
 
-      return result;
+      return applyRelayPagination(result, pageInfo);
     },
     node(_: unknown, { id }: { id: string }, context: GraphQLContext) {
       const [typename, nodeId] = id.split(":");

@@ -1,4 +1,5 @@
 import { fetchGraphQL } from "../../graphql/fetchGraphql";
+import { gql } from 'urql';
 
 export async function node(id: string) {
   return await fetchGraphQL(
@@ -33,11 +34,11 @@ export async function node(id: string) {
   );
 }
 
-export async function all(typename: string) {
-  return await fetchGraphQL(
-    `
-    query All($typename: String!) {
-      all(typename:$typename) {
+export const allQuery = gql`
+query All($typename: String!, $first: Int!, $after: String!) {
+  all(typename:$typename, first: $first, after: $after) {
+    edges {
+      node {
         id
         fields {
           key
@@ -57,9 +58,10 @@ export async function all(typename: string) {
         }
       }
     }
-  `,
-    {
-      "typename": typename,
-    },
-  );
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
 }
+`

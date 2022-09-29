@@ -32,6 +32,25 @@ type Vertex implements Node {
   fields: [FieldEntry!]!
 }
 
+type VertexEdge {
+  node: Vertex!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type VertexConnection {
+  count: Int!
+  total: Int!
+  pageInfo: PageInfo!
+  edges: [VertexEdge]!
+}
+
 type Type {
   typename: String!
   count: Int!
@@ -40,7 +59,7 @@ type Type {
 type Query {
   meta: [Type]
   graph: JSON
-  all(typename: String!): [Vertex!]
+  all(typename: String!, first: Int!, after: String!): VertexConnection!
   node(id: ID!): Node
 }
 
