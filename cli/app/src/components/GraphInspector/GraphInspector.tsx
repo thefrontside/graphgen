@@ -38,12 +38,12 @@ export function GraphInspector(): JSX.Element {
   const [{ graph }, dispatch] = useReducer(graphReducer, emptyGraph);
   const expandedNodes = useRef(new Set<string>());
 
-  const { data, fetching, error } = result;
-
-  const allResult = data?.all ?? { edges: [] } as Page<VertexNode>;
+  const { data, error } = result;
 
   useEffect(() => {
-    if (allResult.edges.length === 0) {
+    const edges = data?.all?.edges ?? [];
+
+    if (edges.length === 0) {
       return;
     }
 
@@ -51,10 +51,10 @@ export function GraphInspector(): JSX.Element {
       type: "ALL",
       payload: {
         typename,
-        nodes: allResult.edges.map(edge => edge.node),
+        nodes: edges.map(edge => edge.node),
       },
     });
-  }, [allResult, typename])
+  }, [data, typename])
 
   const handleChange = useCallback(
     async (_: SyntheticEvent, nodeIds: string[]) => {
