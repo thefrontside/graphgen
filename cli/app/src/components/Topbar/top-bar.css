@@ -10,7 +10,6 @@
   overflow-y: visible;
   user-select: none;
   grid-row: top;
-  font-family: Menlo, monospace;
 }
 
 .top-bar {

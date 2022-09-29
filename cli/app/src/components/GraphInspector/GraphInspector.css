@@ -12,7 +12,6 @@
 .root {
   font-weight: 400;
   color: #36454F;
-  font-family: "Lucida Console", Monaco, monospace;
 }
 
 .fieldname, .colon {
@@ -46,7 +45,6 @@
 .type-label {
   display: flex;
   color: #000;
-  font-family: "Lucida Console", Monaco, monospace
 }
 
 .type-label :first-child {
