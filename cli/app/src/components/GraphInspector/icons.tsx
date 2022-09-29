@@ -1,4 +1,3 @@
-import React from "react";
 import SvgIcon, { SvgIconProps } from "@mui/material/SvgIcon";
 
 export function MinusSquare(props: SvgIconProps): JSX.Element {

@@ -1,16 +1,15 @@
-import React from "react";
 import "./GraphInspector.css";
 import type { SyntheticEvent } from "react";
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import TreeView from "@mui/lab/TreeView";
-import { Node } from "./Node.tsx";
-import { all, node } from "./queries.ts";
-import { graphReducer } from "./graphReducer.ts";
-import { VertexNode } from "../../../../graphql/types.ts";
-import { MinusSquare, PlusSquare } from "./icons.tsx";
-import { StyledTreeItem } from "./StyledTreeItem.tsx";
-import { fetchGraphQL } from "../../graphql/fetchGraphql.ts";
-import { Loader } from "../Loader/Loader.tsx";
+import { Node } from "./Node";
+import { all, node } from "./queries";
+import { graphReducer } from "./graphReducer";
+import { VertexNode } from "../../../../graphql/types";
+import { MinusSquare, PlusSquare } from "./icons";
+import { StyledTreeItem } from "./StyledTreeItem";
+import { fetchGraphQL } from "../../graphql/fetchGraphql";
+import { Loader } from "../Loader/Loader";
 
 const emptyGraph = { graph: {} };
 

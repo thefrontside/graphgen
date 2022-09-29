@@ -1,21 +1,14 @@
 import "./Factory.css";
-import React from "react";
 import { StrictMode, Suspense } from "react";
 import { StyledEngineProvider } from "@mui/material/styles";
-import { GraphInspector } from "../GraphInspector/GraphInspector.tsx";
-import { Topbar } from "../Topbar/Topbar.tsx";
+import { GraphInspector } from "../GraphInspector/GraphInspector";
+import { Topbar } from "../Topbar/Topbar";
 import { createClient, dedupExchange, fetchExchange, Provider } from "urql";
-import { cacheExchange } from "@urql/exchange-graphcache";
 
 const client = createClient({
   url: "/graphql",
   exchanges: [
     dedupExchange,
-    cacheExchange({
-      resolvers: {
-        Query: {},
-      },
-    }),
     fetchExchange,
   ],
 });
