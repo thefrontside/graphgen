@@ -1,21 +1,60 @@
 import "./GraphInspector.css";
 import type { SyntheticEvent } from "react";
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import TreeView from "@mui/lab/TreeView";
 import { Node } from "./Node";
-import { all, node } from "./queries";
+import { allQuery, node } from "./queries";
 import { graphReducer } from "./graphReducer";
 import { VertexNode } from "../../../../graphql/types";
 import { MinusSquare, PlusSquare } from "./icons";
 import { StyledTreeItem } from "./StyledTreeItem";
 import { fetchGraphQL } from "../../graphql/fetchGraphql";
 import { Loader } from "../Loader/Loader";
-
+import { useQuery } from 'urql';
+import type { Page } from '../../../../graphql/relay';
 const emptyGraph = { graph: {} };
 
+const limit = 5;
+
 export function GraphInspector(): JSX.Element {
+  // TODO: call setAfter when scrolling
+  const [after] = useState('');
+  const [typename, setTypename] = useState<string | undefined>();
+
+  const [result] = useQuery<{ all: Page<VertexNode> }, {
+    typename: string;
+    first: number;
+    after: string;
+  }>({
+    query: allQuery,
+    pause: !typename,
+    variables: {
+      typename,
+      first: limit,
+      after
+    },
+  });
+
   const [{ graph }, dispatch] = useReducer(graphReducer, emptyGraph);
   const expandedNodes = useRef(new Set<string>());
+
+  const { data, fetching, error } = result;
+
+  const allResult = data?.all ?? { edges: [] } as Page<VertexNode>;
+
+  useEffect(() => {
+    if (allResult.edges.length === 0) {
+      return;
+    }
+
+    dispatch({
+      type: "ALL",
+      payload: {
+        typename,
+        nodes: allResult.edges.map(edge => edge.node),
+      },
+    });
+  }, [allResult, typename])
 
   const handleChange = useCallback(
     async (_: SyntheticEvent, nodeIds: string[]) => {
@@ -79,22 +118,8 @@ export function GraphInspector(): JSX.Element {
         return;
       }
 
-      try {
-        const response = await all(nodeId);
-
-        dispatch({
-          type: "ALL",
-          payload: {
-            typename: nodeIds[0],
-            nodes: response.data.all,
-          },
-        });
-      } catch (e) {
-        console.error(e);
-        throw e;
-      }
-    },
-    [],
+      setTypename(nodeId);
+    }, [],
   );
 
   useEffect(() => {
@@ -120,6 +145,10 @@ export function GraphInspector(): JSX.Element {
     return <h2>No graph nodes</h2>;
   }
 
+  if (error) {
+    return <p className="error">Oh no... {error?.message}</p>
+  }
+
   return (
     <TreeView
       aria-label="graph inspector"
@@ -135,20 +164,19 @@ export function GraphInspector(): JSX.Element {
           label={<div className="root">{label}</div>}
         >
           {nodes.length > 0
-            ? nodes.map((vertexNode, i) => {
-              return (
-                <StyledTreeItem
-                  key={vertexNode.id}
-                  nodeId={vertexNode.id}
-                  label={
-                    <Node
-                      parentId={`${typename}.nodes.${i}`}
-                      node={vertexNode}
-                    />
-                  }
-                />
-              );
-            })
+            ? nodes.map((vertexNode, i) => (
+              <StyledTreeItem
+                key={vertexNode.id}
+                nodeId={vertexNode.id}
+                label={
+                  <Node
+                    parentId={`${typename}.nodes.${i}`}
+                    node={vertexNode}
+                  />
+                }
+              />
+            )
+            )
             : <Loader />}
         </StyledTreeItem>
       ))}

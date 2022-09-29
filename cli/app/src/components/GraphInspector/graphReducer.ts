@@ -1,7 +1,7 @@
 import produce from "immer";
-import { assert } from "../../assert/assert.ts";
+import { assert } from "../../assert/assert";
 import { match } from "ts-pattern";
-import type { VertexNode } from "../../../../graphql/types.ts";
+import type { VertexNode } from "../../../../graphql/types";
 
 interface Type {
   typename: string;

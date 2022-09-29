@@ -3,3 +3,4 @@ node_modules
 build
 graphgen
 example/package-lock.json
+vite.config.ts.timestamp-*

@@ -50,3 +50,8 @@
 .type-label :first-child {
   margin-right: .25rem;
 }
+
+.error {
+  color: #FF9494;
+  font-size: 2rem;
+}
