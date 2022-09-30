@@ -2,17 +2,7 @@ import produce from "immer";
 import { assert } from "../../assert/assert";
 import { match } from "ts-pattern";
 import type { VertexNode } from "../../../../graphql/types";
-
-interface Type {
-  typename: string;
-  size: number;
-  label: string;
-  nodes: VertexNode[];
-}
-
-interface State {
-  graph: Record<string, Type>;
-}
+import { State, Type } from './types';
 
 type Actions =
   | {

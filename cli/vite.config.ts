@@ -10,7 +10,7 @@ export default defineConfig({
   root: "app",
   plugins: [react(), tsconfigPaths()],
   build: {
-    watch: isDevelopment ? {} : undefined,
+    watch: {},
     emptyOutDir: true,
     outDir: "../dist",
     sourcemap: "inline",

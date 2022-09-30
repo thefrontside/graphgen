@@ -9,25 +9,29 @@ import { VertexNode } from "../../../../graphql/types";
 import { MinusSquare, PlusSquare } from "./icons";
 import { StyledTreeItem } from "./StyledTreeItem";
 import { fetchGraphQL } from "../../graphql/fetchGraphql";
-import { Loader } from "../Loader/Loader";
 import { useQuery } from 'urql';
 import type { Page } from '../../../../graphql/relay';
+import { RowVirtualizerDynamic } from './RowVirtualizerDynamic';
+import useBoundingclientrectRef from '@rooks/use-boundingclientrect-ref';
+
 const emptyGraph = { graph: {} };
 
 const limit = 5;
 
 export function GraphInspector(): JSX.Element {
-  // TODO: call setAfter when scrolling
-  const [after] = useState('');
+  const [after, setAfter] = useState('');
   const [typename, setTypename] = useState<string | undefined>();
+  const [expanderRef, boundingClientRect] = useBoundingclientrectRef();
 
+  const height = Math.round(boundingClientRect?.height);
+  
   const [result] = useQuery<{ all: Page<VertexNode> }, {
     typename: string;
     first: number;
     after: string;
   }>({
     query: allQuery,
-    pause: !typename,
+    pause: !typename && !after,
     variables: {
       typename,
       first: limit,
@@ -36,9 +40,8 @@ export function GraphInspector(): JSX.Element {
   });
 
   const [{ graph }, dispatch] = useReducer(graphReducer, emptyGraph);
-  const expandedNodes = useRef(new Set<string>());
 
-  const { data, error } = result;
+  const { data, error, fetching } = result;
 
   useEffect(() => {
     const edges = data?.all?.edges ?? [];
@@ -63,13 +66,6 @@ export function GraphInspector(): JSX.Element {
       }
 
       const nodeId = nodeIds[0];
-
-      if (expandedNodes.current.has(nodeId)) {
-        console.log(`${nodeId} has previously been opened`);
-        return;
-      }
-
-      expandedNodes.current.add(nodeId);
 
       if (nodeId.indexOf(".") > -1) {
         const path = nodeId.split(".");
@@ -118,6 +114,7 @@ export function GraphInspector(): JSX.Element {
         return;
       }
 
+      setAfter('');
       setTypename(nodeId);
     }, [],
   );
@@ -150,36 +147,31 @@ export function GraphInspector(): JSX.Element {
   }
 
   return (
-    <TreeView
-      aria-label="graph inspector"
-      defaultCollapseIcon={<MinusSquare />}
-      defaultExpandIcon={<PlusSquare />}
-      onNodeToggle={handleChange}
-      multiSelect={false}
-    >
-      {Object.values(graph).map(({ typename, label, nodes }) => (
-        <StyledTreeItem
-          key={typename}
-          nodeId={typename}
-          label={<div className="root">{label}</div>}
-        >
-          {nodes.length > 0
-            ? nodes.map((vertexNode, i) => (
-              <StyledTreeItem
-                key={vertexNode.id}
-                nodeId={vertexNode.id}
-                label={
-                  <Node
-                    parentId={`${typename}.nodes.${i}`}
-                    node={vertexNode}
-                  />
-                }
-              />
-            )
-            )
-            : <Loader />}
-        </StyledTreeItem>
-      ))}
-    </TreeView>
+    <div ref={expanderRef} className="boris">
+      <TreeView
+        aria-label="graph inspector"
+        defaultCollapseIcon={<MinusSquare />}
+        defaultExpandIcon={<PlusSquare />}
+        onNodeToggle={handleChange}
+        multiSelect={false}
+      >
+        {Object.values(graph).map(({ typename, label, nodes }) => (
+          <StyledTreeItem
+            key={typename}
+            nodeId={typename}
+            label={<div className="root">{label}</div>}
+          >
+            <RowVirtualizerDynamic
+              hasNextPage={!!data?.all?.pageInfo?.hasNextPage}
+              nodes={nodes}
+              typename={typename}
+              fetching={fetching}
+              fetchNextPage={() => setAfter(data.all.pageInfo.endCursor)}
+              height={height}
+            />
+          </StyledTreeItem>
+        ))}
+      </TreeView>
+    </div>
   );
 }
