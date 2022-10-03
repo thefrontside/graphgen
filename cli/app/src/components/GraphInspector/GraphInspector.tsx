@@ -12,7 +12,6 @@ import { fetchGraphQL } from "../../graphql/fetchGraphql";
 import { useQuery } from 'urql';
 import type { Page } from '../../../../graphql/relay';
 import { RowVirtualizerDynamic } from './RowVirtualizerDynamic';
-import useBoundingclientrectRef from '@rooks/use-boundingclientrect-ref';
 
 const emptyGraph = { graph: {} };
 
@@ -21,10 +20,8 @@ const limit = 5;
 export function GraphInspector(): JSX.Element {
   const [after, setAfter] = useState('');
   const [typename, setTypename] = useState<string | undefined>();
-  const [expanderRef, boundingClientRect] = useBoundingclientrectRef();
+  const [state, forceUpdate] = useReducer((x => x + 1), 0);
 
-  const height = Math.round(boundingClientRect?.height);
-  
   const [result] = useQuery<{ all: Page<VertexNode> }, {
     typename: string;
     first: number;
@@ -116,6 +113,7 @@ export function GraphInspector(): JSX.Element {
 
       setAfter('');
       setTypename(nodeId);
+      forceUpdate();
     }, [],
   );
 
@@ -147,7 +145,7 @@ export function GraphInspector(): JSX.Element {
   }
 
   return (
-    <div ref={expanderRef} className="boris">
+    <div>
       <TreeView
         aria-label="graph inspector"
         defaultCollapseIcon={<MinusSquare />}
@@ -161,14 +159,13 @@ export function GraphInspector(): JSX.Element {
             nodeId={typename}
             label={<div className="root">{label}</div>}
           >
-            <RowVirtualizerDynamic
+            {nodes.length > 0 ? <RowVirtualizerDynamic
               hasNextPage={!!data?.all?.pageInfo?.hasNextPage}
               nodes={nodes}
               typename={typename}
               fetching={fetching}
               fetchNextPage={() => setAfter(data.all.pageInfo.endCursor)}
-              height={height}
-            />
+            /> : <div>loading....</div>}
           </StyledTreeItem>
         ))}
       </TreeView>

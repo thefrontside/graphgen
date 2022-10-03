@@ -11,6 +11,7 @@ html {
 body {
   font-family: "Lucida Console", Monaco, monospace;
   margin: 0;
+  overflow: hidden;
 }
 
 html, body, #root, main {

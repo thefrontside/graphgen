@@ -11,8 +11,6 @@ export const StyledTreeItem: FC<TreeItemProps> = styled((props: TreeItemProps) =
     },
   },
   [`& .${treeItemClasses.group}`]: {
-    marginLeft: `15px !important`,
-    paddingLeft: `18px !important`,
     borderLeft: `1px dashed ${alpha(theme.palette.text.primary, 0.4)}`,
   },
   [`& .${treeItemClasses.selected}`]: {
