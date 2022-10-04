@@ -6,7 +6,6 @@
     "codegen": "graphql-codegen"
   },
   "dependencies": {
-    "@tanstack/react-table": "8.5.13",
     "@emotion/styled": "11.10.4",
     "@emotion/react": "11.10.4",
     "@mui/material": "5.10.6",
