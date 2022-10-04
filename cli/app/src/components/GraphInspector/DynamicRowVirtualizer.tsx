@@ -25,7 +25,6 @@ export function DynamicRowVirtualizer(
     getScrollElement: () => expanderRef.current,
     // we need useCallback to force the update
     estimateSize: useCallback(() => nodes[0].fields.length * RowSize, [update]),
-    overscan: 3,
     enableSmoothScroll: false,
     getItemKey: (index) => nodes[index].id,
     // nuking this for now.  Default does too much
@@ -58,7 +57,7 @@ export function DynamicRowVirtualizer(
     <div
       ref={expanderRef}
       style={{
-        height: "800px",
+        height: `${window.innerHeight - 250}px`,
         width: `100%`,
         overflow: "auto",
       }}
