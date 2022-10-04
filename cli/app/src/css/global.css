@@ -10,7 +10,11 @@ html {
 
 body {
   font-family: "Lucida Console", Monaco, monospace;
-  margin: 1rem;
+  margin: 0;
+}
+
+h2 {
+  margin-left: 1rem;
 }
 
 html, body, #root, main {
@@ -20,12 +24,13 @@ html, body, #root, main {
 ul {
   padding: 0 !important;
   margin: 0 !important;
+  margin-left: 0 !important;
+  border: 0 !important;
 }
 
 
 main {
   display: grid;
-  border-style: solid;
   grid-template-rows: 1fr;
   grid-template-columns: 1fr;
 }

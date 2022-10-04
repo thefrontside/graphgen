@@ -28,3 +28,14 @@ export interface VertexNode extends Node {
   typename: string;
   fields: FieldEntry[];
 }
+
+export interface Type {
+  typename: string;
+  size: number;
+  label: string;
+  nodes: VertexNode[];
+}
+
+export interface State {
+  graph: Record<string, Type>;
+}

@@ -1,25 +1,30 @@
 import "./GraphInspector.css";
 import type { SyntheticEvent } from "react";
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useState, useRef } from "react";
 import TreeView from "@mui/lab/TreeView";
-import { Node } from "./Node";
 import { allQuery, node } from "./queries";
 import { graphReducer } from "./graphReducer";
 import { VertexNode } from "../../../../graphql/types";
 import { MinusSquare, PlusSquare } from "./icons";
 import { StyledTreeItem } from "./StyledTreeItem";
 import { fetchGraphQL } from "../../graphql/fetchGraphql";
-import { Loader } from "../Loader/Loader";
-import { useQuery } from 'urql';
-import type { Page } from '../../../../graphql/relay';
+import { useQuery } from "urql";
+import type { Page } from "../../../../graphql/relay";
+import { DynamicRowVirtualizer } from "./DynamicRowVirtualizer";
+
 const emptyGraph = { graph: {} };
 
 const limit = 5;
 
 export function GraphInspector(): JSX.Element {
-  // TODO: call setAfter when scrolling
-  const [after] = useState('');
+  const [after, setAfter] = useState("");
   const [typename, setTypename] = useState<string | undefined>();
+  // TODO: this really needs to go at some point and the rangeExtractor prop of
+  // useVirtualized seems a better way to go
+  // https://tanstack.com/virtual/v3/docs/api/virtualizer#rangeextractor
+  // measureElement might be useful here too
+  // https://tanstack.com/virtual/v3/docs/api/virtualizer#measureelement
+  const [update, forceUpdate] = useReducer((x) => x + 1, 0);
 
   const [result] = useQuery<{ all: Page<VertexNode> }, {
     typename: string;
@@ -27,18 +32,18 @@ export function GraphInspector(): JSX.Element {
     after: string;
   }>({
     query: allQuery,
-    pause: !typename,
+    pause: !typename && !after,
     variables: {
       typename,
       first: limit,
-      after
+      after,
     },
   });
 
   const [{ graph }, dispatch] = useReducer(graphReducer, emptyGraph);
   const expandedNodes = useRef(new Set<string>());
 
-  const { data, error } = result;
+  const { data, error, fetching } = result;
 
   useEffect(() => {
     const edges = data?.all?.edges ?? [];
@@ -51,10 +56,10 @@ export function GraphInspector(): JSX.Element {
       type: "ALL",
       payload: {
         typename,
-        nodes: edges.map(edge => edge.node),
+        nodes: edges.map((edge) => edge.node),
       },
     });
-  }, [data, typename])
+  }, [data, typename]);
 
   const handleChange = useCallback(
     async (_: SyntheticEvent, nodeIds: string[]) => {
@@ -115,11 +120,17 @@ export function GraphInspector(): JSX.Element {
           }
         }
 
+        setTimeout(forceUpdate, 300);
+
         return;
       }
 
+      setAfter("");
       setTypename(nodeId);
-    }, [],
+
+      setTimeout(forceUpdate, 300);
+    },
+    [],
   );
 
   useEffect(() => {
@@ -146,40 +157,39 @@ export function GraphInspector(): JSX.Element {
   }
 
   if (error) {
-    return <p className="error">Oh no... {error?.message}</p>
+    return <p className="error">Oh no... {error?.message}</p>;
   }
 
   return (
-    <TreeView
-      aria-label="graph inspector"
-      defaultCollapseIcon={<MinusSquare />}
-      defaultExpandIcon={<PlusSquare />}
-      onNodeToggle={handleChange}
-      multiSelect={false}
-    >
-      {Object.values(graph).map(({ typename, label, nodes }) => (
-        <StyledTreeItem
-          key={typename}
-          nodeId={typename}
-          label={<div className="root">{label}</div>}
-        >
-          {nodes.length > 0
-            ? nodes.map((vertexNode, i) => (
-              <StyledTreeItem
-                key={vertexNode.id}
-                nodeId={vertexNode.id}
-                label={
-                  <Node
-                    parentId={`${typename}.nodes.${i}`}
-                    node={vertexNode}
-                  />
-                }
-              />
-            )
-            )
-            : <Loader />}
-        </StyledTreeItem>
-      ))}
-    </TreeView>
+    <div>
+      <TreeView
+        aria-label="graph inspector"
+        defaultCollapseIcon={<MinusSquare />}
+        defaultExpandIcon={<PlusSquare />}
+        onNodeToggle={handleChange}
+        multiSelect={false}
+      >
+        {Object.values(graph).map(({ typename, label, nodes }) => (
+          <StyledTreeItem
+            key={typename}
+            nodeId={typename}
+            label={<div className="root">{label}</div>}
+          >
+            {nodes.length > 0
+              ? (
+                <DynamicRowVirtualizer
+                  hasNextPage={!!data?.all?.pageInfo?.hasNextPage}
+                  nodes={nodes}
+                  typename={typename}
+                  fetching={fetching}
+                  fetchNextPage={() => setAfter(data.all.pageInfo.endCursor)}
+                  update={update}
+                />
+              )
+              : <div>loading....</div>}
+          </StyledTreeItem>
+        ))}
+      </TreeView>
+    </div>
   );
 }

@@ -18,7 +18,8 @@ describe("CLI smoke test", () => {
       let response = await fetch("http://localhost:8900");
       expect(response.ok).toEqual(true);
       let body = await response.text();
-      expect(body).toMatch(/div id="main"/);
+      console.log(body);
+      expect(body).toMatch(/main/);
     }, 10000);
   });
 });

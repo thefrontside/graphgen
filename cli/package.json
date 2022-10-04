@@ -6,12 +6,14 @@
     "codegen": "graphql-codegen"
   },
   "dependencies": {
-    "@urql/exchange-graphcache": "5.0.1",
     "@emotion/styled": "11.10.4",
     "@emotion/react": "11.10.4",
     "@mui/material": "5.10.6",
     "@mui/lab": "5.0.0-alpha.100",
     "@mui/icons-material": "5.10.6",
+    "@rooks/use-boundingclientrect-ref": "4.11.2",
+    "@tanstack/react-virtual": "3.0.0-beta.18",
+    "@urql/exchange-graphcache": "5.0.1",
     "graphql": "15.5.0",
     "immer": "9.0.15",
     "react": "18.2.0",

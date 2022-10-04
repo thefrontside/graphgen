@@ -1,5 +1,5 @@
 import { fetchGraphQL } from "../../graphql/fetchGraphql";
-import { gql } from 'urql';
+import { gql } from "urql";
 
 export async function node(id: string) {
   return await fetchGraphQL(
@@ -64,4 +64,4 @@ query All($typename: String!, $first: Int!, $after: String!) {
     }
   }
 }
-`
+`;

@@ -76,8 +76,10 @@ export function applyRelayPagination<T, R>(
 }
 
 function applyCursorsToEdges<T>(nodes: T[], before?: string, after?: string) {
-  const afterIdx = after != null ? Number(after) : -1;
-  const beforeIdx = before != null ? Number(before) : nodes.length;
+  const afterIdx = !!after ? Number(after) : -1;
+  const beforeIdx = !!before ? Number(before) : nodes.length;
+
+  console.log({afterIdx, beforeIdx});
 
   const edges = nodes.slice(afterIdx + 1, beforeIdx).map((node, i) => ({
     node,

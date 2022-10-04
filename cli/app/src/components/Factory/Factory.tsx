@@ -3,9 +3,15 @@ import { StrictMode, Suspense } from "react";
 import { StyledEngineProvider } from "@mui/material/styles";
 import { GraphInspector } from "../GraphInspector/GraphInspector";
 import { Topbar } from "../Topbar/Topbar";
-import { createClient, dedupExchange, Exchange, fetchExchange, Provider } from "urql";
+import {
+  createClient,
+  dedupExchange,
+  Exchange,
+  fetchExchange,
+  Provider,
+} from "urql";
 import { cacheExchange } from "@urql/exchange-graphcache";
-import { relayPagination } from '@urql/exchange-graphcache/extras';
+import { relayPagination } from "@urql/exchange-graphcache/extras";
 
 const client = createClient({
   url: "/graphql",

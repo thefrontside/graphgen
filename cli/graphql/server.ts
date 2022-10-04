@@ -14,13 +14,13 @@ export async function main(options: MainOptions) {
     maskedErrors: false,
     logging: {
       debug(...args) {
-        console.debug(...args);
+        console.dir(...args, { depth: 12 });
       },
       warn(...args) {
-        console.warn(...args);
+        console.dir(...args, { depth: 12 });
       },
       info(...args) {
-        console.info(...args);
+        console.dir(...args, { depth: 12 });
       },
       error(...args) {
         console.error(...args);
