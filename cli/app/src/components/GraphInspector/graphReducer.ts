@@ -2,7 +2,7 @@ import produce from "immer";
 import { assert } from "../../assert/assert";
 import { match } from "ts-pattern";
 import type { VertexNode } from "../../../../graphql/types";
-import { State, Type } from './types';
+import { State, Type } from "./types";
 
 type Actions =
   | {
@@ -32,7 +32,7 @@ type Actions =
   };
 
 function isNumber(s: unknown): s is number {
-  return !isNaN(Number(s));
+  return s === '' ? false : !isNaN(Number(s));
 }
 
 export const graphReducer = produce((state: State, action: Actions) => {
@@ -61,8 +61,7 @@ export const graphReducer = produce((state: State, action: Actions) => {
 
       const [root, ...props] = path;
 
-      // deno-lint-ignore no-explicit-any
-      let draft: any = state.graph[root];
+      let draft: Type = state.graph[root];
 
       assert(!!draft, `no parent for ${path[0]}`);
 

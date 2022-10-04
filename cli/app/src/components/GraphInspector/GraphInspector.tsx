@@ -1,26 +1,30 @@
 import "./GraphInspector.css";
 import type { SyntheticEvent } from "react";
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 import TreeView from "@mui/lab/TreeView";
-import { Node } from "./Node";
 import { allQuery, node } from "./queries";
 import { graphReducer } from "./graphReducer";
 import { VertexNode } from "../../../../graphql/types";
 import { MinusSquare, PlusSquare } from "./icons";
 import { StyledTreeItem } from "./StyledTreeItem";
 import { fetchGraphQL } from "../../graphql/fetchGraphql";
-import { useQuery } from 'urql';
-import type { Page } from '../../../../graphql/relay';
-import { RowVirtualizerDynamic } from './RowVirtualizerDynamic';
+import { useQuery } from "urql";
+import type { Page } from "../../../../graphql/relay";
+import { DynamicRowVirtualizer } from "./DynamicRowVirtualizer";
 
 const emptyGraph = { graph: {} };
 
 const limit = 5;
 
 export function GraphInspector(): JSX.Element {
-  const [after, setAfter] = useState('');
+  const [after, setAfter] = useState("");
   const [typename, setTypename] = useState<string | undefined>();
-  const [state, forceUpdate] = useReducer((x => x + 1), 0);
+  // TODO: this really needs to go at some point and the rangeExtractor prop of
+  // useVirtualized seems a better way to go
+  // https://tanstack.com/virtual/v3/docs/api/virtualizer#rangeextractor
+  // measureElement might be useful here too
+  // https://tanstack.com/virtual/v3/docs/api/virtualizer#measureelement
+  const [update, forceUpdate] = useReducer((x) => x + 1, 0);
 
   const [result] = useQuery<{ all: Page<VertexNode> }, {
     typename: string;
@@ -32,7 +36,7 @@ export function GraphInspector(): JSX.Element {
     variables: {
       typename,
       first: limit,
-      after
+      after,
     },
   });
 
@@ -51,10 +55,10 @@ export function GraphInspector(): JSX.Element {
       type: "ALL",
       payload: {
         typename,
-        nodes: edges.map(edge => edge.node),
+        nodes: edges.map((edge) => edge.node),
       },
     });
-  }, [data, typename])
+  }, [data, typename]);
 
   const handleChange = useCallback(
     async (_: SyntheticEvent, nodeIds: string[]) => {
@@ -108,13 +112,17 @@ export function GraphInspector(): JSX.Element {
           }
         }
 
+        setTimeout(forceUpdate, 300);
+
         return;
       }
 
-      setAfter('');
+      setAfter("");
       setTypename(nodeId);
-      forceUpdate();
-    }, [],
+
+      setTimeout(forceUpdate, 300);
+    },
+    [],
   );
 
   useEffect(() => {
@@ -141,7 +149,7 @@ export function GraphInspector(): JSX.Element {
   }
 
   if (error) {
-    return <p className="error">Oh no... {error?.message}</p>
+    return <p className="error">Oh no... {error?.message}</p>;
   }
 
   return (
@@ -159,13 +167,18 @@ export function GraphInspector(): JSX.Element {
             nodeId={typename}
             label={<div className="root">{label}</div>}
           >
-            {nodes.length > 0 ? <RowVirtualizerDynamic
-              hasNextPage={!!data?.all?.pageInfo?.hasNextPage}
-              nodes={nodes}
-              typename={typename}
-              fetching={fetching}
-              fetchNextPage={() => setAfter(data.all.pageInfo.endCursor)}
-            /> : <div>loading....</div>}
+            {nodes.length > 0
+              ? (
+                <DynamicRowVirtualizer
+                  hasNextPage={!!data?.all?.pageInfo?.hasNextPage}
+                  nodes={nodes}
+                  typename={typename}
+                  fetching={fetching}
+                  fetchNextPage={() => setAfter(data.all.pageInfo.endCursor)}
+                  update={update}
+                />
+              )
+              : <div>loading....</div>}
           </StyledTreeItem>
         ))}
       </TreeView>

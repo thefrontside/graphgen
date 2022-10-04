@@ -1,18 +1,34 @@
-import { StyledTreeItem } from './StyledTreeItem';
-import { Node } from './Node';
-import { VirtualItem } from '@tanstack/react-virtual';
+import { StyledTreeItem } from "./StyledTreeItem";
+import { Node } from "./Node";
+import { VirtualItem } from "@tanstack/react-virtual";
 import type { VertexNode } from "../../../../graphql/types";
+import { useEffect, useRef } from "react";
 
-export function VirtualRow({ virtualRow, vertexNode, typename }: { virtualRow: VirtualItem<unknown>, vertexNode: VertexNode, typename: string }): JSX.Element {
+interface VirtualRowProps {
+  virtualRow: VirtualItem<unknown>;
+  vertexNode: VertexNode;
+  typename: string;
+  update: number;
+}
+
+export function VirtualRow(
+  { virtualRow, vertexNode, typename, update }: VirtualRowProps,
+): JSX.Element {
+  const elementRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    virtualRow.measureElement(elementRef.current);
+  }, [update]);
+
   return (
     <div
       key={vertexNode.id}
-      ref={virtualRow.measureElement}
+      ref={elementRef}
       style={{
-        position: 'absolute',
+        position: "absolute",
         top: 0,
         left: 0,
-        width: '100%',
+        width: "100%",
         transform: `translateY(${virtualRow.start}px)`,
       }}
     >
@@ -27,5 +43,5 @@ export function VirtualRow({ virtualRow, vertexNode, typename }: { virtualRow: V
         }
       />
     </div>
-  )
+  );
 }

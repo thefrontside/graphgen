@@ -7,8 +7,3 @@ main {
   grid-row: main;
   margin-top: .5rem;
 }
-
-.app section:first-of-type {
-  display: flex;
-  justify-content: flex-start;
-}

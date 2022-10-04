@@ -93,7 +93,7 @@ export function Node({ parentId, node }: NodeProps): JSX.Element {
                     }
                   />
                 ))
-                : <Loader />}
+                : <Loader debug={relationship} />}
             </StyledTreeItem>
           );
         })}

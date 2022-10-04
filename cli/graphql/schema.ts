@@ -1,6 +1,6 @@
 import { GraphQLJSON, GraphQLJSONObject } from "../deps.ts";
 import type { GraphQLContext } from "./context.ts";
-import { applyRelayPagination, Page, PageArgs } from './relay.ts';
+import { applyRelayPagination, Page, PageArgs } from "./relay.ts";
 import { toVertexNode } from "./toVertexNode.ts";
 import { CreateInput, Type } from "./types.ts";
 import { VertexNode } from "./types.ts";
@@ -27,7 +27,7 @@ export const resolvers = {
     },
     all(
       _: unknown,
-      { typename, ...pageInfo }: PageArgs & { typename: string; },
+      { typename, ...pageInfo }: PageArgs & { typename: string },
       context: GraphQLContext,
     ): Page<VertexNode> {
       const collection = context.factory.all(typename);
