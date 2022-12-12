@@ -9,17 +9,17 @@
       "exclude": ["prefer-const", "require-yield", "no-inner-declarations"]
     },
     "files": {
-      "exclude": ["build", "cli"]
+      "exclude": ["build", "cli", "website/"]
     }
   },
   "fmt": {
     "files": {
-      "exclude": ["README.md", "build/", "cli"]
+      "exclude": ["README.md", "build/", "cli", "website/"]
     }
   },
   "test": {
     "files": {
-      "exclude": ["build", "cli"]
+      "exclude": ["build", "cli", "website/"]
     }
   }
 }
