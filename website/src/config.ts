@@ -31,7 +31,7 @@ export const KNOWN_LANGUAGES = {
 
 export const KNOWN_LANGUAGE_CODES = Object.values(KNOWN_LANGUAGES);
 
-export const GITHUB_EDIT_URL = `https://github.com/thefrontside/graphgen/tree/main/website`;
+export const GITHUB_EDIT_URL = `https://github.com/thefrontside/graphgen/tree/HEAD/website`;
 
 export const COMMUNITY_INVITE_URL = `https://discord.gg/frontside`;
 
