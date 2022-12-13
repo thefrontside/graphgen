@@ -48,9 +48,17 @@ Record<string, { text: string; link: string }[]>
   >;
 export const SIDEBAR: Sidebar = {
   en: {
-    'Basics': [
+    'Setup': [
       { text: 'Introduction', link: 'en/introduction' },
       { text: 'Installation', link: 'en/installation' },
+    ],
+    'Usage': [
+      { text: 'fields', link: 'en/fields' },
+//      { text: 'relationships', link: 'en/relationships' },
+//      { text: 'presets', link: 'en/presets' },
+//      { text: 'directives', link: 'en/directives' },
+//      { text: 'relationships', link: 'en/relationships' },
+//      { text: 'relationships', link: 'en/relationships' },
     ],
   },
 };
