@@ -1,6 +1,17 @@
-import { defineConfig } from 'astro/config';
-import preact from '@astrojs/preact';
-import react from '@astrojs/react';
+import { defineConfig } from "astro/config";
+import preact from "@astrojs/preact";
+import react from "@astrojs/react";
+
+const { CONTEXT } = process.env;
+let site;
+switch (CONTEXT) {
+  case "dev":
+    site = "http://localhost:3000";
+  case "preview":
+    site = process.env.DEPLOY_URL;
+  default:
+    site = "https://graphgen.netlify.app";
+}
 
 // https://astro.build/config
 export default defineConfig({
@@ -10,7 +21,7 @@ export default defineConfig({
     // Enable React for the Algolia search component.
     react(),
   ],
-  site: "https://graphgen.netlify.app",
+  site,
   base: "/graphgen",
   trailingSlash: "always",
 });

@@ -9,5 +9,10 @@
   framework = "#custom"
 
 [[redirects]]
+  from = "/graphgen/"
+  to = "/graphgen/en/introduction"
+  status = 302
+
+[[redirects]]
   from = "/*"
   to = "/graphgen/:splat"
