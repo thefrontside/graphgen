@@ -2,15 +2,11 @@ import { defineConfig } from "astro/config";
 import preact from "@astrojs/preact";
 import react from "@astrojs/react";
 
-const { CONTEXT } = process.env;
-let site;
-switch (CONTEXT) {
-  case "dev":
-    site = "http://localhost:3000";
-  case "deploy-preview":
-    site = process.env.DEPLOY_URL;
-  default:
-    site = "https://graphgen.netlify.app";
+let site = "https://graphgen.netlify.app";
+if (process.env.CONTEXT === "dev") {
+	site = "http://localhost:3000";
+} else if (process.env.CONTEXT === "deploy-preview") {
+	site = process.env.DEPLOY_URL;
 }
 
 // https://astro.build/config

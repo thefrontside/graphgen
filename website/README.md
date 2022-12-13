@@ -1,14 +1,4 @@
-# Astro Starter Kit: Docs Site
-
-```bash
-npm create astro@latest -- --template docs
-```
-
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/docs)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/s/github/withastro/astro/tree/latest/examples/docs)
-
-![docs](https://user-images.githubusercontent.com/4677417/186189283-0831b9ab-d6b9-485d-8955-3057e532ab31.png)
-
+# Graphgen Docs
 
 ## Features
 
@@ -28,8 +18,8 @@ All commands are run from the root of the project, from a terminal:
 | Command                | Action                                           |
 | :--------------------- | :----------------------------------------------- |
 | `npm install`          | Installs dependencies                            |
-| `npm run dev`          | Starts local dev server at `localhost:3000`      |
-| `npm run build`        | Build your production site to `./dist/`          |
+| `npx netlify dev`      | Starts local dev server at `localhost:8888`      |
+| `npm run build`        | Build your production site to `./dist/graphgen`  |
 | `npm run preview`      | Preview your build locally, before deploying     |
 | `npm run astro ...`    | Run CLI commands like `astro add`, `astro check` |
 | `npm run astro --help` | Get help using the Astro CLI                     |
