@@ -16,10 +16,9 @@ of whack-a-mole field and id updates.
 🧐 **Factories** partially alleviate this problem by automating the
 generation of your fixtures. As your schema evolves, you can change a
 single factory rather than patch a thousand individual records. But a
-schema defines more than just the shape its records, just as
-important, it also defines
-the _relationships_ between those records, and factories don't help
-you there.
+schema defines more than just the shape of its records.  Just as
+important, it also defines the _relationships_ between those records,
+and factories don't help you there.
 
 🤩 **Graphgen** is a whole-meal solution for creating complete
 datasets that contain not only realistic records, but also realistic
