@@ -24,4 +24,5 @@ export default defineConfig({
   site,
   base: "/graphgen",
   trailingSlash: "always",
+  outDir: "dist/graphgen",
 });
