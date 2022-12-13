@@ -7,7 +7,7 @@ let site;
 switch (CONTEXT) {
   case "dev":
     site = "http://localhost:3000";
-  case "preview":
+  case "deploy-preview":
     site = process.env.DEPLOY_URL;
   default:
     site = "https://graphgen.netlify.app";
