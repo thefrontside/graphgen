@@ -1,5 +1,5 @@
 ---
 title: Directives
-description: A refenece of all GraphGen directives
+description: A reference of all GraphGen directives
 layout: ../../layouts/MainLayout.astro
 ---

@@ -4,7 +4,7 @@ description: Control how each type's fields are generated
 layout: ../../layouts/MainLayout.astro
 ---
 
-**Graphgen uses GraphQL to express its data generation schema**
+**Graphgen uses the GraphQL schema definition language to direct how it generates data**
 
 [GraphQL] is a language designed specifically for querying networks of typed
 data. The same properties that make it good for that purpose also  makes it well
@@ -16,7 +16,7 @@ that schema
 
 Without providing any information than just a type's declaration, Graphgen will
 introspect its fields an creates a record that will satisfy their constraints.
-So, for exampel, we can take the following declaration for a `Person` type:
+So, for example, we can take the following declaration for a `Person` type:
 
 ``` graphql
 type Person {
@@ -61,12 +61,12 @@ In order to specify their implementations we have to pass a
 "generate" function to graphgen that will match generation methods and
 return appropriate data for them. The goal here is not to re-invent
 the wheel, and GraphGen is not prescriptive about how you generate
-yoru data. In this example, we'll use [FakerJS] to generate our field
+your data. In this example, we'll use [FakerJS] to generate our field
 data.
 
 
 ``` javascript
-import * as faker from "@fakerjs/core";
+import { faker } from "@faker-js/faker";
 
 const graphgen = createGraphGen({
   source,
@@ -125,8 +125,11 @@ half it won't.
 
 #### Accounting for chance
 
-But what if 90% of people have a bank account? Then it doesn't make any sense
-to generate a bank account number half the time. Instead we need to instruct graphgen that it should be doing it nine times out of ten. We can do this by attaching a `@has(chance)` directive to the field. To take the preceding example:
+But what if 90% of people have a bank account? Then it doesn't make
+any sense to generate a bank account number half the time. Instead we
+need to instruct graphgen that it should be doing it nine times out of
+ten. We can do this by attaching a `@has(chance)` directive to the
+field. To take the preceding example:
 
 ``` graphql
 type Person {
