@@ -4,8 +4,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "start": "npm exec netlify dev",
     "dev": "astro dev",
-    "start": "astro dev",
     "check": "astro check && tsc",
     "build": "astro build",
     "preview": "astro preview",
