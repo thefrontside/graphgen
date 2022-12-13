@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@astrojs/language-server": "^0.29.1",
-    "html-escaper": "^3.0.3"
+    "html-escaper": "^3.0.3",
+    "netlify-cli": "^12.2.10"
   }
 }

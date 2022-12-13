@@ -4,9 +4,9 @@ type Props = {
 	path: string;
 };
 const { path } = Astro.props as Props;
-const resolvedPath = `examples/docs/${path}`;
-const url = `https://api.github.com/repos/withastro/astro/commits?path=${resolvedPath}`;
-const commitsURL = `https://github.com/withastro/astro/commits/main/${resolvedPath}`;
+const resolvedPath = `website/${path}`;
+const url = `https://api.github.com/repos/thefrontside/graphgen/commits?path=${resolvedPath}`;
+const commitsURL = `https://github.com/thefrontside/graphgen/commits/main/${resolvedPath}`;
 
 type Commit = {
 	author: {
@@ -30,7 +30,7 @@ async function getCommits(url: string) {
 			method: 'GET',
 			headers: {
 				Authorization: auth,
-				'User-Agent': 'astro-docs/1.0',
+				'User-Agent': 'graphgen-docs/1.0',
 			},
 		});
 

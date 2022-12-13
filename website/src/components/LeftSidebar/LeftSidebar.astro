@@ -1,6 +1,6 @@
 ---
 import { getLanguageFromURL } from '../../languages';
-import { SIDEBAR } from '../../config';
+import { BASE_URL, SIDEBAR } from '../../config';
 
 type Props = {
 	currentPage: string;
@@ -13,7 +13,6 @@ const currentPageMatch = currentPage.endsWith('/')
 const langCode = getLanguageFromURL(currentPage);
 const sidebar = SIDEBAR[langCode];
 ---
-
 <nav aria-labelledby="grid-left">
 	<ul class="nav-groups">
 		{
@@ -23,7 +22,7 @@ const sidebar = SIDEBAR[langCode];
 						<h2>{header}</h2>
 						<ul>
 							{children.map((child) => {
-								const url = Astro.site?.pathname + child.link;
+								const url = new URL(child.link, new URL(BASE_URL, Astro.url).href);
 								return (
 									<li class="nav-link">
 										<a href={url} aria-current={currentPageMatch === child.link ? 'page' : false}>

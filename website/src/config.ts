@@ -1,7 +1,7 @@
 export const SITE = {
   title: 'Graphgen',
   description: 'Generate the graph, not just the data',
-  defaultLanguage: 'en_US',
+  defaultLanguage: 'en_US'
 };
 
 export const OPEN_GRAPH = {
@@ -23,12 +23,15 @@ export type Frontmatter = {
   lang?: string;
 };
 
+export const BASE_URL = import.meta.env.BASE_URL
+
 export const KNOWN_LANGUAGES = {
   English: 'en',
 } as const;
+
 export const KNOWN_LANGUAGE_CODES = Object.values(KNOWN_LANGUAGES);
 
-export const GITHUB_EDIT_URL = `https://github.com/thefrontside/graphgen/tree/main/website`;
+export const GITHUB_EDIT_URL = `https://github.com/thefrontside/graphgen/tree/HEAD/website`;
 
 export const COMMUNITY_INVITE_URL = `https://discord.gg/frontside`;
 
