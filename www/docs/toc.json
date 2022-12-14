@@ -1,0 +1,12 @@
+{
+  "introduction": {
+    "title": "Introduction"
+  },
+  "basics": {
+    "title": "Basics",
+    "pages": [
+      ["fields", "Fields"],
+      ["relationships", "Relationships"]
+    ]
+  }
+}
