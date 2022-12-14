@@ -54,7 +54,7 @@ export const SIDEBAR: Sidebar = {
     ],
     'Usage': [
       { text: 'fields', link: 'en/fields' },
-//      { text: 'relationships', link: 'en/relationships' },
+      { text: 'relationships', link: 'en/relationships' },
 //      { text: 'presets', link: 'en/presets' },
 //      { text: 'directives', link: 'en/directives' },
 //      { text: 'relationships', link: 'en/relationships' },
