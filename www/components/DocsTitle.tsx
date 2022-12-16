@@ -5,7 +5,7 @@ export default function DocsTitle(props: { title: string }) {
         href="/"
         class="text(2xl gray-900) block flex items-center"
       >
-          GraphGen
+        GraphGen
       </a>
     </>
   );

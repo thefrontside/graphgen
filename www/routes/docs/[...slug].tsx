@@ -14,6 +14,7 @@ import {
 
 interface Data {
   page: Page;
+  base: string | null;
 }
 
 interface Page extends TableOfContentsEntry {
@@ -22,7 +23,7 @@ interface Page extends TableOfContentsEntry {
 }
 
 export const handler: Handlers<Data> = {
-  async GET(_req, ctx) {
+  async GET(req, ctx) {
     const slug = ctx.params.slug;
     if (slug === "") {
       return new Response("", {
@@ -45,7 +46,7 @@ export const handler: Handlers<Data> = {
     const fileContent = await Deno.readTextFile(url);
     const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
     const page = { ...entry, markdown: body, data: attrs ?? {} };
-    const resp = ctx.render({ page });
+    const resp = ctx.render({ page, base: req.headers.get("x-base") });
     return resp;
   },
 };
@@ -57,10 +58,13 @@ export default function DocsPage(props: PageProps<Data>) {
     description = String(props.data.page.data.description);
   }
 
+  let base = props.data.base ? <base href={props.data.base} /> : null;
+
   return (
     <>
       <Head>
         <title>{props.data.page?.title ?? "Not Found"} | graphgen docs</title>
+        {base}
         <link rel="stylesheet" href={`/gfm.css?build=${__FRSH_BUILD_ID}`} />
         {description && <meta name="description" content={description} />}
       </Head>

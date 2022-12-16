@@ -5,7 +5,6 @@ export function ServerCodePage(
     <>
       <section>
         <div class="w-full flex justify-center items-center flex-col bg-green-300">
-
         </div>
         <div class="text-center">
           <h1 class="text(6xl) md:text(9xl) font-extrabold">
