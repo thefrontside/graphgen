@@ -28,9 +28,9 @@ function Logo() {
     <a href="." class="flex mr-3 items-center">
       <img
         src="logo.svg"
-        alt="GraphGen log"
+        alt="GraphGen logo"
         width={40}
-        height={40}
+        height={46}
       />
     </a>
   );
