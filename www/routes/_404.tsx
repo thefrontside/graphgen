@@ -16,7 +16,7 @@ export function ServerCodePage(
           </p>
 
           <p class="p-4">
-            <a href="/" class="hover:underline">Back to the Homepage</a>
+            <a href="." class="hover:underline">Back to the Homepage</a>
           </p>
         </div>
       </section>
