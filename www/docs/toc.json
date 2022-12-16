@@ -6,7 +6,8 @@
     "title": "Basics",
     "pages": [
       ["fields", "Fields"],
-      ["relationships", "Relationships"]
+      ["relationships", "Relationships"],
+      ["computed", "Computed Properties"]
     ]
   }
 }
