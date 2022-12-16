@@ -58,18 +58,16 @@ export default function DocsPage(props: PageProps<Data>) {
     description = String(props.data.page.data.description);
   }
 
-  let base = props.data.base ? <base href={props.data.base} /> : null;
-
   return (
     <>
       <Head>
         <title>{props.data.page?.title ?? "Not Found"} | graphgen docs</title>
-        {base}
-        <link rel="stylesheet" href={`/gfm.css?build=${__FRSH_BUILD_ID}`} />
+        <base href={props.data.base ?? "/"} />
+        <link rel="stylesheet" href={`gfm.css?build=${__FRSH_BUILD_ID}`} />
         {description && <meta name="description" content={description} />}
       </Head>
       <div class="flex flex-col min-h-screen">
-        <Header title="docs" active="/docs" />
+        <Header title="docs" active="docs" />
         <Main path={props.url.pathname} page={props.data.page} />
         <Footer />
       </div>
