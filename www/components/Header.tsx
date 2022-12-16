@@ -27,7 +27,7 @@ function Logo() {
   return (
     <a href="/" class="flex mr-3 items-center">
       <img
-        src="/logo.svg"
+        src="logo.svg"
         alt="GraphGen log"
         width={40}
         height={40}

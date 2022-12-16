@@ -49,7 +49,7 @@ for (const parent in (RAW_TOC as unknown as RawTableOfContents)) {
   if (rawEntry.pages) {
     for (const [id, title] of rawEntry.pages) {
       const slug = `${parent}/${id}`;
-      const href = `/docs/${slug}`;
+      const href = `docs/${slug}`;
       const file = `docs/${slug}.md`;
       const entry = { slug, title, category: parent, href, file };
       TABLE_OF_CONTENTS[slug] = entry;
