@@ -6,7 +6,7 @@ export default function NavigationBar(
   const items = [
     {
       name: "Docs",
-      href: "/docs",
+      href: "docs",
     },
     {
       name: "Discord",
