@@ -37,23 +37,26 @@ describe("www", () => {
     controller.abort();
     await closed;
   });
-  it("does not set a base element if no X-Base header is present", async () => {
-    let response = await fetch("http://localhost:9999");
+  it("sets the base element to '/' if no X-Base header is present", async () => {
+    let response = await fetch("http://localhost:9999/docs/introduction");
     let html = await response.text();
     expect(response.ok).toEqual(true);
     expect(response.headers.get("Content-Type")).toMatch("text/html");
-    expect(html).not.toContain('<base href="http://abc.com/path/to/subdir>');
+    expect(html).toContain('<base href="/"');
   });
 
   it("sets a base element if the X-Base header is present", async () => {
-    let response = await fetch("http://localhost:9999", {
+    let response = await fetch("http://localhost:9999/docs/introduction", {
       headers: {
-        "X-Base": "http://abc.com/path/to/subdir",
+        "X-Base": "http://example.com/path/to/subdir/",
       },
     });
     let html = await response.text();
+
     expect(response.ok).toEqual(true);
     expect(response.headers.get("Content-Type")).toMatch("text/html");
-    expect(html).toContain(`<base href="http://abc.com/path/to/subdir" />`);
+    expect(html).toContain(
+      `<base href="http://example.com/path/to/subdir/" />`,
+    );
   });
 });
