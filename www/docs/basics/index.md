@@ -21,5 +21,20 @@ GraphGen records are expressed as GraphQL types, and properties of those
 records are expressed GraphQL fields. You can control and customize the process
 of data generation using [GraphQL directives][directives]
 
+### Repeatability and Fixability
+
+While GraphGen uses probability destributions to generate large amounts of
+realistic looking data, it does so using a serializeable random number seed.
+This is a fancy way of saying that given the same schema and the same set
+generation inputs, it will generate the same data in the same order _every
+single time_. This makes it suitable for writing tests that rely on stable data,
+or for populating a preview environment with a familiar look.
+
+At the same time as being repeatable, graphgen is also _fixable_. This means
+that if you have a test case that must have a user name "Angela" from Uruguay,
+then you can instruct it to create that user with exactly those properties using
+[presets][]
+
 [graphql]: https://graphql.org
 [directives]: https://graphql.org/learn/queries/#directives
+[presets]: docs/usage/presets
