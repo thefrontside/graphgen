@@ -9,13 +9,12 @@ description: |
 In the section introducing fields, we [touched very
 briefly][fields-generators] on attaching custom generation methods to
 fields by using the `@gen` directive.  It is important to know how
-this works, but it would not be great if in order to do describe your
-generation you had to attach a `@gen` directive to every single field
-in your entire schema. Fortunately, GraphGen allows you to paint with
-a much larger brush. In this section, we'll show how you can
-effeciently write "generation middleware" to quickly match against
-hundreds of fields at a time so you don't have to specify each one
-individually.
+this works, but it would not be great if generating your data meant
+attaching a `@gen` directive to every single.  Fortunately, GraphGen
+allows you to paint with a much larger brush. In this section, we'll
+show how you can effeciently write "generation middleware" to quickly
+match against hundreds of fields at a time so you don't have to
+specify each one individually.
 
 If you don't want to learn about the nitty gritty, but intsead learn
 how to use it to accomplish most of what you need, you can skip ahead
@@ -47,13 +46,13 @@ const graphgen = createGraphGen({
 });
 ```
 
-It is implemented as a switch statement which checks first if this is
-a case we want to handle. If it is, then we handle it, otherwise, we
-"pass it off" to the other generators further down the line.
+The switch statement decides if each case is one that it will
+handle. If it is, then we handle it, otherwise, we "pass it off" to
+the other generators further down the line.
 
 If the template for this logic seems familiar, it is probably because
-it is based on the concept of ["middleware"][middleware] so prevalent
-on the HTTP stack.
+it is based on the concept of ["middleware"][middleware] prevalent
+in many HTTP stacks.
 
 But writing `switch` statements for what could be hundreds or even thousands of
 fields in your generation schema is no way to live your life. Instead, GraphGen
@@ -95,7 +94,7 @@ let graphgen = createDispatch({
 });
 ```
 
-Notice that we can now specify our schema without using explicity
+Notice that we can now specify our schema without explicity using
 `@gen()` directives because our generation dispatch matches the
 `Person.name` and `Person.age` fields and automatically applies our
 generation methods to them. Not only that, but because we used the
@@ -125,9 +124,9 @@ type Dog {
 }
 ```
 
-Dogs do not live to be 50, and the set of dog names does not ovelap overly
-much with human names. We could define an alternate set of generators
-using `createDispatch()` called `dogGen`
+Dogs do not live to the same age as humans, and the set of dog names
+does not ovelap overly much with human names. We could define an
+alternate set of generators using `createDispatch()` called `dogGen`
 
 ``` javascript
 let dogGen = createDispatch({
@@ -164,7 +163,7 @@ Because we put `dogGen` first in line, its patterns will take priority.
 
 If you need helpers to perform the generation, you can pass the
 `context` option to `createDispatch()`. This is a function which takes
-the generation context and returns a value.... this value will be
+the generation context and returns a value. This value will be
 passed to all of your generation methods. To see why you might need
 this, we can take a sneak peek at the section on [Faker
 integration][faker]. In it, we need to create an instance of Faker
