@@ -1,4 +1,5 @@
 import RAW_TOC from "../docs/toc.json" assert { type: "json" };
+import BANNED from "./banned.json" assert { type: "json" };
 
 type RawTableOfContents = Record<string, RawTableOfContentsEntry>;
 
@@ -48,15 +49,17 @@ for (const parent in (RAW_TOC as unknown as RawTableOfContents)) {
   CATEGORIES.push(category);
   if (rawEntry.pages) {
     for (const [id, title] of rawEntry.pages) {
-      const slug = `${parent}/${id}`;
-      const href = `docs/${slug}`;
-      const file = `docs/${slug}.md`;
-      const entry = { slug, title, category: parent, href, file };
-      TABLE_OF_CONTENTS[slug] = entry;
-      category.entries.push({
-        title,
-        href,
-      });
+      if (!BANNED.includes(id)) {
+        const slug = `${parent}/${id}`;
+        const href = `docs/${slug}`;
+        const file = `docs/${slug}.md`;
+        const entry = { slug, title, category: parent, href, file };
+        TABLE_OF_CONTENTS[slug] = entry;
+        category.entries.push({
+          title,
+          href,
+        });
+      }
     }
   }
 }

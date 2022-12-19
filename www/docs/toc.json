@@ -6,7 +6,19 @@
     "title": "Basics",
     "pages": [
       ["fields", "Fields"],
-      ["relationships", "Relationships"]
+      ["relationships", "Relationships"],
+      ["computed", "Computed Properties"]
+    ]
+  },
+  "usage": {
+    "title": "Usage",
+    "pages": [
+      ["dispatch", "Generation Methods"],
+      ["presets", "Presets"],
+      ["faker", "Faker Integration"],
+      ["typescript", "TypeScript"],
+      ["caching", "Caching"],
+      ["directives", "Directives"]
     ]
   }
 }

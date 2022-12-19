@@ -4,14 +4,10 @@ description: Control how each type's fields are generated
 layout: ../../layouts/MainLayout.astro
 ---
 
-**Graphgen uses the GraphQL schema definition language to direct how it
-generates data**
+**All GraphGen needs to create data is a schema**
 
-[GraphQL] is a language designed specifically for querying networks of typed
-data. The same properties that make it good for that purpose also makes it well
-suited to _generate_ networks of typed data. To generate this data, Graphgen
-looks at the structure of a graphql schema, and creates data that conforms to
-that schema
+In this section, we'll see how to use GraphQL types to generate simple
+data.
 
 ### Basic Types
 
@@ -96,7 +92,7 @@ graphgen.create("Person");
 > 💡In practice, you will rarely specify generators manually and attach them to
 > fields. Instead, you will import them wholesale and match them against field
 > names using patterns. To learn more see the section on
-> [Method Dispatch][method-dispatch]
+> [Generation Methods][dispatch]
 
 ### Optional Fields
 
@@ -135,5 +131,5 @@ This tells GraphGen to generate a bank acount number for 90% of people.
 
 [GraphQL]: https://graphql.org
 [FakerJS]: https://fakerjs.dev
-[method-dispatch]: ./method-dispatch
+[dispatch]: docs/usage/dispatch
 [graphql-nullable-syntax]: https://graphql.org/learn/schema/#object-types-and-fields
