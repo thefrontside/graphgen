@@ -29,7 +29,7 @@ type Business {
 You can define TypeScript interfaces correpsonding to the types in the
 schema.
 
-``` typescript
+```ts
 
 interface Person {
   name: string;
@@ -51,14 +51,14 @@ Then, you can use these types to parameterize `createGraphGen()` and
 it will place helpful contraints onto the input and outputs of
 `create()`.
 
-``` typescript
+```ts
 let graphgen = createGraphGen<API>();
 ```
 
 It is now a type error to try and create a record for which there is
 no static type.
 
-``` typescript
+```ts
 //@ts-expect-error "NonEntity" is not a valid record type
 graphgen.create("NonEntity")
 ```
@@ -66,7 +66,7 @@ graphgen.create("NonEntity")
 The reference returned by calls to `create()` will now also be
 strongly typed:
 
-``` typescript
+```ts
 let person = graphgen.create("Person"); // works.
 // person is inferred to be of type `Person`
 ```
@@ -75,13 +75,12 @@ Presets are also typechecked against `API` so that if you do provide a
 value for a preset, it must line up with the properties of the type
 for that preset.
 
-``` typescript
+```ts
 //@ts-expect-error there is no address field on `Person`
 graphgen.create("Person", {
   name: "Muffin Man",
   address: "Drury Lane",
 });
-
 ```
 
 ### Computed Properties
@@ -89,7 +88,7 @@ graphgen.create("Person", {
 GraphGen will also check its type parameter against any computed
 properties you define.
 
-``` typescript
+```ts
 
 interface Person {
   firstName: String!
@@ -112,7 +111,7 @@ Furthermore, the computed property function will have its argument
 properly configured to be of the correct type. In other words, in this
 above expression.
 
-``` typescript
+```ts
 (person) => `${person.firstName} ${person.lastName}`
 ```
 
