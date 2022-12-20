@@ -14,7 +14,7 @@ make sure that both your computed fields and presets line up.
 The first thing to do is to define an TypeScript interface for your
 records. For example, if you have the following:
 
-```GraphQL
+```graphql
 type Person {
   name: String!
   employer: Business
@@ -29,8 +29,7 @@ type Business {
 You can define TypeScript interfaces correpsonding to the types in the
 schema.
 
-```ts
-
+```graphql
 interface Person {
   name: string;
   employerr: Business;
@@ -89,7 +88,6 @@ GraphGen will also check its type parameter against any computed
 properties you define.
 
 ```ts
-
 interface Person {
   firstName: String!
   lastName: String!
