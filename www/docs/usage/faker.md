@@ -21,10 +21,10 @@ There is not currently an off the shelf library to do this for you, but this
 recipe is easy to follow and will have you generating "massive amounts of fake
 data" in no time.
 
-The strategy is three fold. First we will collect all of the
-generation methods in the entire Faker library as and put them under
-the `@faker/` namespace, and second, we'll make a very common list of
-patterns for accessing those methods. Here's our faker generator:
+First we will collect all of the generation methods in the entire
+Faker library as and put them under the `@faker/` namespace, and
+second, we'll make a very common list of patterns for accessing those
+methods. Here's our faker generator:
 
 ``` javascript
 import { faker as globalFaker, Faker } from "@faker-js/faker";
