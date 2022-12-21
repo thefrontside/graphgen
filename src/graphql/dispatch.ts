@@ -1,7 +1,7 @@
-import type { DispatchArg } from "./types.ts";
+import type { DispatchArg, Generate } from "./types.ts";
 import { assert, globToRegExp } from "../deps.ts";
 
-export interface Dispatch<T> {
+export interface Dispatch<T> extends Generate {
   methods: string[];
   dispatch(name: string, input: T, args: unknown[]): DispatchResult;
 }
@@ -27,7 +27,7 @@ export interface DispatchOptions<T, TContext> {
 export function createDispatch<T, TContext = T>(
   options: DispatchOptions<T, TContext>,
 ): Dispatch<T> {
-  return {
+  let dispatch = {
     methods: Object.keys(options.methods),
     dispatch(name: string, input: T, args: unknown[]) {
       let method = findMethod(options, name);
@@ -42,6 +42,16 @@ export function createDispatch<T, TContext = T>(
       }
     },
   };
+
+  //deno-lint-ignore no-explicit-any
+  return Object.assign(function (info: any) {
+    const result = dispatch.dispatch(info.method, info, info.args);
+    if (result.handled) {
+      return result.value;
+    } else {
+      return info.next();
+    }
+  }, dispatch) as Dispatch<T>;
 }
 
 function findMethod<T, TContext>(

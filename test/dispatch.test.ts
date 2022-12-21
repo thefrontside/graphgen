@@ -1,4 +1,5 @@
 import { describe, expect, it } from "./suite.ts";
+import type { GenerateInfo } from "../src/graphql/types.ts";
 import { createDispatch } from "../src/graphql/dispatch.ts";
 
 describe("dispatch", () => {
@@ -66,5 +67,24 @@ describe("dispatch", () => {
 
     expect(result.handled).toBe(true);
     expect(result.value).toEqual("Bob Dolubrius Dobalina");
+  });
+
+  it("can be used directly as a function", () => {
+    let dispatch = createDispatch<GenerateInfo>({
+      methods: {
+        "Person.name": () => "Bob",
+      },
+      patterns: {},
+    });
+    let result = dispatch({
+      method: "Person.name",
+      args: [],
+      typename: "Person",
+      fieldname: "name",
+      fieldtype: "String",
+      seed: () => Math.random(),
+      next: () => "Did Not Match",
+    });
+    expect(result).toBe("Bob");
   });
 });
