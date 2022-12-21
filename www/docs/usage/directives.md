@@ -85,7 +85,7 @@ how many related records will be generated. Only applicable to list fields.
 * `mean`: the average number of related records. `[default:5]`
 * `standardDeviation`: the [standard deviation][standard-deviation] of the
 number of related records. A small number will mean that the size clusters close
-to the `mean`, but a larger value causes samples to be scattered father from
+to the `mean`, but a larger value causes samples to be scattered farther from
 the average. `[default:1]`
 * `min`: the number of related records will always be greater than
   this number. Must be greater than or equal to zero. `[default:0]`
