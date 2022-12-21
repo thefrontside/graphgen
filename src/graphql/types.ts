@@ -1,3 +1,6 @@
+import type { Graph } from "../graph.ts";
+import type { Seed } from "../distribution.ts";
+
 export interface Type {
   name: string;
   fields: Field[];
@@ -67,3 +70,54 @@ export type Arity = {
 };
 
 export type DispatchArg = string | number | boolean | null | DispatchArg[];
+
+export interface Node {
+  id: string;
+  __typename: string;
+}
+
+type NonOverridableKeys = "__typename" | "id";
+
+//deno-lint-ignore ban-types
+export type Preset<T> = T extends object ? {
+    [P in keyof T as P extends NonOverridableKeys ? never : P]?: Preset<T[P]>;
+  }
+  : T;
+
+//deno-lint-ignore no-explicit-any
+export interface GraphGen<API = Record<string, any>> {
+  graph: Graph;
+  create<T extends string & keyof API>(
+    typename: T,
+    preset?: Preset<API[T]>,
+  ): Node & API[T];
+  all<T extends string & keyof API>(typename: T): Collection<Node & API[T]>;
+  createMany<T extends string & keyof API>(
+    typename: T,
+    amount: number,
+  ): Iterable<Node & API[T]>;
+  analysis: Analysis;
+}
+
+export interface Collection<T> extends Iterable<T> {
+  get(id: string): T | undefined;
+}
+
+export interface Generate {
+  (info: GenerateInfo): unknown;
+}
+
+export interface GenerateInfo {
+  method: string;
+  args: DispatchArg[];
+  typename: string;
+  fieldname: string;
+  fieldtype: string;
+  seed: Seed;
+  next(): unknown;
+}
+export interface Analysis {
+  types: Record<string, Type>;
+  edges: EdgeInfo[];
+  relationships: Record<string, RelationshipInfo>;
+}

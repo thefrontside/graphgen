@@ -1,62 +1,28 @@
 import type { Seed } from "../distribution.ts";
-import type { DispatchArg, Field, Reference, Type } from "./types.ts";
+import type {
+  Collection,
+  Field,
+  Generate,
+  GenerateInfo,
+  GraphGen,
+  Node,
+  Preset,
+  Reference,
+  Type,
+} from "./types.ts";
 
 import { assert, evaluate, graphql, shift } from "../deps.ts";
-import { createGraph, createVertex, Graph, Vertex } from "../graph.ts";
+import { createGraph, createVertex, Vertex } from "../graph.ts";
 import { normal, weighted } from "../distribution.ts";
 import { CacheStorage, createCache, NullCache } from "./cache.ts";
 import { Alea, createAlea } from "../alea.ts";
-import { Analysis, analyze } from "./analyze.ts";
+import { analyze } from "./analyze.ts";
 import { expect } from "./expect.ts";
 
 export * from "./dispatch.ts";
 export type { CacheStorage, CacheValue } from "./cache.ts";
 
-export interface Node {
-  id: string;
-  __typename: string;
-}
-
 type NonOverridableKeys = "__typename" | "id";
-
-//deno-lint-ignore ban-types
-export type Preset<T> = T extends object ? {
-    [P in keyof T as P extends NonOverridableKeys ? never : P]?: Preset<T[P]>;
-  }
-  : T;
-
-//deno-lint-ignore no-explicit-any
-export interface GraphGen<API = Record<string, any>> {
-  graph: Graph;
-  create<T extends string & keyof API>(
-    typename: T,
-    preset?: Preset<API[T]>,
-  ): Node & API[T];
-  all<T extends string & keyof API>(typename: T): Collection<Node & API[T]>;
-  createMany<T extends string & keyof API>(
-    typename: T,
-    amount: number,
-  ): Iterable<Node & API[T]>;
-  analysis: Analysis;
-}
-
-export interface Collection<T> extends Iterable<T> {
-  get(id: string): T | undefined;
-}
-
-export interface Generate {
-  (info: GenerateInfo): unknown;
-}
-
-export interface GenerateInfo {
-  method: string;
-  args: DispatchArg[];
-  typename: string;
-  fieldname: string;
-  fieldtype: string;
-  seed: Seed;
-  next(): unknown;
-}
 
 //deno-lint-ignore no-explicit-any
 type DefaultComputeMap = Record<string, (node: any) => any>;
