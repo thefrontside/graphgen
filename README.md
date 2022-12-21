@@ -1,5 +1,8 @@
 ## Graphgen
 
+![deno.land/x version](https://img.shields.io/badge/deno.land/x-1.8.0-green.svg?logo=deno&labelColor=black)
+![npm version](https://shields.io/npm/v/@frontside/graphgen)
+
 Generate complete, realistic, repeatable, and fixable datasets for use with test
 suites, simulations, and preview applications.
 
