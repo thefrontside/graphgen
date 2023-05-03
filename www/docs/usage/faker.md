@@ -34,7 +34,7 @@ const methods = Object.entries(globalFaker).reduce((methods, [name, mod]) => {
   if (mod) {
     for (const [fn, value] of Object.entries(mod)) {
       if (typeof value === "function") {
-        methods[`@faker/${name}.${fn}`] = ({ faker }, args) => {
+        methods[`@faker/${name}.${fn}`] = (faker, args) => {
           return faker[name][fn](...args);
         };
       }
