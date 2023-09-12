@@ -19,26 +19,20 @@
     "rules": {
       "exclude": ["prefer-const", "require-yield", "no-inner-declarations"]
     },
-    "files": {
-      "exclude": ["dist", "example", "bundled-assets.js", "node_modules"]
-    }
+    "exclude": ["dist", "example", "bundled-assets.js", "node_modules"]
   },
   "fmt": {
-    "files": {
-      "exclude": [
-        "README.md",
-        "build/",
-        "node_modules",
-        "example",
-        "bundled-assets.js",
-        "dist"
-      ]
-    }
+    "exclude": [
+      "README.md",
+      "build/",
+      "node_modules",
+      "example",
+      "bundled-assets.js",
+      "dist"
+    ]
   },
   "test": {
-    "files": {
-      "exclude": ["build", "node_modules", "example"]
-    }
+    "exclude": ["build", "node_modules", "example"]
   },
   "compilerOptions": {
     "jsx": "react-jsx",
