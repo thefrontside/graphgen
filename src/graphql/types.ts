@@ -78,7 +78,6 @@ export interface Node {
 
 type NonOverridableKeys = "__typename" | "id";
 
-//deno-lint-ignore ban-types
 export type Preset<T> = T extends object ? {
     [P in keyof T as P extends NonOverridableKeys ? never : P]?: Preset<T[P]>;
   }

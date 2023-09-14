@@ -8,18 +8,12 @@
     "rules": {
       "exclude": ["prefer-const", "require-yield", "no-inner-declarations"]
     },
-    "files": {
-      "exclude": ["build", "cli", "www/"]
-    }
+    "exclude": ["build", "cli", "www/"]
   },
   "fmt": {
-    "files": {
-      "exclude": ["README.md", "build/", "cli", "www/"]
-    }
+    "exclude": ["README.md", "build/", "cli", "www/"]
   },
   "test": {
-    "files": {
-      "exclude": ["build", "cli", "www/"]
-    }
+    "exclude": ["build", "cli", "www/"]
   }
 }

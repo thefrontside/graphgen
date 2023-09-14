@@ -14,7 +14,6 @@ import twindConfig from "../twind.config.ts";
 
 describe("www", () => {
   let controller: AbortController;
-  let closed: Promise<void>;
   beforeEach(async function () {
     controller = new AbortController();
     let opts = {
@@ -26,11 +25,14 @@ describe("www", () => {
       plugins: [twindPlugin(twindConfig)],
     });
     await new Promise((onListen) => {
-      closed = Deno.serve(cxt.handler() as Deno.ServeHandler, {
-        ...opts,
-        signal: controller.signal,
-        onListen,
-      });
+      Deno.serve(
+        {
+          ...opts,
+          signal: controller.signal,
+          onListen,
+        },
+        cxt.handler() as Deno.ServeHandler
+      );
     });
   });
   afterEach(async () => {
@@ -56,7 +58,7 @@ describe("www", () => {
     expect(response.ok).toEqual(true);
     expect(response.headers.get("Content-Type")).toMatch("text/html");
     expect(html).toContain(
-      `<base href="http://example.com/path/to/subdir/" />`,
+      `<base href="http://example.com/path/to/subdir/" />`
     );
   });
 });
