@@ -1,5 +1,8 @@
 {
-  "version": "2",
+  "version": "3",
+  "redirects": {
+    "https://esm.sh/v132/@types/glob-to-regexp@~0.4/index.d.ts": "https://esm.sh/v132/@types/glob-to-regexp@0.4.3/index.d.ts"
+  },
   "remote": {
     "https://deno.land/std@0.111.0/_util/assert.ts": "2f868145a042a11d5ad0a3c748dcf580add8a0dbc0e876eaa0026303a5488f58",
     "https://deno.land/std@0.111.0/_util/os.ts": "dfb186cc4e968c770ab6cc3288bd65f4871be03b93beecae57d657232ecffcac",

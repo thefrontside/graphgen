@@ -50,7 +50,7 @@ describe("www", () => {
   it("sets a base element if the X-Base header is present", async () => {
     let response = await fetch("http://localhost:9999/docs/introduction", {
       headers: {
-        "X-Base": "http://example.com/path/to/subdir/",
+        "X-Base-Url": "http://example.com/path/to/subdir/",
       },
     });
     let html = await response.text();
