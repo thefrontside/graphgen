@@ -46,7 +46,11 @@ export const handler: Handlers<Data> = {
     const fileContent = await Deno.readTextFile(url);
     const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
     const page = { ...entry, markdown: body, data: attrs ?? {} };
-    const resp = ctx.render({ page, base: req.headers.get("x-base") });
+    let base = req.headers.get("x-base-url") ?? "/";
+    if (!base.endsWith("/")) {
+      base = base + "/"
+    }
+    const resp = ctx.render({ page, base });
     return resp;
   },
 };
