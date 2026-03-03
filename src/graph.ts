@@ -1,5 +1,5 @@
 // deno-lint-ignore-file no-explicit-any
-import { assert } from "https://deno.land/std@0.140.0/testing/asserts.ts";
+import { assert } from "@std/assert";
 
 import {
   constant,

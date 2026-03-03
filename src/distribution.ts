@@ -1,4 +1,4 @@
-import { gaussian } from "https://deno.land/x/gaussian@v0.1.0/mod.ts";
+import { gaussian } from "gaussian";
 
 export interface Distribution<T> {
   description: string;

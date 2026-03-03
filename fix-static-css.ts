@@ -8,7 +8,7 @@
  * from a working page and injects them into all broken pages.
  */
 
-import { walk } from "https://deno.land/std@0.208.0/fs/walk.ts";
+import { walk } from "@std/fs/walk";
 
 const builtDir = "built";
 

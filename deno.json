@@ -1,4 +1,12 @@
 {
+  "imports": {
+    "alea": "https://esm.sh/alea@1.0.1?pin=v132",
+    "seed": "https://deno.land/x/seed@1.0.0/index.ts",
+    "dnt": "https://deno.land/x/dnt@0.28.0/mod.ts",
+    "gaussian": "https://deno.land/x/gaussian@v0.1.0/mod.ts",
+    "@std/fs": "jsr:@std/fs@^1.0.8",
+    "@std/assert": "jsr:@std/assert@^1.0.8"
+  },
   "tasks": {
     "test": "deno test",
     "build:npm": "deno run -A tasks/build-npm.ts",
