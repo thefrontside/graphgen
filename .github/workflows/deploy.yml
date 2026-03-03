@@ -28,7 +28,7 @@ jobs:
 
       - name: Start Fresh server
         run: |
-          deno run -A --no-lock main.ts &
+          deno run -A main.ts &
           until curl --output /dev/null --silent --head --fail http://127.0.0.1:8000; do
             printf '.'
             sleep 1
