@@ -1,5 +1,5 @@
 {
-  "version": "4",
+  "version": "5",
   "specifiers": {
     "jsr:@libs/xml@*": "6.0.3",
     "jsr:@luca/esbuild-deno-loader@0.11.0": "0.11.0",
@@ -639,5 +639,11 @@
     "https://esm.sh/v135/style-vendorizer@2.2.3/denonext/style-vendorizer.mjs": "121455e7b04b631ef6463ce63cdcd29febd74d88c37713c774ceca8a1561c83d",
     "https://esm.sh/v135/twind@0.16.17/denonext/sheets.js": "2903e4706310977e97d39560c1ef0938097e746b8aa7b0c4503a96c5b6abd2e5",
     "https://esm.sh/v135/twind@0.16.17/denonext/twind.mjs": "6aa3dcacb083937bb654cf6a50e74270fa12ad8b9205a097324c467f55752188"
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:preact-render-to-string@5.2.4",
+      "npm:preact@10.18.2"
+    ]
   }
 }

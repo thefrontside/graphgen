@@ -1,0 +1,49 @@
+name: Deploy
+
+on:
+  workflow_dispatch: # Allows manual trigger
+  push:
+    branches: [v1]
+  pull_request:
+    branches: [v1]
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      id-token: write # Needed for auth with Deno Deploy
+      contents: read # Needed to clone the repository
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Start Fresh server
+        run: |
+          deno run -A --no-lock main.ts &
+          until curl --output /dev/null --silent --head --fail http://127.0.0.1:8000; do
+            printf '.'
+            sleep 1
+          done
+        env:
+          PORT: 8000
+        timeout-minutes: 5
+        working-directory: ./www
+
+      - name: Staticalize
+        run: deno task staticalize
+
+      - name: Upload to Deno Deploy
+        uses: denoland/deployctl@v1
+        with:
+          project: graphgen
+          entrypoint: "jsr:@std/http/file-server"
+          root: built

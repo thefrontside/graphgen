@@ -1,6 +1,8 @@
 dist
 /node_modules/
 /build
+/built
 
 # Local Netlify folder
 .netlify
+/.agent-shell/
