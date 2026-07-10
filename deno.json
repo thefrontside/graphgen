@@ -13,7 +13,7 @@
     "build:cli": "cd cli && deno task build:cli",
     "dev": "cd www && deno run -A dev.ts",
     "start": "cd www && deno run -A main.ts",
-    "staticalize": "deno run -A jsr:@frontside/staticalize@0.2.2/cli --site http://localhost:8000 --output=built --base=https://graphgen.deno.dev && deno run -A fix-static-css.ts"
+    "staticalize": "deno run -A jsr:@frontside/staticalize@0.2.6/cli --site http://localhost:8000 --output=built --base=https://graphgen-data.netlify.app && deno run -A fix-static-css.ts"
   },
   "lint": {
     "rules": {
