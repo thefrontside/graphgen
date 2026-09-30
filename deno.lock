@@ -1,14 +1,33 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@libs/xml@*": "7.0.3"
+    "jsr:@libs/xml@*": "7.0.3",
+    "jsr:@std/assert@^1.0.8": "1.0.19",
+    "jsr:@std/internal@^1.0.12": "1.0.14",
+    "npm:glob-to-regexp@0.4.1": "0.4.1"
   },
   "jsr": {
     "@libs/xml@7.0.3": {
       "integrity": "4caad75dfec0a4dd4ad5dc87dc559d9aa25ac53f17373923a9cd006f6c8d42e6"
+    },
+    "@std/assert@1.0.19": {
+      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/internal@1.0.14": {
+      "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
+    }
+  },
+  "npm": {
+    "glob-to-regexp@0.4.1": {
+      "integrity": "sha512-lkX1HJXwyMcprw/5YUZc2s7DrpAiHB21/V+E1rHUrVNokkvB6bqMzT0VfV6/86ZNabt1k14YOIaT7nDvOX3Iiw=="
     }
   },
   "redirects": {
+    "https://esm.sh/@types/minimalistic-assert@~1.0.3/index.d.ts": "https://esm.sh/@types/minimalistic-assert@1.0.3/index.d.ts",
+    "https://esm.sh/minimalistic-assert@^1.0.1?target=denonext": "https://esm.sh/minimalistic-assert@1.0.1?target=denonext",
     "https://esm.sh/v132/@types/glob-to-regexp@~0.4/index.d.ts": "https://esm.sh/v132/@types/glob-to-regexp@0.4.4/index.d.ts"
   },
   "remote": {
@@ -117,15 +136,29 @@
     "https://deno.land/x/seed@1.0.0/index.ts": "c1a656ad944010516e8b95324d93627ea1766b523ca9d4f841319b2066fa8495",
     "https://deno.land/x/seed@1.0.0/prngs.ts": "d999a383736eca2b7966dd245cd38b29e4440156e9e33d2248e581193dd62e42",
     "https://deno.land/x/seed@1.0.0/utils.ts": "0a9f0f13bfd6016cb07ac7b830d2f0550113fba8b1d07e19dced7a9250c44bd5",
+    "https://esm.sh/alea@1.0.1": "61e702d7ea0be983ec225aa86c65a14ba0075f70d558e7ef1b5c585b061c1ee7",
+    "https://esm.sh/alea@1.0.1/denonext/alea.mjs": "91ee1d0e9f16ca19cb37876a87c8cefb8727cf5df4639efca9a62c1ce93f1ba5",
     "https://esm.sh/alea@1.0.1?pin=v132": "813250725c871eb287ef992284231bfe498dc5d7cb1e13ee15950e38c3459ba0",
     "https://esm.sh/glob-to-regexp@0.4.1?pin=v132": "772e9fce7e1cd77a82e3d523ece9a349eb032fec17146ca3e4163a6b594106e3",
     "https://esm.sh/graphql@16.6.0?pin=v132": "6ab85614193688b2e2ad87f7e25760619bbda4a37ad9c2b025584214e7f7eece",
+    "https://esm.sh/hash.js@1.1.7": "c733dc76e7ae71fbf1aae069aee2bfb1d4b3227b78f90bc234a5367af657966b",
+    "https://esm.sh/hash.js@1.1.7/denonext/hash.mjs": "d21c3eae033f031bcb9c5b34d344b75298d1eeed269ef978adc850c861d075ff",
     "https://esm.sh/hash.js@1.1.7?pin=v132": "272d0cf50eb60257ec011125eaab6afa4fa5415590018257fc0fe102c6328b80",
+    "https://esm.sh/minimalistic-assert@1.0.1/denonext/minimalistic-assert.mjs": "07377d761438c22ed239e538e2b641cce8e0733793f0a98f34594782a6e85829",
+    "https://esm.sh/minimalistic-assert@1.0.1?target=denonext": "4e19506c5a46f3c68b4d7b431e1de059c6c57b663cabf226cdb7ef0906b7aebe",
+    "https://esm.sh/v132/alea@1.0.1": "813250725c871eb287ef992284231bfe498dc5d7cb1e13ee15950e38c3459ba0",
     "https://esm.sh/v132/alea@1.0.1/denonext/alea.mjs": "90b44f81a636777cb849a749bdce783c65f645e9050cc58c5e8509b2a28ea475",
     "https://esm.sh/v132/glob-to-regexp@0.4.1/denonext/glob-to-regexp.mjs": "ac25c0581e5b203507a409913d863969c132697351c61e3a73485c319c8fd639",
     "https://esm.sh/v132/graphql@16.6.0/denonext/graphql.mjs": "799498b21523a9bfa7398e9f4c1a7adb069429874c4d59e77a121fc831571722",
+    "https://esm.sh/v132/hash.js@1.1.7": "272d0cf50eb60257ec011125eaab6afa4fa5415590018257fc0fe102c6328b80",
     "https://esm.sh/v132/hash.js@1.1.7/denonext/hash.mjs": "da540314f3db4cf88d5ed4f994f626eb9e56394a4eef9eb3359c68dd791f1959",
     "https://esm.sh/v132/inherits@2.0.4/denonext/inherits.mjs": "8095f3d6aea060c904fb24ae50f2882779c0acbe5d56814514c8b5153f3b4b3b",
     "https://esm.sh/v132/minimalistic-assert@1.0.1/denonext/minimalistic-assert.mjs": "9f5052e2c0ca7967ae65aee90db64a4f2014eebe14d6b774933e05d349c79c83"
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@std/assert@^1.0.8",
+      "jsr:@std/fs@^1.0.8"
+    ]
   }
 }
