@@ -63,12 +63,19 @@ export default function DocsPage(props: PageProps<Data>) {
     description = String(props.data.page.data.description);
   }
 
+  // The page a reader actually arrives at, so that this copy and the one
+  // frontside.com serves are one page rather than two competing for the same
+  // searches. Built from the request, which staticalize rewrites onto
+  // `--canonical` while the rest of the build stays on `--base`.
+  let canonical = new URL(props.url.pathname, props.url.origin).href;
+
   return (
     <>
       <Head>
         <title>{props.data.page?.title ?? "Not Found"} | graphgen docs</title>
         <link rel="stylesheet" href={`/gfm.css?build=${BUILD_ID}`} />
         {description && <meta name="description" content={description} />}
+        <link rel="canonical" href={canonical} />
       </Head>
       <div class="flex flex-col min-h-screen">
         <Header title="docs" active="docs" />
