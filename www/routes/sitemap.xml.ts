@@ -1,5 +1,5 @@
 import { Handlers } from "$fresh/server.ts";
-import { stringify } from "jsr:@libs/xml";
+import { stringify } from "jsr:@libs/xml@^7.0.3";
 
 import docs from "../docs/toc.json" with { type: "json" };
 
